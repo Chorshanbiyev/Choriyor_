@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Matritsaning determinanti va teskarisini topish</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 8px;
+      background: #f8f8ff;
+      color: #222;
+    }
+    h2 { margin-top: 1.2em; }
+    input[type="number"] {
+      width: 60px;
+      padding: 4px;
+      margin: 0 4px;
+    }
+    .matrix-input {
+      overflow-x: auto;
+      margin-bottom: 1em;
+    }
+    table {
+      border-collapse: collapse;
+      margin: auto;
+      width: auto;
+      max-width: 100%;
+    }
+    td, th {
+      border: 1px solid #bbb;
+      padding: 2px;
+      text-align: center;
+      background: #fff;
+      min-width: 48px;
+    }
+    .btn {
+      padding: 8px 18px;
+      background: #2c7be5;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 8px 0;
+      font-size: 1em;
+    }
+    .btn:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+    }
+    .output {
+      margin-top: 1em;
+      background: #fffbe7;
+      border: 1px solid #ffe08a;
+      padding: 10px;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    @media (max-width: 600px) {
+      table, td, th {
+        font-size: 0.92em;
+        min-width: 32px;
+      }
+      body { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Matritsaning determinanti va teskarisini topish</h1>
+  <form id="sizeForm">
+    <label for="n">Qatorlar soni (n):</label>
+    <input type="number" id="n" name="n" min="1" max="1000" value="3" required>
+    <label for="m">Ustunlar soni (m):</label>
+    <input type="number" id="m" name="m" min="1" max="1000" value="3" required>
+    <button type="button" class="btn" onclick="createMatrixInput()">Matritsa yaratish</button>
+  </form>
+
+  <div class="matrix-input" id="matrixInput"></div>
+  <button id="calcBtn" class="btn" style="display:none" onclick="calculate()">Hisoblash</button>
+
+  <div id="output" class="output" style="display:none"></div>
+
+  <script>
+    function createMatrixInput() {
+      const n = parseInt(document.getElementById('n').value);
+      const m = parseInt(document.getElementById('m').value);
+      if (isNaN(n) || isNaN(m) || n < 1 || m < 1 || n > 1000 || m > 1000) {
+        alert('n va m 1 dan 1000 gacha bo‘lishi kerak!');
+        return;
+      }
+      let html = '<table>';
+      for (let i = 0; i < n; i++) {
+        html += '<tr>';
+        for (let j = 0; j < m; j++) {
+          html += `<td><input type="number" step="any" id="cell_${i}_${j}" value="0"></td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      document.getElementById('matrixInput').innerHTML = html;
+      document.getElementById('calcBtn').style.display = 'inline-block';
+      document.getElementById('output').style.display = 'none';
+    }
+
+    function getMatrix() {
+      const n = parseInt(document.getElementById('n').value);
+      const m = parseInt(document.getElementById('m').value);
+      let matrix = [];
+      for (let i = 0; i < n; i++) {
+        let row = [];
+        for (let j = 0; j < m; j++) {
+          const val = parseFloat(document.getElementById(`cell_${i}_${j}`).value) || 0;
+          row.push(val);
+        }
+        matrix.push(row);
+      }
+      return matrix;
+    }
+
+    function determinant(matrix) {
+      const n = matrix.length;
+      // Deep copy for Gauss elimination
+      let A = matrix.map(row => row.slice());
+      let det = 1;
+      for (let i = 0; i < n; i++) {
+        // Find pivot
+        let maxRow = i;
+        for (let k = i + 1; k < n; k++) {
+          if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+        }
+        if (Math.abs(A[maxRow][i]) < 1e-12) return 0;
+        if (i !== maxRow) {
+          [A[i], A[maxRow]] = [A[maxRow], A[i]];
+          det *= -1;
+        }
+        det *= A[i][i];
+        for (let k = i + 1; k < n; k++) {
+          let f = A[k][i] / A[i][i];
+          for (let j = i; j < n; j++) {
+            A[k][j] -= f * A[i][j];
+          }
+        }
+      }
+      return det;
+    }
+
+    function inverse(matrix) {
+      const n = matrix.length;
+      // Make augmented matrix [A | I]
+      let A = matrix.map(row => row.slice());
+      let I = [];
+      for (let i = 0; i < n; i++) {
+        I[i] = [];
+        for (let j = 0; j < n; j++) I[i][j] = (i === j ? 1 : 0);
+      }
+
+      for (let i = 0; i < n; i++) {
+        // Find pivot
+        let maxRow = i;
+        for (let k = i + 1; k < n; k++)
+          if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
+        if (Math.abs(A[maxRow][i]) < 1e-12) return null;
+        [A[i], A[maxRow]] = [A[maxRow], A[i]];
+        [I[i], I[maxRow]] = [I[maxRow], I[i]];
+
+        // Normalize row
+        let div = A[i][i];
+        for (let j = 0; j < n; j++) {
+          A[i][j] /= div;
+          I[i][j] /= div;
+        }
+        // Eliminate
+        for (let k = 0; k < n; k++) {
+          if (k === i) continue;
+          let f = A[k][i];
+          for (let j = 0; j < n; j++) {
+            A[k][j] -= f * A[i][j];
+            I[k][j] -= f * I[i][j];
+          }
+        }
+      }
+      return I;
+    }
+
+    function matrixToTable(mat, digits=6) {
+      let html = '<table>';
+      for (let i = 0; i < mat.length; i++) {
+        html += '<tr>';
+        for (let j = 0; j < mat[0].length; j++) {
+          let val = mat[i][j];
+          if (typeof val === 'number') {
+            val = Math.abs(val) < 1e-12 ? 0 : +val.toFixed(digits);
+          }
+          html += `<td>${val}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</table>';
+      return html;
+    }
+
+    function calculate() {
+      const n = parseInt(document.getElementById('n').value);
+      const m = parseInt(document.getElementById('m').value);
+      const matrix = getMatrix();
+      let output = '';
+      if (n !== m) {
+        output += '<b>Matritsa kvadrat emas!</b> Determinant va teskari matritsa faqat kvadrat matritsalar uchun hisoblanadi.<br>';
+      } else {
+        let det = determinant(matrix);
+        output += `<h2>Determinant:</h2><div style="font-size:1.2em; color:#b86c00">${det}</div>`;
+        if (Math.abs(det) < 1e-12) {
+          output += `<b>Teskari matritsa mavjud emas (determinant 0 ga yaqin)!</b>`;
+        } else {
+          let inv = inverse(matrix);
+          if (!inv) {
+            output += `<b>Teskari matritsa mavjud emas!</b>`;
+          } else {
+            output += `<h2>Teskari Matritsa:</h2>`;
+            output += matrixToTable(inv, 6);
+          }
+        }
+      }
+      output += `<h2>Kiritilgan matritsa:</h2>`;
+      output += matrixToTable(matrix, 6);
+
+      document.getElementById('output').innerHTML = output;
+      document.getElementById('output').style.display = 'block';
+    }
+  </script>
+</body>
+</html>

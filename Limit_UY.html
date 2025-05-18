@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ketma-ketlik limitini vizual ko`rish</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0; padding: 0;
+      background: #f5f6fa; color: #222;
+    }
+    .container {
+      max-width: 700px;
+      margin: 25px auto;
+      padding: 22px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px #bbb8;
+    }
+    h2 {
+      text-align: center;
+    }
+    canvas {
+      width: 100% !important;
+      height: 260px !important;
+      display: block;
+      margin: 18px 0;
+      background: #f8fafc;
+      border-radius: 8px;
+    }
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 9px;
+      align-items: center;
+      justify-content: center;
+    }
+    input[type="text"], input[type="number"] {
+      padding: 8px 12px;
+      font-size: 1em;
+      border: 1.5px solid #c1c7d6;
+      border-radius: 4px;
+      outline: none;
+      width: 180px;
+    }
+    input[type="number"] {
+      width: 75px;
+    }
+    button {
+      padding: 8px 22px;
+      border: none;
+      background: #4d6ee6;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+    .example {
+      background: #f1f5fd;
+      padding: 7px 12px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+      font-size: 0.98em;
+    }
+    .err {
+      color: #b01c27;
+      margin-top: 7px;
+      font-size: 1em;
+    }
+    #explain {
+      margin-top: 10px;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 8px;}
+      canvas { height: 160px !important;}
+      .input-row { flex-direction: column; gap: 8px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Ketma-ketlik limitini vizual ko`rish</h2>
+    <div class="example">
+      Masalan: <code>1/n</code>, <code>n/2</code>, <code>2^n</code>, <code>(-1)^n/n</code>, <code>sin(n)/n</code>, <code>(-1)^n</code> <br>
+      <b>n</b> — faqat butun musbat son sifatida ishlatiladi.<br>
+      (Matematik funksiyalar: <code>sin</code>, <code>cos</code>, <code>pow</code>, <code>abs</code>, <code>log</code>, <code>exp</code>, <code>sqrt</code>, va h.k.)
+    </div>
+    <form id="seqForm" class="input-row" onsubmit="return false;">
+      <label>Ketma-ketlik: <input type="text" id="formula" value="1/n"></label>
+      <label>n max: <input type="number" id="nmax" value="30" min="5" max="100"></label>
+      <button type="submit">Chizish</button>
+    </form>
+    <div id="error" class="err"></div>
+    <canvas id="graph" width="600" height="260"></canvas>
+    <div id="explain"></div>
+  </div>
+  <script>
+    // Math parsing helper (safe)
+    function parseFormula(formula) {
+      // Replace common math symbols for JS
+      let js = formula
+        .replace(/(\d+)\^(\d+)/g, "Math.pow($1,$2)") // 2^n -> Math.pow(2,n)
+        .replace(/([a-zA-Z0-9\)\]])\^([a-zA-Z0-9\(\[])/g, "Math.pow($1,$2)") // a^b -> Math.pow(a,b)
+        .replace(/(\d+(\.\d+)?|\w+)\s*\/\s*(\d+(\.\d+)?|\w+)/g, "($1)/($3)") // a/b -> (a)/(b)
+        .replace(/sin\(/g, "Math.sin(")
+        .replace(/cos\(/g, "Math.cos(")
+        .replace(/tan\(/g, "Math.tan(")
+        .replace(/abs\(/g, "Math.abs(")
+        .replace(/log\(/g, "Math.log(")
+        .replace(/exp\(/g, "Math.exp(")
+        .replace(/sqrt\(/g, "Math.sqrt(")
+        .replace(/pi/gi, "Math.PI")
+        .replace(/e\b/gi, "Math.E");
+      return js;
+    }
+
+    function safeEval(expr, n) {
+      // Only allow n and Math
+      try {
+        // eslint-disable-next-line no-new-func
+        return Function("n", "return " + expr + ";")(n);
+      } catch {
+        return NaN;
+      }
+    }
+
+    function drawAxes(ctx, width, height, minY, maxY, nmax) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.strokeStyle = "#aaa";
+      ctx.lineWidth = 1;
+      // Y o'qi
+      ctx.beginPath();
+      ctx.moveTo(40, 20);
+      ctx.lineTo(40, height - 30);
+      ctx.stroke();
+      // X o'qi
+      ctx.beginPath();
+      ctx.moveTo(40, height - 30);
+      ctx.lineTo(width - 10, height - 30);
+      ctx.stroke();
+
+      // Y shkalasi
+      ctx.fillStyle = "#555";
+      let yStep = (maxY-minY)/5;
+      for(let i=0;i<=5;i++){
+        let yVal = minY + i*yStep;
+        let yPos = height-30 - ((yVal-minY)/(maxY-minY))*(height-50);
+        ctx.fillText(yVal.toFixed(2), 3, yPos+4);
+      }
+      // X shkalasi
+      for(let n=1; n<=nmax; n+=Math.ceil(nmax/6)){
+        let x = 40 + (n-1)*(width-60)/(nmax-1);
+        ctx.fillText(n, x-6, height-10);
+      }
+    }
+
+    function drawSequence(seq, nmax, formula) {
+      const canvas = document.getElementById('graph');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width, height = canvas.height;
+
+      // min & max Y
+      let minY = Math.min(...seq.filter(x => isFinite(x)));
+      let maxY = Math.max(...seq.filter(x => isFinite(x)));
+      if(!isFinite(minY) || !isFinite(maxY)){ minY = -1; maxY = 1; }
+      if(Math.abs(maxY-minY)<1e-8) { minY -=1; maxY+=1; }
+      // For better view, stretch a bit
+      if(maxY===minY){ maxY+=1; minY-=1; }
+      if(maxY - minY < 0.5) { maxY+=0.25; minY-=0.25;}
+
+      drawAxes(ctx, width, height, minY, maxY, nmax);
+
+      // Draw points & lines
+      ctx.strokeStyle = "#18c37d";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let n=1; n<=nmax; n++){
+        let x = 40 + (n-1)*(width-60)/(nmax-1);
+        let y = height-30 - ((seq[n-1]-minY)/(maxY-minY))*(height-50);
+        if(n===1) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        // nuqta
+        ctx.fillStyle = "#18c37d";
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2*Math.PI);
+        ctx.fill();
+      }
+      ctx.stroke();
+    }
+
+    function analyze(seq) {
+      // Simple convergence/oscillation/monotone/else analysis
+      let N = seq.length;
+      let last10 = seq.slice(-10);
+      let finiteLast = last10.filter(x=>isFinite(x));
+      let mean = finiteLast.reduce((a,b)=>a+b,0)/finiteLast.length;
+      let maxDev = Math.max(...finiteLast.map(x=>Math.abs(x-mean)));
+      if(!finiteLast.length) return "Qiymatlar aniqlanmayapti yoki cheksiz.";
+      if(maxDev < Math.max(1e-3, Math.abs(mean)*0.01)){
+        return `Ketma-ketlik <b>yaqinlashuvchi</b> va taxminiy limiti: <b>${mean.toFixed(4)}</b>`;
+      }
+      if(finiteLast.every(x=>Math.abs(x) > 1e6)) {
+        return "Ketma-ketlik <b>cheksizga o‘sadi</b> — <b>uzoqlashuvchi</b>.";
+      }
+      let sign = finiteLast.map(x=>Math.sign(x));
+      if(new Set(sign).size>1) return "Ketma-ketlik <b>tebranma (osillatsion)</b> — limit yo‘q.";
+      return "Ketma-ketlik";
+    }
+
+    document.getElementById('seqForm').onsubmit = function() {
+      document.getElementById('error').textContent = '';
+      const formula = document.getElementById('formula').value.trim();
+      const nmax = Math.min(100, Math.max(5, parseInt(document.getElementById('nmax').value)));
+      if(!formula || !/n/.test(formula)) {
+        document.getElementById('error').textContent = "Formulada 'n' ishlatilishi shart!";
+        return false;
+      }
+      let jsFormula = parseFormula(formula);
+      let seq = [];
+      for(let n=1;n<=nmax;n++){
+        let val = safeEval(jsFormula, n);
+        if(typeof val !== 'number' || isNaN(val)) val = NaN;
+        seq.push(val);
+      }
+      if(seq.every(x=>!isFinite(x))){
+        document.getElementById('error').textContent = "Formulada xatolik bor yoki natijalar aniqlanmadi.";
+        return false;
+      }
+      drawSequence(seq, nmax, formula);
+      document.getElementById('explain').innerHTML = analyze(seq);
+      return false;
+    };
+
+    // Dastlabki render
+    document.getElementById('seqForm').dispatchEvent(new Event('submit'));
+  </script>
+</body>
+</html>

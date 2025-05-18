@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Koshi masalasini Eyler va Runge-Kutta usullarida yechish</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #0001;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      min-width: 160px;
+    }
+    input, select {
+      padding: 6px 8px;
+      margin-top: 4px;
+      font-size: 1em;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #0078d7;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 18px;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #005ea3;
+    }
+    .results {
+      margin-top: 32px;
+      overflow-x: auto;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 400px;
+      margin-bottom: 24px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: center;
+    }
+    th {
+      background: #e7f3ff;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto 16px auto;
+      max-width: 100%;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      height: 300px;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 8px; }
+      label { min-width: 120px; font-size: 0.95em; }
+      th, td { font-size: 0.95em; }
+      canvas { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Birinchi tartibli differensial tenglama uchun Koshi masalasini <br> Eyler va Runge-Kutta usullarida yechish</h1>
+    <form id="koshiform">
+      <label>
+        Tenglama y' = f(x, y)
+        <input type="text" id="func" value="x + y">
+        <span style="font-size:.92em;font-weight:400;">Masalan: <code>x + y</code>, <code>y - x*x + 1</code></span>
+      </label>
+      <label>
+        Boshlang‘ich nuqta: x0</sub>
+        <input type="number" step="any" id="x0" value="0">
+      </label>
+      <label>
+        y0</sub>
+        <input type="number" step="any" id="y0" value="1">
+      </label>
+      <label>
+        Oraliq oxiri x oxiri</sub>
+        <input type="number" step="any" id="xEnd" value="1">
+      </label>
+      <label>
+        Qadam h
+        <input type="number" step="any" id="h" value="0.1" min="0.01">
+      </label>
+      <button type="submit">Hisoblash</button>
+    </form>
+    <div class="results" id="results" style="display:none;">
+      <h2>Natijalar</h2>
+      <canvas id="graph" width="800" height="300"></canvas>
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>i</th>
+            <th>x</th>
+            <th>Eyler y</th>
+            <th>Runge-Kutta y</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- natijalar -->
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.98em;text-align:center;color:#888;">
+      Tayyorladi: <b>Choriyor Chorshanbiyev</b>
+    </p>
+  </div>
+  <script>
+    // Math funksiyalarini ishlatish uchun
+    function parseFunction(str) {
+      return new Function("x", "y", `
+        with (Math) {
+          return ${str};
+        }
+      `);
+    }
+
+    // To‘g‘ri Eyler usuli
+    function eulerMethod(f, x0, y0, xEnd, h) {
+      let xs = [], ys = [];
+      let x = x0, y = y0;
+      xs.push(x);
+      ys.push(y);
+
+      // xEnd ni kiritishni ta’minlash uchun
+      const eps = h * 1e-6;
+      while (x < xEnd - eps) {
+        y = y + h * f(x, y);
+        x = x + h;
+        xs.push(+x.toFixed(10)); // Raqamli xatoliklarni oldini olish uchun
+        ys.push(y);
+      }
+      return xs.map((xi, i) => ({ x: xi, y: ys[i] }));
+    }
+
+    // To‘g‘ri Runge-Kutta 4-usuli
+    function rungeKutta4(f, x0, y0, xEnd, h) {
+      let xs = [], ys = [];
+      let x = x0, y = y0;
+      xs.push(x);
+      ys.push(y);
+
+      const eps = h * 1e-6;
+      while (x < xEnd - eps) {
+        let k1 = f(x, y);
+        let k2 = f(x + h/2, y + h*k1/2);
+        let k3 = f(x + h/2, y + h*k2/2);
+        let k4 = f(x + h, y + h*k3);
+        y = y + h * (k1 + 2*k2 + 2*k3 + k4) / 6;
+        x = x + h;
+        xs.push(+x.toFixed(10));
+        ys.push(y);
+      }
+      return xs.map((xi, i) => ({ x: xi, y: ys[i] }));
+    }
+
+    // Grafik chizish
+    function drawGraph(eulerData, rkData) {
+      const canvas = document.getElementById('graph');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Chegaralar
+      const allX = [...eulerData, ...rkData].map(d => d.x);
+      const allY = [...eulerData, ...rkData].map(d => d.y);
+      const minX = Math.min(...allX), maxX = Math.max(...allX);
+      const minY = Math.min(...allY), maxY = Math.max(...allY);
+      const pad = 30;
+
+      function toCanvasX(x) {
+        return pad + (x - minX) * (canvas.width - 2*pad) / (maxX - minX || 1);
+      }
+      function toCanvasY(y) {
+        return canvas.height - pad - (y - minY) * (canvas.height - 2*pad) / (maxY - minY || 1);
+      }
+
+      // O‘qlar
+      ctx.strokeStyle="#aaa"; ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(toCanvasX(minX), toCanvasY(0));
+      ctx.lineTo(toCanvasX(maxX), toCanvasY(0));
+      ctx.moveTo(toCanvasX(0), toCanvasY(minY));
+      ctx.lineTo(toCanvasX(0), toCanvasY(maxY));
+      ctx.stroke();
+
+      // Eyler
+      ctx.strokeStyle="#0078d7";
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      eulerData.forEach((d,i)=>{
+        if(i===0) ctx.moveTo(toCanvasX(d.x), toCanvasY(d.y));
+        else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
+      });
+      ctx.stroke();
+
+      // Runge-Kutta
+      ctx.strokeStyle="#e67e22";
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      rkData.forEach((d,i)=>{
+        if(i===0) ctx.moveTo(toCanvasX(d.x), toCanvasY(d.y));
+        else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
+      });
+      ctx.stroke();
+
+      // Legend
+      ctx.font = "bold 15px Arial";
+      ctx.fillStyle="#0078d7"; ctx.fillText("Eyler", pad+5, pad+10);
+      ctx.fillStyle="#e67e22"; ctx.fillText("Runge-Kutta", pad+70, pad+10);
+    }
+
+    document.getElementById('koshiform').onsubmit = function(e) {
+      e.preventDefault();
+      const funcStr = document.getElementById('func').value;
+      const x0 = parseFloat(document.getElementById('x0').value);
+      const y0 = parseFloat(document.getElementById('y0').value);
+      const xEnd = parseFloat(document.getElementById('xEnd').value);
+      const h = parseFloat(document.getElementById('h').value);
+
+      let f;
+      try {
+        f = parseFunction(funcStr);
+        f(x0, y0); // test
+      } catch (err) {
+        alert("Tenglama noto‘g‘ri! Masalan: x + y yoki y - x*x + 1");
+        return;
+      }
+
+      let euler = eulerMethod(f, x0, y0, xEnd, h);
+      let rk = rungeKutta4(f, x0, y0, xEnd, h);
+
+      // Jadval
+      let tbody = '';
+      for (let i = 0; i < euler.length; ++i) {
+        tbody += `<tr>
+          <td>${i}</td>
+          <td>${euler[i].x.toFixed(5)}</td>
+          <td>${euler[i].y.toFixed(7)}</td>
+          <td>${rk[i].y.toFixed(7)}</td>
+        </tr>`;
+      }
+      document.getElementById('resultTable').querySelector('tbody').innerHTML = tbody;
+      document.getElementById('results').style.display = '';
+
+      // Grafik
+      drawGraph(euler, rk);
+    };
+  </script>
+</body>
+</html>
