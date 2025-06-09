@@ -74,6 +74,20 @@
     th {
       background: #e7f3ff;
     }
+    .sim-controls {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .sim-controls input[type="range"] {
+      width: 320px;
+      max-width: 90vw;
+    }
+    .sim-controls label {
+      font-size:1em;
+      font-weight:400;
+      margin-bottom: 2px;
+      display: block;
+    }
     canvas {
       display: block;
       margin: 0 auto 16px auto;
@@ -82,18 +96,65 @@
       border: 1px solid #ccc;
       border-radius: 4px;
       height: 300px;
+      transition: box-shadow 0.2s;
+    }
+    .sim-controls button {
+      margin-left: 10px;
+      margin-right: 10px;
+      background: #e67e22;
+      padding: 7px 15px;
+      font-size: 1em;
+    }
+    .sim-controls button:active {
+      background: #c95d0d;
+    }
+    .step-details {
+      margin: 0 auto 20px auto;
+      max-width: 650px;
+      background: #f8fbff;
+      border-radius: 7px;
+      border: 1px solid #ddeaff;
+      padding: 18px 18px 12px 18px;
+      font-size: 1.06em;
+      color: #004d99;
+      box-shadow: 0 1px 4px #0001;
+    }
+    .step-details code {
+      background: #eaf3ff;
+      color: #333;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 1em;
+    }
+    .step-details table {
+      width: auto;
+      margin: 10px 0 0 0;
+      font-size: .98em;
+    }
+    .step-details th, .step-details td {
+      padding: 3px 7px;
+    }
+    .step-details th {
+      background: #f0f8ff;
+    }
+    .formula {
+      color: #0a4d8c;
+      font-family: 'Consolas', 'Menlo', 'monospace';
+      font-size: 1.03em;
     }
     @media (max-width: 600px) {
       .container { padding: 8px; }
       label { min-width: 120px; font-size: 0.95em; }
       th, td { font-size: 0.95em; }
+      .step-details { font-size: 0.97em; padding: 10px 4vw 8px 4vw;}
       canvas { height: 200px; }
+      .sim-controls input[type="range"] { width: 98vw; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Birinchi tartibli differensial tenglama uchun Koshi masalasini <br> Eyler va Runge-Kutta usullarida yechish</h1>
+    <h1>Birinchi tartibli differensial tenglama uchun Koshi masalasini <br> Eyler va Runge-Kutta usullarida yechish1</h1>
     <form id="koshiform">
       <label>
         Tenglama y' = f(x, y)
@@ -101,15 +162,15 @@
         <span style="font-size:.92em;font-weight:400;">Masalan: <code>x + y</code>, <code>y - x*x + 1</code></span>
       </label>
       <label>
-        Boshlang‘ich nuqta: x0</sub>
+        Boshlang‘ich nuqta: x0
         <input type="number" step="any" id="x0" value="0">
       </label>
       <label>
-        y0</sub>
+        y0
         <input type="number" step="any" id="y0" value="1">
       </label>
       <label>
-        Oraliq oxiri x oxiri</sub>
+        Oraliq oxiri x oxiri
         <input type="number" step="any" id="xEnd" value="1">
       </label>
       <label>
@@ -119,6 +180,16 @@
       <button type="submit">Hisoblash</button>
     </form>
     <div class="results" id="results" style="display:none;">
+      <div class="sim-controls" id="simControls" style="display:none;">
+        <label for="simSlider">Animatsiya: Qadamni tanlang yoki avtomatik ko‘rish</label>
+        <input type="range" id="simSlider" min="1" max="10" value="1" step="1">
+        <span id="simStepNum">1</span> / <span id="simStepMax">10</span>
+        <button id="playBtn" title="Avto animatsiya">&#9654;</button>
+        <button id="resetBtn" title="Boshlashga qaytish">&#8635;</button>
+      </div>
+      <div class="step-details" id="stepDetails" style="display:none;">
+        <!-- formulalar va natijalar shu yerda -->
+      </div>
       <h2>Natijalar</h2>
       <canvas id="graph" width="800" height="300"></canvas>
       <table id="resultTable">
@@ -149,52 +220,84 @@
       `);
     }
 
-    // To‘g‘ri Eyler usuli
+    // Eyler usuli, har qadam uchun oraliq natijalar
     function eulerMethod(f, x0, y0, xEnd, h) {
-      let xs = [], ys = [];
+      let xs = [], ys = [], steps = [];
       let x = x0, y = y0;
       xs.push(x);
       ys.push(y);
 
-      // xEnd ni kiritishni ta’minlash uchun
       const eps = h * 1e-6;
+      let i = 0;
       while (x < xEnd - eps) {
-        y = y + h * f(x, y);
-        x = x + h;
-        xs.push(+x.toFixed(10)); // Raqamli xatoliklarni oldini olish uchun
-        ys.push(y);
+        let fxy = f(x, y);
+        let yNext = y + h * fxy;
+        let xNext = x + h;
+        xs.push(+xNext.toFixed(10));
+        ys.push(yNext);
+        steps.push({
+          i: i,
+          x: x,
+          y: y,
+          fxy: fxy,
+          yNext: yNext,
+          xNext: xNext
+        });
+        x = xNext;
+        y = yNext;
+        i++;
       }
-      return xs.map((xi, i) => ({ x: xi, y: ys[i] }));
+      return {
+        data: xs.map((xi, i) => ({ x: xi, y: ys[i] })),
+        steps: steps
+      };
     }
 
-    // To‘g‘ri Runge-Kutta 4-usuli
+    // Runge-Kutta 4-usuli, har qadam uchun oraliq natijalar
     function rungeKutta4(f, x0, y0, xEnd, h) {
-      let xs = [], ys = [];
+      let xs = [], ys = [], steps = [];
       let x = x0, y = y0;
       xs.push(x);
       ys.push(y);
 
       const eps = h * 1e-6;
+      let i = 0;
       while (x < xEnd - eps) {
         let k1 = f(x, y);
         let k2 = f(x + h/2, y + h*k1/2);
         let k3 = f(x + h/2, y + h*k2/2);
         let k4 = f(x + h, y + h*k3);
-        y = y + h * (k1 + 2*k2 + 2*k3 + k4) / 6;
-        x = x + h;
-        xs.push(+x.toFixed(10));
-        ys.push(y);
+        let yNext = y + h * (k1 + 2*k2 + 2*k3 + k4) / 6;
+        let xNext = x + h;
+        xs.push(+xNext.toFixed(10));
+        ys.push(yNext);
+        steps.push({
+          i: i,
+          x: x,
+          y: y,
+          k1: k1,
+          k2: k2,
+          k3: k3,
+          k4: k4,
+          yNext: yNext,
+          xNext: xNext
+        });
+        x = xNext;
+        y = yNext;
+        i++;
       }
-      return xs.map((xi, i) => ({ x: xi, y: ys[i] }));
+      return {
+        data: xs.map((xi, i) => ({ x: xi, y: ys[i] })),
+        steps: steps
+      };
     }
 
-    // Grafik chizish
-    function drawGraph(eulerData, rkData) {
+    // Grafik chizish (simulatsion)
+    function drawGraph(eulerData, rkData, upToStep) {
       const canvas = document.getElementById('graph');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Chegaralar
       const allX = [...eulerData, ...rkData].map(d => d.x);
       const allY = [...eulerData, ...rkData].map(d => d.y);
       const minX = Math.min(...allX), maxX = Math.max(...allX);
@@ -217,25 +320,59 @@
       ctx.lineTo(toCanvasX(0), toCanvasY(maxY));
       ctx.stroke();
 
-      // Eyler
+      // Eyler: nuqtalar va chiziq
       ctx.strokeStyle="#0078d7";
       ctx.lineWidth=2;
       ctx.beginPath();
-      eulerData.forEach((d,i)=>{
+      eulerData.slice(0, upToStep).forEach((d,i)=>{
         if(i===0) ctx.moveTo(toCanvasX(d.x), toCanvasY(d.y));
         else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
       });
       ctx.stroke();
 
-      // Runge-Kutta
+      // Eyler nuqtalarini doira bilan belgilash
+      ctx.fillStyle="#0078d7";
+      for (let i = 0; i < upToStep; ++i) {
+        ctx.beginPath();
+        ctx.arc(toCanvasX(eulerData[i].x), toCanvasY(eulerData[i].y), 4, 0, 2*Math.PI);
+        ctx.fill();
+      }
+
+      // Runge-Kutta: nuqtalar va chiziq
       ctx.strokeStyle="#e67e22";
       ctx.lineWidth=2;
       ctx.beginPath();
-      rkData.forEach((d,i)=>{
+      rkData.slice(0, upToStep).forEach((d,i)=>{
         if(i===0) ctx.moveTo(toCanvasX(d.x), toCanvasY(d.y));
         else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
       });
       ctx.stroke();
+
+      // RK4 nuqtalarini doira bilan belgilash
+      ctx.fillStyle="#e67e22";
+      for (let i = 0; i < upToStep; ++i) {
+        ctx.beginPath();
+        ctx.arc(toCanvasX(rkData[i].x), toCanvasY(rkData[i].y), 4, 0, 2*Math.PI);
+        ctx.fill();
+      }
+
+      // Faol nuqta animatsiya (oxirgi nuqta)
+      if(upToStep>0){
+        ctx.save();
+        // Eyler
+        ctx.beginPath();
+        ctx.arc(toCanvasX(eulerData[upToStep-1].x), toCanvasY(eulerData[upToStep-1].y), 8, 0, 2*Math.PI);
+        ctx.strokeStyle="#0078d7cc";
+        ctx.lineWidth=2;
+        ctx.stroke();
+        // RK
+        ctx.beginPath();
+        ctx.arc(toCanvasX(rkData[upToStep-1].x), toCanvasY(rkData[upToStep-1].y), 8, 0, 2*Math.PI);
+        ctx.strokeStyle="#e67e22cc";
+        ctx.lineWidth=2;
+        ctx.stroke();
+        ctx.restore();
+      }
 
       // Legend
       ctx.font = "bold 15px Arial";
@@ -243,13 +380,133 @@
       ctx.fillStyle="#e67e22"; ctx.fillText("Runge-Kutta", pad+70, pad+10);
     }
 
+    // Qadam natijalarini chiqish
+    function showStepDetails(eulerSteps, rkSteps, stepIndex, h, funcStr) {
+      const det = document.getElementById('stepDetails');
+      if (stepIndex < 1) { det.style.display='none'; det.innerHTML=''; return; }
+      det.style.display = '';
+
+      // Eyler usuli formulasi va natijasi
+      let ey = eulerSteps[stepIndex-1];
+      let eulerHtml = `
+        <b>Eyler usuli:</b><br>
+        <span class="formula">
+          y<sub>${ey.i+1}</sub> = y<sub>${ey.i}</sub> + h·f(x<sub>${ey.i}</sub>, y<sub>${ey.i}</sub>)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= ${ey.y.toFixed(7)} + ${h} × f(${ey.x.toFixed(5)}, ${ey.y.toFixed(7)})<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= ${ey.y.toFixed(7)} + ${h} × ${ey.fxy.toFixed(7)}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= <b>${ey.yNext.toFixed(7)}</b>
+        </span>
+      `;
+
+      // Runge-Kutta usuli formulasi va natijalari
+      let rk = rkSteps[stepIndex-1];
+      let rkHtml = `
+        <b>Runge-Kutta usuli:</b><br>
+        <span class="formula">
+          k<sub>1</sub> = f(x<sub>${rk.i}</sub>, y<sub>${rk.i}</sub>) = f(${rk.x.toFixed(5)}, ${rk.y.toFixed(7)}) = ${rk.k1.toFixed(7)}<br>
+          k<sub>2</sub> = f(x<sub>${rk.i}</sub>+h/2, y<sub>${rk.i}</sub>+h·k<sub>1</sub>/2) = f(${(rk.x+h/2).toFixed(5)}, ${(rk.y+h*rk.k1/2).toFixed(7)}) = ${rk.k2.toFixed(7)}<br>
+          k<sub>3</sub> = f(x<sub>${rk.i}</sub>+h/2, y<sub>${rk.i}</sub>+h·k<sub>2</sub>/2) = f(${(rk.x+h/2).toFixed(5)}, ${(rk.y+h*rk.k2/2).toFixed(7)}) = ${rk.k3.toFixed(7)}<br>
+          k<sub>4</sub> = f(x<sub>${rk.i}</sub>+h, y<sub>${rk.i}</sub>+h·k<sub>3</sub>) = f(${(rk.x+h).toFixed(5)}, ${(rk.y+h*rk.k3).toFixed(7)}) = ${rk.k4.toFixed(7)}<br>
+          <br>
+          y<sub>${rk.i+1}</sub> = y<sub>${rk.i}</sub> + h/6·(k<sub>1</sub> + 2k<sub>2</sub> + 2k<sub>3</sub> + k<sub>4</sub>)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= ${rk.y.toFixed(7)} + ${h}/6 × (${rk.k1.toFixed(7)} + 2×${rk.k2.toFixed(7)} + 2×${rk.k3.toFixed(7)} + ${rk.k4.toFixed(7)})<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;= <b>${rk.yNext.toFixed(7)}</b>
+        </span>
+      `;
+
+      det.innerHTML = `
+        <table>
+          <tr>
+            <th>qadam</th>
+            <th>x<sub>i</sub></th>
+            <th>y<sub>i</sub> (Eyler)</th>
+            <th>y<sub>i</sub> (RK4)</th>
+          </tr>
+          <tr>
+            <td>${ey.i}</td>
+            <td>${ey.x.toFixed(5)}</td>
+            <td>${ey.y.toFixed(7)}</td>
+            <td>${rk.y.toFixed(7)}</td>
+          </tr>
+        </table>
+        <div style="margin-top:8px">${eulerHtml}</div>
+        <div style="margin-top:15px">${rkHtml}</div>
+        <div style="color:#888;font-size:0.97em;margin-top:9px">
+          <b>f(x, y) =</b> <code>${funcStr}</code>
+        </div>
+      `;
+    }
+
+    // --- Simulyatsiya boshqaruvi va animatsiyasi
+    let euler = [], rk = [], eulerSteps = [], rkSteps = [], maxStep = 1, animFrame = null, isPlaying = false;
+    let h = 0.1, funcStr = "";
+
+    function setupSimulationUi() {
+      const slider = document.getElementById('simSlider');
+      const simStepNum = document.getElementById('simStepNum');
+      const simStepMax = document.getElementById('simStepMax');
+      slider.min = 1;
+      slider.max = maxStep;
+      slider.value = 1;
+      simStepNum.textContent = 1;
+      simStepMax.textContent = maxStep;
+
+      slider.oninput = function() {
+        simStepNum.textContent = slider.value;
+        let idx = parseInt(slider.value);
+        drawGraph(euler, rk, idx);
+        showStepDetails(eulerSteps, rkSteps, idx, h, funcStr);
+      };
+
+      // Play tugmasi
+      document.getElementById('playBtn').onclick = function() {
+        if(isPlaying) { // Stop
+          isPlaying = false;
+          this.innerHTML = "&#9654;";
+          if(animFrame) cancelAnimationFrame(animFrame);
+          return;
+        }
+        isPlaying = true;
+        this.innerHTML = "&#10073;&#10073;"; // Pause belgisi
+        animateSimulation();
+      };
+
+      // Reset tugmasi
+      document.getElementById('resetBtn').onclick = function() {
+        slider.value = 1;
+        simStepNum.textContent = 1;
+        drawGraph(euler, rk, 1);
+        showStepDetails(eulerSteps, rkSteps, 1, h, funcStr);
+        isPlaying = false;
+        document.getElementById('playBtn').innerHTML = "&#9654;";
+        if(animFrame) cancelAnimationFrame(animFrame);
+      };
+    }
+
+    function animateSimulation() {
+      const slider = document.getElementById('simSlider');
+      let step = parseInt(slider.value);
+      if(step >= maxStep) {
+        isPlaying = false;
+        document.getElementById('playBtn').innerHTML = "&#9654;";
+        return;
+      }
+      // animatsion harakat
+      step++;
+      slider.value = step;
+      document.getElementById('simStepNum').textContent = step;
+      drawGraph(euler, rk, step);
+      showStepDetails(eulerSteps, rkSteps, step, h, funcStr);
+      animFrame = requestAnimationFrame(()=>setTimeout(animateSimulation, 420));
+    }
+
     document.getElementById('koshiform').onsubmit = function(e) {
       e.preventDefault();
-      const funcStr = document.getElementById('func').value;
+      funcStr = document.getElementById('func').value;
       const x0 = parseFloat(document.getElementById('x0').value);
       const y0 = parseFloat(document.getElementById('y0').value);
       const xEnd = parseFloat(document.getElementById('xEnd').value);
-      const h = parseFloat(document.getElementById('h').value);
+      h = parseFloat(document.getElementById('h').value);
 
       let f;
       try {
@@ -260,8 +517,14 @@
         return;
       }
 
-      let euler = eulerMethod(f, x0, y0, xEnd, h);
-      let rk = rungeKutta4(f, x0, y0, xEnd, h);
+      let eulerObj = eulerMethod(f, x0, y0, xEnd, h);
+      let rkObj = rungeKutta4(f, x0, y0, xEnd, h);
+
+      euler = eulerObj.data;
+      rk = rkObj.data;
+      eulerSteps = eulerObj.steps;
+      rkSteps = rkObj.steps;
+      maxStep = Math.min(euler.length, rk.length);
 
       // Jadval
       let tbody = '';
@@ -276,8 +539,18 @@
       document.getElementById('resultTable').querySelector('tbody').innerHTML = tbody;
       document.getElementById('results').style.display = '';
 
-      // Grafik
-      drawGraph(euler, rk);
+      // Simulyatsion slider va boshqaruv
+      document.getElementById('simControls').style.display = '';
+      setupSimulationUi();
+
+      // Dastlabki nuqta
+      drawGraph(euler, rk, 1);
+      showStepDetails(eulerSteps, rkSteps, 1, h, funcStr);
+
+      // Avtomatik animatsiyani to‘xtatish
+      isPlaying = false;
+      document.getElementById('playBtn').innerHTML = "&#9654;";
+      if(animFrame) cancelAnimationFrame(animFrame);
     };
   </script>
 </body>
