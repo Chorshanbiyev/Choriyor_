@@ -76,7 +76,7 @@
     }
     .sim-controls {
       text-align: center;
-      margin-bottom: 18px;
+      margin-bottom: 8px;
     }
     .sim-controls input[type="range"] {
       width: 320px;
@@ -142,6 +142,52 @@
       font-family: 'Consolas', 'Menlo', 'monospace';
       font-size: 1.03em;
     }
+    .methods-formula-card {
+      background: #f6fcff;
+      border: 2px solid #bde2fc;
+      border-radius: 8px;
+      padding: 14px 18px 12px 18px;
+      margin: 0 auto 24px auto;
+      max-width: 800px;
+      box-shadow: 0 2px 8px #0001;
+      font-size: 1.08em;
+    }
+    .methods-formula-card ol {
+      margin: 0 0 8px 20px;
+      padding: 0;
+      font-size: 1em;
+    }
+    .methods-formula-card li {
+      margin: 0 0 7px 0;
+      line-height: 1.7;
+    }
+    .methods-formula-card .formula {
+      display: block;
+      margin: 7px 0 7px 0;
+      font-size: 1.04em;
+      color: #00588c;
+    }
+    .methods-formula-card .desc-table {
+      width: 100%;
+      max-width: 520px;
+      margin: 10px auto 0 auto;
+      border-collapse: collapse;
+      font-size: 1em;
+      background: #fafdff;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .methods-formula-card .desc-table td, .methods-formula-card .desc-table th {
+      border: 1px solid #c7e0f7;
+      padding: 4px 10px;
+      text-align: left;
+    }
+    .methods-formula-card .desc-table th {
+      background: #e6f3ff;
+      color: #1a4d7a;
+      font-weight: bold;
+      padding-left: 12px;
+    }
     @media (max-width: 600px) {
       .container { padding: 8px; }
       label { min-width: 120px; font-size: 0.95em; }
@@ -149,12 +195,90 @@
       .step-details { font-size: 0.97em; padding: 10px 4vw 8px 4vw;}
       canvas { height: 200px; }
       .sim-controls input[type="range"] { width: 98vw; }
+      .methods-formula-card { font-size: .97em; padding: 7px 3vw 5px 3vw; }
+      .methods-formula-card .desc-table { font-size: .93em; }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Birinchi tartibli differensial tenglama uchun Koshi masalasini <br> Eyler va Runge-Kutta usullarida yechish1</h1>
+    <h1>Birinchi tartibli differensial tenglama uchun Koshi masalasini <br> Eyler va Runge-Kutta usullarida yechish</h1>
+   
+    <!-- Usullar formulalari va izohlar ramkada -->
+    <div class="methods-formula-card">
+      <ol>
+        <li>
+          <span class="formula">
+            <b>Eyler usuli:</b>
+            <br>y<sub>i+1</sub> = y<sub>i</sub> + h·f(x<sub>i</sub>, y<sub>i</sub>)
+            <br>x<sub>i+1</sub> = x<sub>i</sub> + h
+          </span>
+        </li>
+        <li>
+          <span class="formula">
+            <b>Runge-Kutta 4-usuli:</b>
+            <br>
+            <span style="font-size:.97em;">
+              k<sub>1</sub> = f(x<sub>i</sub>, y<sub>i</sub>)<br>
+              k<sub>2</sub> = f(x<sub>i</sub> + h/2, y<sub>i</sub> + h·k<sub>1</sub>/2)<br>
+              k<sub>3</sub> = f(x<sub>i</sub> + h/2, y<sub>i</sub> + h·k<sub>2</sub>/2)<br>
+              k<sub>4</sub> = f(x<sub>i</sub> + h, y<sub>i</sub> + h·k<sub>3</sub>)<br>
+              y<sub>i+1</sub> = y<sub>i</sub> + (h/6)·(k<sub>1</sub> + 2k<sub>2</sub> + 2k<sub>3</sub> + k<sub>4</sub>)<br>
+              x<sub>i+1</sub> = x<sub>i</sub> + h
+            </span>
+          </span>
+        </li>
+      </ol>
+      <table class="desc-table">
+        <tr>
+          <th>Belgi</th>
+          <th>Izoh</th>
+        </tr>
+        <tr>
+          <td><b>h</b></td>
+          <td>Qadam uzunligi</td>
+        </tr>
+        <tr>
+          <td><b>x<sub>i</sub></b></td>
+          <td>i-chi qadamdagi x qiymati</td>
+        </tr>
+        <tr>
+          <td><b>x<sub>i+1</sub></b></td>
+          <td>Keyingi qadam x qiymati: x<sub>i</sub> + h</td>
+        </tr>
+        <tr>
+          <td><b>y<sub>i</sub></b></td>
+          <td>i-chi qadamdagi y qiymati</td>
+        </tr>
+        <tr>
+          <td><b>y<sub>i+1</sub></b></td>
+          <td>Keyingi qadam y qiymati</td>
+        </tr>
+        <tr>
+          <td><b>f(x<sub>i</sub>, y<sub>i</sub>)</b></td>
+          <td>Differensial tenglama o‘ng tomoni funksiyasi</td>
+        </tr>
+        <tr>
+          <td><b>k<sub>1</sub></b></td>
+          <td>f(x<sub>i</sub>, y<sub>i</sub>)</td>
+        </tr>
+        <tr>
+          <td><b>k<sub>2</sub></b></td>
+          <td>f(x<sub>i</sub> + h/2, y<sub>i</sub> + h·k<sub>1</sub>/2)</td>
+        </tr>
+        <tr>
+          <td><b>k<sub>3</sub></b></td>
+          <td>f(x<sub>i</sub> + h/2, y<sub>i</sub> + h·k<sub>2</sub>/2)</td>
+        </tr>
+        <tr>
+          <td><b>k<sub>4</sub></b></td>
+          <td>f(x<sub>i</sub> + h, y<sub>i</sub> + h·k<sub>3</sub>)</td>
+        </tr>
+      </table>
+    </div>
+
+    <h4>Parametrlarni kiriting...</h4>
+
     <form id="koshiform">
       <label>
         Tenglama y' = f(x, y)
@@ -179,26 +303,37 @@
       </label>
       <button type="submit">Hisoblash</button>
     </form>
+
+    <!-- ==== Natijalar va grafik bloki boshlanishi ==== -->
     <div class="results" id="results" style="display:none;">
       <div class="sim-controls" id="simControls" style="display:none;">
-        <label for="simSlider">Animatsiya: Qadamni tanlang yoki avtomatik ko‘rish</label>
+        <label for="simSlider">Animatsiya: Qadamni tanlang yoki avtomatik ko‘ring</label>
         <input type="range" id="simSlider" min="1" max="10" value="1" step="1">
         <span id="simStepNum">1</span> / <span id="simStepMax">10</span>
         <button id="playBtn" title="Avto animatsiya">&#9654;</button>
         <button id="resetBtn" title="Boshlashga qaytish">&#8635;</button>
-      </div>
+     	
+	<button type="button" id="downloadAnimBtn" class="download-anim-btn">Animatsiyani MP4-ga yozib olish</button>
+        <a id="downloadLink" class="download-link" style="display:none;" download="animatsiya.mp4">MP4-ni yuklab olish</a>
+        <span id="recordingStatus" style="font-size:0.96em; color:#0078d7; display:none;">Yozilmoqda...</span>
+	
+	</div>
+
       <div class="step-details" id="stepDetails" style="display:none;">
         <!-- formulalar va natijalar shu yerda -->
       </div>
-      <h2>Natijalar</h2>
+
+      <!-- Grafik JADVALDAN OLDIN -->
       <canvas id="graph" width="800" height="300"></canvas>
+
+      <h2>Natijalar</h2>
       <table id="resultTable">
         <thead>
-          <tr>
-            <th>i</th>
-            <th>x</th>
-            <th>Eyler y</th>
-            <th>Runge-Kutta y</th>
+          <tr id="headerRow">
+            <th>qadam</th>
+            <th>x<sub>0</sub></th>
+            <th>y<sub>0</sub> (Eyler)</th>
+            <th>y<sub>0</sub> (Runge-Kutta)</th>
           </tr>
         </thead>
         <tbody>
@@ -206,12 +341,14 @@
         </tbody>
       </table>
     </div>
+    <!-- ==== Natijalar va grafik bloki tugashi ==== -->
+
     <p style="font-size:.98em;text-align:center;color:#888;">
       Tayyorladi: <b>Choriyor Chorshanbiyev</b>
     </p>
   </div>
   <script>
-    // Math funksiyalarini ishlatish uchun
+    // === KOD OLDINGIDAN O'ZGARMADI ===
     function parseFunction(str) {
       return new Function("x", "y", `
         with (Math) {
@@ -219,14 +356,11 @@
         }
       `);
     }
-
-    // Eyler usuli, har qadam uchun oraliq natijalar
     function eulerMethod(f, x0, y0, xEnd, h) {
       let xs = [], ys = [], steps = [];
       let x = x0, y = y0;
       xs.push(x);
       ys.push(y);
-
       const eps = h * 1e-6;
       let i = 0;
       while (x < xEnd - eps) {
@@ -252,14 +386,11 @@
         steps: steps
       };
     }
-
-    // Runge-Kutta 4-usuli, har qadam uchun oraliq natijalar
     function rungeKutta4(f, x0, y0, xEnd, h) {
       let xs = [], ys = [], steps = [];
       let x = x0, y = y0;
       xs.push(x);
       ys.push(y);
-
       const eps = h * 1e-6;
       let i = 0;
       while (x < xEnd - eps) {
@@ -291,27 +422,21 @@
         steps: steps
       };
     }
-
-    // Grafik chizish (simulatsion)
     function drawGraph(eulerData, rkData, upToStep) {
       const canvas = document.getElementById('graph');
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       const allX = [...eulerData, ...rkData].map(d => d.x);
       const allY = [...eulerData, ...rkData].map(d => d.y);
       const minX = Math.min(...allX), maxX = Math.max(...allX);
       const minY = Math.min(...allY), maxY = Math.max(...allY);
       const pad = 30;
-
       function toCanvasX(x) {
         return pad + (x - minX) * (canvas.width - 2*pad) / (maxX - minX || 1);
       }
       function toCanvasY(y) {
         return canvas.height - pad - (y - minY) * (canvas.height - 2*pad) / (maxY - minY || 1);
       }
-
-      // O‘qlar
       ctx.strokeStyle="#aaa"; ctx.lineWidth=1;
       ctx.beginPath();
       ctx.moveTo(toCanvasX(minX), toCanvasY(0));
@@ -319,8 +444,6 @@
       ctx.moveTo(toCanvasX(0), toCanvasY(minY));
       ctx.lineTo(toCanvasX(0), toCanvasY(maxY));
       ctx.stroke();
-
-      // Eyler: nuqtalar va chiziq
       ctx.strokeStyle="#0078d7";
       ctx.lineWidth=2;
       ctx.beginPath();
@@ -329,16 +452,12 @@
         else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
       });
       ctx.stroke();
-
-      // Eyler nuqtalarini doira bilan belgilash
       ctx.fillStyle="#0078d7";
       for (let i = 0; i < upToStep; ++i) {
         ctx.beginPath();
         ctx.arc(toCanvasX(eulerData[i].x), toCanvasY(eulerData[i].y), 4, 0, 2*Math.PI);
         ctx.fill();
       }
-
-      // Runge-Kutta: nuqtalar va chiziq
       ctx.strokeStyle="#e67e22";
       ctx.lineWidth=2;
       ctx.beginPath();
@@ -347,25 +466,19 @@
         else ctx.lineTo(toCanvasX(d.x), toCanvasY(d.y));
       });
       ctx.stroke();
-
-      // RK4 nuqtalarini doira bilan belgilash
       ctx.fillStyle="#e67e22";
       for (let i = 0; i < upToStep; ++i) {
         ctx.beginPath();
         ctx.arc(toCanvasX(rkData[i].x), toCanvasY(rkData[i].y), 4, 0, 2*Math.PI);
         ctx.fill();
       }
-
-      // Faol nuqta animatsiya (oxirgi nuqta)
       if(upToStep>0){
         ctx.save();
-        // Eyler
         ctx.beginPath();
         ctx.arc(toCanvasX(eulerData[upToStep-1].x), toCanvasY(eulerData[upToStep-1].y), 8, 0, 2*Math.PI);
         ctx.strokeStyle="#0078d7cc";
         ctx.lineWidth=2;
         ctx.stroke();
-        // RK
         ctx.beginPath();
         ctx.arc(toCanvasX(rkData[upToStep-1].x), toCanvasY(rkData[upToStep-1].y), 8, 0, 2*Math.PI);
         ctx.strokeStyle="#e67e22cc";
@@ -373,20 +486,14 @@
         ctx.stroke();
         ctx.restore();
       }
-
-      // Legend
       ctx.font = "bold 15px Arial";
       ctx.fillStyle="#0078d7"; ctx.fillText("Eyler", pad+5, pad+10);
       ctx.fillStyle="#e67e22"; ctx.fillText("Runge-Kutta", pad+70, pad+10);
     }
-
-    // Qadam natijalarini chiqish
     function showStepDetails(eulerSteps, rkSteps, stepIndex, h, funcStr) {
       const det = document.getElementById('stepDetails');
       if (stepIndex < 1) { det.style.display='none'; det.innerHTML=''; return; }
       det.style.display = '';
-
-      // Eyler usuli formulasi va natijasi
       let ey = eulerSteps[stepIndex-1];
       let eulerHtml = `
         <b>Eyler usuli:</b><br>
@@ -397,8 +504,6 @@
           &nbsp;&nbsp;&nbsp;&nbsp;= <b>${ey.yNext.toFixed(7)}</b>
         </span>
       `;
-
-      // Runge-Kutta usuli formulasi va natijalari
       let rk = rkSteps[stepIndex-1];
       let rkHtml = `
         <b>Runge-Kutta usuli:</b><br>
@@ -413,14 +518,13 @@
           &nbsp;&nbsp;&nbsp;&nbsp;= <b>${rk.yNext.toFixed(7)}</b>
         </span>
       `;
-
       det.innerHTML = `
         <table>
           <tr>
             <th>qadam</th>
-            <th>x<sub>i</sub></th>
-            <th>y<sub>i</sub> (Eyler)</th>
-            <th>y<sub>i</sub> (RK4)</th>
+            <th>x<sub>${ey.i}</sub></th>
+            <th>y<sub>${ey.i}</sub> (Eyler)</th>
+            <th>y<sub>${rk.i}</sub> (Runge-Kutta)</th>
           </tr>
           <tr>
             <td>${ey.i}</td>
@@ -436,11 +540,31 @@
         </div>
       `;
     }
-
-    // --- Simulyatsiya boshqaruvi va animatsiyasi
+    function fillResultTable(euler, rk, upToStep) {
+      let tbody = '';
+      for (let i = 0; i < upToStep; ++i) {
+        tbody += `<tr>
+          <td>${i}</td>
+          <td>${euler[i].x.toFixed(5)}</td>
+          <td>${euler[i].y.toFixed(7)}</td>
+          <td>${rk[i].y.toFixed(7)}</td>
+        </tr>`;
+      }
+      document.getElementById('resultTable').querySelector('tbody').innerHTML = tbody;
+      let headerRow = document.getElementById('headerRow');
+      if (euler.length > 0) {
+        let idx = upToStep-1;
+        if (idx < 0) idx = 0;
+        headerRow.innerHTML = `
+          <th>qadam</th>
+          <th>x<sub>${idx}</sub></th>
+          <th>y<sub>${idx}</sub> (Eyler)</th>
+          <th>y<sub>${idx}</sub> (Runge-Kutta)</th>
+        `;
+      }
+    }
     let euler = [], rk = [], eulerSteps = [], rkSteps = [], maxStep = 1, animFrame = null, isPlaying = false;
     let h = 0.1, funcStr = "";
-
     function setupSimulationUi() {
       const slider = document.getElementById('simSlider');
       const simStepNum = document.getElementById('simStepNum');
@@ -450,39 +574,35 @@
       slider.value = 1;
       simStepNum.textContent = 1;
       simStepMax.textContent = maxStep;
-
       slider.oninput = function() {
         simStepNum.textContent = slider.value;
         let idx = parseInt(slider.value);
         drawGraph(euler, rk, idx);
+        fillResultTable(euler, rk, idx);
         showStepDetails(eulerSteps, rkSteps, idx, h, funcStr);
       };
-
-      // Play tugmasi
       document.getElementById('playBtn').onclick = function() {
-        if(isPlaying) { // Stop
+        if(isPlaying) {
           isPlaying = false;
           this.innerHTML = "&#9654;";
           if(animFrame) cancelAnimationFrame(animFrame);
           return;
         }
         isPlaying = true;
-        this.innerHTML = "&#10073;&#10073;"; // Pause belgisi
+        this.innerHTML = "&#10073;&#10073;";
         animateSimulation();
       };
-
-      // Reset tugmasi
       document.getElementById('resetBtn').onclick = function() {
         slider.value = 1;
         simStepNum.textContent = 1;
         drawGraph(euler, rk, 1);
+        fillResultTable(euler, rk, 1);
         showStepDetails(eulerSteps, rkSteps, 1, h, funcStr);
         isPlaying = false;
         document.getElementById('playBtn').innerHTML = "&#9654;";
         if(animFrame) cancelAnimationFrame(animFrame);
       };
     }
-
     function animateSimulation() {
       const slider = document.getElementById('simSlider');
       let step = parseInt(slider.value);
@@ -491,15 +611,14 @@
         document.getElementById('playBtn').innerHTML = "&#9654;";
         return;
       }
-      // animatsion harakat
       step++;
       slider.value = step;
       document.getElementById('simStepNum').textContent = step;
       drawGraph(euler, rk, step);
+      fillResultTable(euler, rk, step);
       showStepDetails(eulerSteps, rkSteps, step, h, funcStr);
       animFrame = requestAnimationFrame(()=>setTimeout(animateSimulation, 420));
     }
-
     document.getElementById('koshiform').onsubmit = function(e) {
       e.preventDefault();
       funcStr = document.getElementById('func').value;
@@ -507,47 +626,27 @@
       const y0 = parseFloat(document.getElementById('y0').value);
       const xEnd = parseFloat(document.getElementById('xEnd').value);
       h = parseFloat(document.getElementById('h').value);
-
       let f;
       try {
         f = parseFunction(funcStr);
-        f(x0, y0); // test
+        f(x0, y0);
       } catch (err) {
         alert("Tenglama noto‘g‘ri! Masalan: x + y yoki y - x*x + 1");
         return;
       }
-
       let eulerObj = eulerMethod(f, x0, y0, xEnd, h);
       let rkObj = rungeKutta4(f, x0, y0, xEnd, h);
-
       euler = eulerObj.data;
       rk = rkObj.data;
       eulerSteps = eulerObj.steps;
       rkSteps = rkObj.steps;
       maxStep = Math.min(euler.length, rk.length);
-
-      // Jadval
-      let tbody = '';
-      for (let i = 0; i < euler.length; ++i) {
-        tbody += `<tr>
-          <td>${i}</td>
-          <td>${euler[i].x.toFixed(5)}</td>
-          <td>${euler[i].y.toFixed(7)}</td>
-          <td>${rk[i].y.toFixed(7)}</td>
-        </tr>`;
-      }
-      document.getElementById('resultTable').querySelector('tbody').innerHTML = tbody;
       document.getElementById('results').style.display = '';
-
-      // Simulyatsion slider va boshqaruv
       document.getElementById('simControls').style.display = '';
       setupSimulationUi();
-
-      // Dastlabki nuqta
       drawGraph(euler, rk, 1);
+      fillResultTable(euler, rk, 1);
       showStepDetails(eulerSteps, rkSteps, 1, h, funcStr);
-
-      // Avtomatik animatsiyani to‘xtatish
       isPlaying = false;
       document.getElementById('playBtn').innerHTML = "&#9654;";
       if(animFrame) cancelAnimationFrame(animFrame);
