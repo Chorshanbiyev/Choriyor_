@@ -3,96 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Matritsaning determinanti va teskarisini topish</title>
+  <title>Matritsa determinant va teskari (Laplas qadamlar bilan)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 8px;
-      background: #f8f8ff;
-      color: #222;
-    }
+    body { font-family: Arial, sans-serif; margin: 8px; background: #f8f8ff; color: #222; }
     h2 { margin-top: 1.2em; }
-    input[type="number"] {
-      width: 60px;
-      padding: 4px;
-      margin: 0 4px;
-    }
-    .matrix-input {
-      overflow-x: auto;
-      margin-bottom: 1em;
-    }
-    table {
-      border-collapse: collapse;
-      margin: auto;
-      width: auto;
-      max-width: 100%;
-    }
+    input[type="number"] { width: 60px; padding: 4px; margin: 0 4px; }
+    .matrix-input { overflow-x: auto; margin-bottom: 1em; min-height: 40px; }
+    table { border-collapse: collapse; margin: auto; width: auto; max-width: 100%; }
     td, th {
-      border: 1px solid #bbb;
-      padding: 2px;
-      text-align: center;
-      background: #fff;
-      min-width: 48px;
+      border: 1px solid #bbb; padding: 2px; text-align: center; background: #fff;
+      min-width: 48px; transition: box-shadow 0.3s, border-color 0.3s, background 0.3s;
     }
-    .btn {
-      padding: 8px 18px;
-      background: #2c7be5;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      margin: 8px 0;
-      font-size: 1em;
+    .btn { padding: 8px 18px; background: #2c7be5; color: #fff; border: none; border-radius: 4px;
+      cursor: pointer; margin: 8px 4px 8px 0; font-size: 1em; display: inline-block; transition: background 0.2s;
     }
-    .btn:disabled {
-      background: #bbb;
-      cursor: not-allowed;
+    .btn:disabled { background: #bbb; cursor: not-allowed; }
+    .output { margin-top: 1em; background: #fffbe7; border: 1px solid #ffe08a; padding: 10px; border-radius: 4px; word-break: break-all; }
+    .step-block { margin-bottom: 1em; background: #e6f7ff; border: 1px solid #b3d8f6; border-radius: 4px; padding: 8px; animation: fadeIn 0.8s; }
+    @keyframes fadeIn { from {opacity:0; transform: translateY(24px);} to {opacity:1; transform: translateY(0);} }
+    .step-title { font-weight: bold; color: #2c7be5; font-size: 1.05em; margin-bottom: 0.2em; }
+    .mat-table { margin-top: 0.5em; margin-bottom: 0.5em; }
+    .formula { background: #fff; border: 1px dashed #b86c00; border-radius: 4px; padding: 6px 10px; margin: 6px 0 8px 0;
+      font-family: 'Consolas', monospace; font-size: 1.08em; color: #b86c00; display: inline-block;
     }
-    .output {
-      margin-top: 1em;
-      background: #fffbe7;
-      border: 1px solid #ffe08a;
-      padding: 10px;
-      border-radius: 4px;
-      word-break: break-all;
-    }
+    .mat-label { font-size: 0.93em; color: #666; display: block; margin-bottom: 1px; }
+    .step-buttons { width: 100%; display: flex; justify-content: center; align-items: center; margin: 22px 0 6px 0; gap: 14px; min-height: 48px; }
+    .method-select-block { margin: 1.2em 0 1em 0; background: #f6faff; border: 1px solid #c4e1fc; padding: 12px 10px 4px 10px; border-radius: 6px; display: inline-block; }
+    label.radio { margin-right: 18px; font-size: 1em; cursor: pointer; }
+    .disabled-label { color: #aaa; cursor: not-allowed; }
+    /* --- Laplas highlight styles --- */
+    .lap-row-highlight { border-top: 2.5px solid #e62c2c !important; border-bottom: 2.5px solid #e62c2c !important; background: #fff0f0; animation: minorFlash 0.9s;}
+    .lap-col-highlight { border-left: 2.5px solid #e62c2c !important; border-right: 2.5px solid #e62c2c !important; background: #fff0f0; animation: minorFlash 0.9s;}
+    .lap-main-highlight { border: 3.6px solid #e62c2c !important; color: #e62c2c !important; font-weight: bold; background: #fff !important; animation: mainMinorFlash 0.9s; position: relative; z-index: 2; }
+    @keyframes minorFlash { 0%   { box-shadow: 0 0 0 0 #e62c2c77; background: #fff0f0;} 40%  { box-shadow: 0 0 10px 2px #e62c2c77; background: #ffeaea;} 100% { box-shadow: 0 0 0 0 #e62c2c77; background: #fff0f0;} }
+    @keyframes mainMinorFlash { 0%   { box-shadow: 0 0 0 0 #e62c2c; } 40%  { box-shadow: 0 0 14px 4px #e62c2c99; background: #fff5f5;} 100% { box-shadow: 0 0 0 0 #e62c2c; } }
     @media (max-width: 600px) {
-      table, td, th {
-        font-size: 0.92em;
-        min-width: 32px;
-      }
+      table, td, th { font-size: 0.92em; min-width: 32px; }
       body { font-size: 16px; }
+      .step-buttons { min-height: 38px; }
+      .method-select-block { font-size: 0.98em; }
     }
   </style>
 </head>
 <body>
-  <h1>Matritsaning determinanti va teskarisini topish</h1>
-  <form id="sizeForm">
+  <h1>Matritsaning determinanti va teskarisini topish (Laplas qadamlar bilan)</h1>
+  <form id="sizeForm" onsubmit="return false;">
     <label for="n">Qatorlar soni (n):</label>
-    <input type="number" id="n" name="n" min="1" max="1000" value="3" required>
+    <input type="number" id="n" name="n" min="2" max="5" value="4" required>
     <label for="m">Ustunlar soni (m):</label>
-    <input type="number" id="m" name="m" min="1" max="1000" value="3" required>
-    <button type="button" class="btn" onclick="createMatrixInput()">Matritsa yaratish</button>
+    <input type="number" id="m" name="m" min="2" max="5" value="4" required>
+    <button type="button" class="btn" id="createBtn">Matritsa yaratish</button>
   </form>
-
   <div class="matrix-input" id="matrixInput"></div>
-  <button id="calcBtn" class="btn" style="display:none" onclick="calculate()">Hisoblash</button>
-
+  <div class="method-select-block" id="methodSelectBlock" style="display:none">
+    <div style="margin-bottom:4px;"><b>Hisoblash usulini tanlang:</b></div>
+    <div>
+      <span id="detMethodBlock"></span>
+      <span style="display:inline-block;width:12px"></span>
+      <span id="invMethodBlock"></span>
+    </div>
+  </div>
+  <button id="calcBtn" class="btn" style="display:none">Qadam-baqadam hisoblash</button>
   <div id="output" class="output" style="display:none"></div>
-
   <script>
-    function createMatrixInput() {
+    let stepState = null;
+    let detMethod = "auto";
+    let invMethod = "auto";
+
+    document.getElementById('createBtn').onclick = function() {
       const n = parseInt(document.getElementById('n').value);
       const m = parseInt(document.getElementById('m').value);
-      if (isNaN(n) || isNaN(m) || n < 1 || m < 1 || n > 1000 || m > 1000) {
-        alert('n va m 1 dan 1000 gacha bo‘lishi kerak!');
+      if (isNaN(n) || isNaN(m) || n < 2 || m < 2 || n > 5 || m > 5) {
+        alert('n va m 2 dan 5 gacha bo‘lishi kerak!');
         return;
       }
       let html = '<table>';
       for (let i = 0; i < n; i++) {
         html += '<tr>';
         for (let j = 0; j < m; j++) {
-          html += `<td><input type="number" step="any" id="cell_${i}_${j}" value="0"></td>`;
+          html += `<td>
+            <div class="mat-label">a<sub>${i+1}${j+1}</sub></div>
+            <input type="number" step="any" id="cell_${i}_${j}" value="0">
+          </td>`;
         }
         html += '</tr>';
       }
@@ -100,8 +92,44 @@
       document.getElementById('matrixInput').innerHTML = html;
       document.getElementById('calcBtn').style.display = 'inline-block';
       document.getElementById('output').style.display = 'none';
+      renderMethodSelectors();
+      stepState = null;
+    };
+    function renderMethodSelectors() {
+      const n = parseInt(document.getElementById('n').value);
+      const m = parseInt(document.getElementById('m').value);
+      let detHtml = '', invHtml = '';
+      if (n !== m) {
+        document.getElementById('methodSelectBlock').style.display = 'none';
+        return;
+      }
+      if (n === 2) {
+        detHtml = `<label class="radio"><input type="radio" name="detMethod" value="2x2" checked disabled>2x2 formulasi</label>`;
+      } else if (n === 3) {
+        detHtml =
+          `<label class="radio"><input type="radio" name="detMethod" value="sarrus" checked>Sarrus</label>` +
+          `<label class="radio"><input type="radio" name="detMethod" value="laplace">Laplas</label>`;
+      } else {
+        detHtml = `<label class="radio"><input type="radio" name="detMethod" value="laplace" checked>Laplas</label>`;
+      }
+      if (n === 2) {
+        invHtml = `<label class="radio"><input type="radio" name="invMethod" value="2x2" checked disabled>Formulada</label>`;
+      } else {
+        invHtml = `<label class="radio"><input type="radio" name="invMethod" value="gjordan" checked>Gauss-Jordan</label>`;
+      }
+      document.getElementById('detMethodBlock').innerHTML = `<b>Determinant:</b> ${detHtml}`;
+      document.getElementById('invMethodBlock').innerHTML = `<b>Teskari:</b> ${invHtml}`;
+      document.getElementById('methodSelectBlock').style.display = 'block';
+      document.querySelectorAll('input[name=detMethod]').forEach(r => {
+        r.onchange = function() { detMethod = this.value; };
+      });
+      document.querySelectorAll('input[name=invMethod]').forEach(r => {
+        r.onchange = function() { invMethod = this.value; };
+      });
+      if (n === 2) { detMethod = "2x2"; invMethod = "2x2"; }
+      else if (n === 3) { detMethod = "sarrus"; invMethod = "gjordan"; }
+      else { detMethod = "laplace"; invMethod = "gjordan"; }
     }
-
     function getMatrix() {
       const n = parseInt(document.getElementById('n').value);
       const m = parseInt(document.getElementById('m').value);
@@ -109,67 +137,137 @@
       for (let i = 0; i < n; i++) {
         let row = [];
         for (let j = 0; j < m; j++) {
-          const val = parseFloat(document.getElementById(`cell_${i}_${j}`).value) || 0;
+          const el = document.getElementById(`cell_${i}_${j}`);
+          let val = 0;
+          if (el) val = parseFloat(el.value) || 0;
           row.push(val);
         }
         matrix.push(row);
       }
       return matrix;
     }
-
-    function determinant(matrix) {
-      const n = matrix.length;
-      // Deep copy for Gauss elimination
-      let A = matrix.map(row => row.slice());
-      let det = 1;
-      for (let i = 0; i < n; i++) {
-        // Find pivot
-        let maxRow = i;
-        for (let k = i + 1; k < n; k++) {
-          if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
-        }
-        if (Math.abs(A[maxRow][i]) < 1e-12) return 0;
-        if (i !== maxRow) {
-          [A[i], A[maxRow]] = [A[maxRow], A[i]];
-          det *= -1;
-        }
-        det *= A[i][i];
-        for (let k = i + 1; k < n; k++) {
-          let f = A[k][i] / A[i][i];
-          for (let j = i; j < n; j++) {
-            A[k][j] -= f * A[i][j];
-          }
+    function det2x2(M) { return M[0][0]*M[1][1] - M[0][1]*M[1][0]; }
+    function det3x3(M) {
+      return (
+        M[0][0]*M[1][1]*M[2][2] +
+        M[0][1]*M[1][2]*M[2][0] +
+        M[0][2]*M[1][0]*M[2][1] -
+        M[0][2]*M[1][1]*M[2][0] -
+        M[0][0]*M[1][2]*M[2][1] -
+        M[0][1]*M[1][0]*M[2][2]
+      );
+    }
+    // --- Laplas: All minors, all steps, recursive, full detail ---
+    function laplaceSteps(M, parentPos = "", parentSign = 1, symbols=null, highlightPath=[], level=1) {
+      const n = M.length;
+      let steps = [];
+      if (!symbols) {
+        symbols = [];
+        for (let i=0;i<n;i++) {
+          let row = [];
+          for (let j=0;j<n;j++) row.push(`a<sub>${i+1}${j+1}</sub>`);
+          symbols.push(row);
         }
       }
-      return det;
-    }
+      if (n === 2) {
+        let d = det2x2(M);
+        let txt = `Determinant (2x2): <span class="formula">${symbols[0][0]}·${symbols[1][1]} - ${symbols[0][1]}·${symbols[1][0]} = ${M[0][0]}·${M[1][1]} - ${M[0][1]}·${M[1][0]} = ${d}</span>`;
+        let laplaceHighlight = (highlightPath.length>0) ? highlightPath[highlightPath.length-1] : null;
+        steps.push({
+          title: `Laplas: 2x2 determinant${parentPos}`,
+          text: txt,
+          mat: M.map(r=>r.slice()),
+          symbols: symbols.map(r=>r.slice()),
+          laplaceHighlight,
+          level
+        });
+        return {steps, det: d * parentSign};
+      }
+      let det = 0, sumText = '', detailText = '';
+      let row = 0;
+      let minorsText = '';
+      for (let j = 0; j < n; j++) {
+        let subM = [];
+        let subS = [];
+        for (let i = 1; i < n; i++) {
+          subM.push(M[i].filter((_, idx) => idx !== j));
+          subS.push(symbols[i].filter((_, idx) => idx !== j));
+        }
+        let sign = ((row+j)%2===0) ? 1 : -1;
+        let thisHighlight = [row, j];
 
-    function inverse(matrix) {
-      const n = matrix.length;
-      // Make augmented matrix [A | I]
-      let A = matrix.map(row => row.slice());
+        // Minor substeps (recursive, all details)
+        let {steps:subSteps, det:subDet} = laplaceSteps(subM, `, Minor(${row+1},${j+1})`, 1, subS, highlightPath.concat([thisHighlight]), level+1);
+        steps = steps.concat(subSteps);
+
+        det += sign * M[row][j] * subDet;
+        let minorLabel = `M<sub>1${j+1}</sub>`;
+        sumText += (j>0? (sign===1? ' + ':' - ') : '') + `${symbols[0][j]}·${minorLabel}`;
+        minorsText += `<div>${sign === 1 ? '+ ' : '- '}${M[row][j]} × (${subDet})</div>`;
+      }
+      let txt = `Laplas: <span class="formula">${sumText}</span>`;
+      txt += `<div class="formula">${minorsText} = ${det*parentSign}</div>`;
+      let laplaceHighlight = (highlightPath.length>0) ? highlightPath[highlightPath.length-1] : null;
+      steps.push({
+        title: `${n}x${n} Laplas bosqichi${parentPos}`,
+        text: txt,
+        mat: M.map(r=>r.slice()),
+        symbols: symbols.map(r=>r.slice()),
+        laplaceHighlight,
+        level
+      });
+      return {steps, det: det*parentSign};
+    }
+    // --- Gauss-Jordan (for teskari matritsa) ---
+    function gaussJordanSteps(M, symbols=null) {
+      const n = M.length;
+      let A = M.map(row => row.slice());
       let I = [];
+      let S = symbols ? symbols.map(r=>r.slice()) : null;
       for (let i = 0; i < n; i++) {
         I[i] = [];
         for (let j = 0; j < n; j++) I[i][j] = (i === j ? 1 : 0);
       }
-
+      let steps = [];
       for (let i = 0; i < n; i++) {
-        // Find pivot
         let maxRow = i;
         for (let k = i + 1; k < n; k++)
           if (Math.abs(A[k][i]) > Math.abs(A[maxRow][i])) maxRow = k;
-        if (Math.abs(A[maxRow][i]) < 1e-12) return null;
-        [A[i], A[maxRow]] = [A[maxRow], A[i]];
-        [I[i], I[maxRow]] = [I[maxRow], I[i]];
-
-        // Normalize row
+        if (Math.abs(A[maxRow][i]) < 1e-12) {
+          steps.push({
+            title: "Teskari matritsa mavjud emas",
+            text: `Pivot (${i+1},${i+1}) ≈ 0 bo‘ldi, matritsa teskari emas.`,
+            mat: A.map(row=>row.slice()),
+            I: I.map(row=>row.slice()),
+            S: S ? S.map(r=>r.slice()):null
+          });
+          return {steps, inverse: null};
+        }
+        if (i !== maxRow) {
+          [A[i], A[maxRow]] = [A[maxRow], A[i]];
+          [I[i], I[maxRow]] = [I[maxRow], I[i]];
+          if (S) [S[i], S[maxRow]] = [S[maxRow], S[i]];
+          steps.push({
+            title: `Qadam ${i+1}: Qatorlarni almashtirish`,
+            text: `${i+1}-qator va ${maxRow+1}-qator o‘rni almashtirildi.`,
+            mat: A.map(row=>row.slice()),
+            I: I.map(row=>row.slice()),
+            S: S ? S.map(r=>r.slice()):null
+          });
+        }
         let div = A[i][i];
         for (let j = 0; j < n; j++) {
           A[i][j] /= div;
           I[i][j] /= div;
         }
-        // Eliminate
+        steps.push({
+          title: `Qadam ${i+1}: ${i+1}-qatorni normallashtirish`,
+          text: `${i+1}-qator ${div.toFixed(6)} ga bo‘lindi, diagonalga 1 hosil qilindi.<br>
+          <span class="formula">R<sub>${i+1}</sub> ← R<sub>${i+1}</sub> / ${div.toFixed(6)}</span>`,
+          mat: A.map(row=>row.slice()),
+          I: I.map(row=>row.slice()),
+          S: S ? S.map(r=>r.slice()):null
+        });
         for (let k = 0; k < n; k++) {
           if (k === i) continue;
           let f = A[k][i];
@@ -177,54 +275,237 @@
             A[k][j] -= f * A[i][j];
             I[k][j] -= f * I[i][j];
           }
+          steps.push({
+            title: `Qadam: ${k+1}-qatorni ${i+1}-ustun bo‘yicha 0 qilish`,
+            text: `${k+1}-qator: ${i+1}-ustundagi ${f.toFixed(6)} olib tashlandi.<br>
+            <span class="formula">R<sub>${k+1}</sub> ← R<sub>${k+1}</sub> - (${f.toFixed(6)})·R<sub>${i+1}</sub></span>`,
+            mat: A.map(row=>row.slice()),
+            I: I.map(row=>row.slice()),
+            S: S ? S.map(r=>r.slice()):null
+          });
         }
       }
-      return I;
+      steps.push({
+        title: "Natija",
+        text: "Yuqoridagi qadamlar natijasida chap tomonda birlik matritsa, o‘ng tomonda teskari matritsa hosil bo‘ldi.",
+        mat: A.map(row=>row.slice()),
+        I: I.map(row=>row.slice()),
+        S: S ? S.map(r=>r.slice()):null
+      });
+      return {steps, inverse: I};
     }
-
-    function matrixToTable(mat, digits=6) {
-      let html = '<table>';
-      for (let i = 0; i < mat.length; i++) {
+    // --- Matritsani jadvalga chiqarish. enableHighlight faqat "Kiritilgan matritsa" uchun true! ---
+    function matrixToTable(mat, digits=6, symbols=null, laplaceHighlight=null, enableHighlight=true) {
+      let html = '<table class="mat-table">';
+      let n = mat.length, m = mat[0].length;
+      let rowH = laplaceHighlight ? laplaceHighlight[0] : -1;
+      let colH = laplaceHighlight ? laplaceHighlight[1] : -1;
+      for (let i = 0; i < n; i++) {
         html += '<tr>';
-        for (let j = 0; j < mat[0].length; j++) {
+        for (let j = 0; j < m; j++) {
           let val = mat[i][j];
+          let label = symbols ? `<div style="font-size:0.82em;color:#aaa;">${symbols[i][j]}</div>` : '';
           if (typeof val === 'number') {
             val = Math.abs(val) < 1e-12 ? 0 : +val.toFixed(digits);
           }
-          html += `<td>${val}</td>`;
+          let extraClass = "";
+          if (enableHighlight && laplaceHighlight) {
+            if (i === rowH && j === colH) extraClass = "lap-main-highlight";
+            else if (i === rowH) extraClass = "lap-row-highlight";
+            else if (j === colH) extraClass = "lap-col-highlight";
+          }
+          html += `<td class="${extraClass}">${label}<div${(enableHighlight && i===rowH&&j===colH)?' style="color:#e62c2c;font-weight:bold"':''}>${val}</div></td>`;
         }
         html += '</tr>';
       }
       html += '</table>';
       return html;
     }
-
-    function calculate() {
+    // --- Step-by-step manager ---
+    document.getElementById('calcBtn').onclick = function() {
       const n = parseInt(document.getElementById('n').value);
       const m = parseInt(document.getElementById('m').value);
       const matrix = getMatrix();
-      let output = '';
+      let symbols = [];
+      for (let i=0; i<n; i++) {
+        let row = [];
+        for (let j=0; j<m; j++) {
+          row.push(`a<sub>${i+1}${j+1}</sub>`);
+        }
+        symbols.push(row);
+      }
+      if (n === 2) { detMethod = "2x2"; invMethod = "2x2"; }
+      else if (n === 3) { detMethod = "laplace"; invMethod = "gjordan"; }
+      else { detMethod = "laplace"; invMethod = "gjordan"; }
+      stepState = {
+        steps: [],
+        kind: '',
+        current: 0,
+        det: null,
+        inverse: null,
+        matrix: matrix,
+        symbols: symbols,
+        n: n
+      };
       if (n !== m) {
-        output += '<b>Matritsa kvadrat emas!</b> Determinant va teskari matritsa faqat kvadrat matritsalar uchun hisoblanadi.<br>';
-      } else {
-        let det = determinant(matrix);
-        output += `<h2>Determinant:</h2><div style="font-size:1.2em; color:#b86c00">${det}</div>`;
-        if (Math.abs(det) < 1e-12) {
-          output += `<b>Teskari matritsa mavjud emas (determinant 0 ga yaqin)!</b>`;
+        let output = `<b>Matritsa kvadrat emas!</b> Determinant va teskari matritsa faqat kvadrat matritsalar uchun hisoblanadi.<br>`;
+        output += `<h2>Kiritilgan matritsa:</h2>`;
+        output += matrixToTable(matrix, 6, symbols, null, true);
+        renderOutput(output, false, false);
+        return;
+      }
+      // Laplas har qadamini to'liq, har minor uchun ham recursive ko'rsatadi!
+      if (detMethod === "laplace") {
+        let steps = [{
+          title: `${n}×${n} matritsa Laplas usuli formulasi`,
+          text: `<span class="formula">|A| = Σ (-1)<sup>1+j</sup> · a₁ⱼ · M₁ⱼ</span><br>
+            <small>j=1..n, M₁ⱼ - 1-qator va j-ustun minor determinant</small>`,
+          mat: matrix.map(r=>r.slice()),
+          symbols: symbols.map(r=>r.slice()),
+          laplaceHighlight: null,
+          level: 1
+        }];
+        let lap = laplaceSteps(matrix, "", 1, symbols, [], 1);
+        steps = steps.concat(lap.steps);
+        stepState.steps = steps;
+        stepState.det = lap.det;
+        stepState.kind = 'determinantNlaplace';
+        stepState.gjordan = gaussJordanSteps(matrix, symbols);
+      }
+      stepState.current = 0;
+      renderSteps();
+    };
+    function getStepBtnStates() {
+      if (!stepState) return {prev: false, next: false};
+      if (stepState.kind.startsWith('determinant')) {
+        if (stepState.current < stepState.steps.length-1) {
+          return {prev: stepState.current>0, next: true};
         } else {
-          let inv = inverse(matrix);
-          if (!inv) {
-            output += `<b>Teskari matritsa mavjud emas!</b>`;
+          if (stepState.gjordan && stepState.gjordan.inverse) {
+            return {prev: true, next: true};
+          }
+          return {prev: true, next: false};
+        }
+      }
+      if (stepState.kind === 'inverseNgjordan') {
+        if (!stepState.gjordan) return {prev: false, next: false};
+        return {
+          prev: stepState.current > 0,
+          next: stepState.current < stepState.gjordan.steps.length-1
+        };
+      }
+      return {prev:false, next:false};
+    }
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'nextStepBtn') {
+        if (!stepState) return;
+        if (stepState.kind.startsWith('determinant')) {
+          if (stepState.current < stepState.steps.length-1) {
+            stepState.current++;
+            renderSteps();
+          } else if (stepState.gjordan && stepState.gjordan.inverse) {
+            stepState.kind = 'inverseNgjordan';
+            stepState.current = 0;
+            renderSteps();
+          }
+        } else if (stepState.kind === 'inverseNgjordan') {
+          if (stepState.current < stepState.gjordan.steps.length-1) {
+            stepState.current++;
+            renderSteps();
+          }
+        }
+      } else if (e.target && e.target.id === 'prevStepBtn') {
+        if (!stepState) return;
+        if (stepState.current > 0) {
+          stepState.current--;
+          renderSteps();
+        } else if (stepState.kind === 'inverseNgjordan') {
+          stepState.kind = "determinantNlaplace";
+          stepState.current = stepState.steps.length-1;
+          renderSteps();
+        }
+      }
+    });
+    // Qadam bloklarida rang yo'q, faqat "Kiritilgan matritsa" blokida rang bor!
+    function renderSteps() {
+      let output = '';
+      if (!stepState) return;
+      let laplaceHighlight = null;
+      if ((stepState.kind === 'determinantNlaplace') && stepState.steps[stepState.current]) {
+        laplaceHighlight = stepState.steps[stepState.current].laplaceHighlight;
+      }
+      function stepTable(mat, sym, lapH) {
+        return matrixToTable(mat, 4, sym, lapH, false);
+      }
+      if (stepState.kind === 'determinantNlaplace') {
+        output += `<h2>Laplas bo‘yicha determinant topish qadamlar:</h2>`;
+        for (let i=0; i<=stepState.current; i++) {
+          let s = stepState.steps[i];
+          let pad = '&nbsp;'.repeat((s.level-1)*4);
+          output += `<div class="step-block" style="margin-left:${(s.level-1)*18}px">
+            <div class="step-title">${pad}${s.title}</div>
+            <div>${pad}${s.text}</div>
+            <div>${stepTable(s.mat, s.symbols, s.laplaceHighlight)}</div>
+          </div>`;
+        }
+        if (stepState.current === stepState.steps.length-1) {
+          output += `<div class="step-block"><b>Determinant: ${stepState.det.toFixed(6)}</b></div>`;
+          let gj = stepState.gjordan;
+          if (gj && gj.inverse) {
+            output += `<div class="step-block"><b>Teskari matritsani topish uchun "Keyingi qadam" tugmasini bosing.</b></div>`;
           } else {
-            output += `<h2>Teskari Matritsa:</h2>`;
-            output += matrixToTable(inv, 6);
+            output += `<div class="step-block"><b>Teskari matritsa mavjud emas (determinant 0 ga yaqin)!</b></div>`;
           }
         }
       }
-      output += `<h2>Kiritilgan matritsa:</h2>`;
-      output += matrixToTable(matrix, 6);
-
-      document.getElementById('output').innerHTML = output;
+      else if (stepState.kind === 'inverseNgjordan') {
+        let gj = stepState.gjordan;
+        output += `<h2>Gauss-Jordan usuli bilan teskari matritsa:</h2>
+        <div class="step-block">
+          <div class="step-title">Teskari matritsa formulasi</div>
+          <div>
+            <span class="formula">[A | I] → [I | A<sup>-1</sup>]</span>
+            <br>Kengaytirilgan matritsa yordamida Gauss-Jordan yordamida teskari matritsa olinadi.
+          </div>
+        </div>`;
+        for (let i=0; i<=stepState.current; i++) {
+          let s = gj.steps[i];
+          output += `<div class="step-block">
+            <div class="step-title">${s.title}</div>
+            <div>${s.text}</div>
+            <div style="display:flex; gap:12px; flex-wrap:wrap; justify-content:flex-start;">
+              <div>
+                <b>Matritsa (A):</b>
+                ${matrixToTable(s.mat, 4, s.S, null, false)}
+              </div>
+              <div>
+                <b>Teskari (I):</b>
+                ${matrixToTable(s.I, 4, null, null, false)}
+              </div>
+            </div>
+          </div>`;
+        }
+        if (stepState.current === gj.steps.length-1) {
+          if (gj.inverse) {
+            output += `<div class="step-block"><b>Teskari matritsa:</b>${matrixToTable(gj.inverse, 6,null,null,false)}</div>`;
+          } else {
+            output += `<div class="step-block"><b>Teskari matritsa mavjud emas!</b></div>`;
+          }
+        }
+      }
+      // Faqat "Kiritilgan matritsa" blokida rang bor!
+      output += `<h2>Kiritilgan matritsa:</h2>${matrixToTable(stepState.matrix, 6, stepState.symbols, laplaceHighlight, true)}`;
+      let btnState = getStepBtnStates();
+      let btns = `
+        <div class="step-buttons">
+          <button id="prevStepBtn" class="btn" ${btnState.prev?'':'disabled'}>Oldingi qadam</button>
+          <button id="nextStepBtn" class="btn" ${btnState.next?'':'disabled'}>Keyingi qadam</button>
+        </div>
+      `;
+      renderOutput(output, btnState.prev, btnState.next, btns);
+    }
+    function renderOutput(html, prev, next, btns) {
+      document.getElementById('output').innerHTML = html + (btns?btns:'');
       document.getElementById('output').style.display = 'block';
     }
   </script>
