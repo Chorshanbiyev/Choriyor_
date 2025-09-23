@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Differensial tenglamalar yechimi -- Interaktiv modul (Yuklab olish bilan)</title>
+
+<!-- MathJax: formulalarni chiroyli ko'rsatish -->
+<script>
+window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+.header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+.header p{margin:0;color:#64748b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:960px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.card h2{margin:0 0 14px 0;font-size:22px;color:#111827;border-bottom:3px solid #f59e0b;padding-bottom:6px}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+.info-table th{background:#f59e0b;color:#fff}
+.software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.software-item{background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;padding:16px;border-radius:12px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;transition:.25s}
+.software-item:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+.software-item.active{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25) inset}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+.btn{background:#f59e0b;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+.btn.secondary{background:#334155}
+.btn.ghost{background:#f1f5f9;color:#0f172a}
+.btn.success{background:#16a34a}
+.btn.warning{background:#dc2626;color:#fff}
+.btn:hover{filter:brightness(1.05)}
+.codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #f59e0b;padding-left:10px}
+.split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+.panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+.panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:14px;color:#334155}
+input[type=range]{width:220px}
+input[type=number]{width:80px;padding:4px;border:1px solid #d1d5db;border-radius:4px}
+canvas{width:100%;height:400px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+.iframe-box{position:relative;padding-top:56.25%;background:#e2e8f0;border-radius:12px;overflow:hidden}
+.iframe-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.muted{color:#64748b;font-size:13px}
+.canvas-3d{height:450px}
+.tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+.tab{padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{border-bottom-color:#f59e0b;color:#f59e0b}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.equation-box{background:#fef3c7;border:2px solid #f59e0b;border-radius:8px;padding:12px;margin:8px 0;text-align:center}
+.equation-box .eq{font-size:18px;font-weight:bold;color:#92400e}
+.solution-display{background:#ecfdf5;border:1px solid #10b981;border-radius:8px;padding:12px;margin:8px 0}
+.phase-portrait{height:350px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>🧮 Differensial tenglamalar yechimi</h1>
+  <p>Real muhit modellashtirish • Dinamik tizimlar • ODE va PDE yechimi</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>📋 Ma'ruza ma'lumotlari</h2>
+    <table class="info-table">
+      <tr><th>Ma'ruza raqami</th><td>3</td></tr>
+      <tr><th>Mavzu</th><td>Matlabda differensial tenglamalarni yechish</td></tr>
+      <tr><th>Nima uchun mos?</th><td>Real muhit modellashtirish</td></tr>
+      <tr><th>Vizualizatsiya usuli</th><td>ode45, simulink, fazaviy portret</td></tr>
+      <tr><th>Dasturlar</th><td>MATLAB, Python, Maple, Mathematica, Julia, R</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Dastur tanlang (kod & onlayn xizmat)</h2>
+    <div class="software-grid" id="softwareGrid" aria-label="Dastur tanlash">
+      <div class="software-item active" data-soft="Matlab" tabindex="0"><strong>MATLAB</strong></div>
+      <div class="software-item" data-soft="Python" tabindex="0"><strong>Python</strong></div>
+      <div class="software-item" data-soft="Maple" tabindex="0"><strong>Maple</strong></div>
+      <div class="software-item" data-soft="Mathematica" tabindex="0"><strong>Mathematica</strong></div>
+      <div class="software-item" data-soft="Julia" tabindex="0"><strong>Julia</strong></div>
+      <div class="software-item" data-soft="R" tabindex="0"><strong>R</strong></div>
+    </div>
+
+    <div class="toolbar" id="onlineToolbar">
+      <button class="btn" id="openOnline" aria-label="Onlayn xizmatni ochish">Onlayn xizmatni ochish</button>
+      <button class="btn ghost" id="toggleEmbed" style="display:none" aria-expanded="false">Iframe ko'rsat/berkit</button>
+      <span class="muted" id="onlineNote">Tanlangan dasturga mos onlayn sahifa ochiladi.</span>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="codeCard">
+  <h2>📝 Hisoblash kodi</h2>
+  <div class="toolbar">
+    <button class="btn secondary" id="copyBtn" aria-label="Kodni nusxalash">Kodni nusxalash</button>
+    <button class="btn success" id="downloadCodeBtn" aria-label="Kodni .txt yuklab olish">Kodni .txt yuklab olish</button>
+    <button class="btn warning" id="downloadStateBtn" aria-label="Holatni .json yuklab olish">Holatni .json yuklab olish</button>
+    <span class="muted" id="codeTitle">MATLAB -- Differensial tenglamalar</span>
+  </div>
+  <div class="codewrap"><pre id="codeBlock" aria-live="polite"></pre></div>
+
+  <div class="panel" style="margin-top:10px">
+    <h3>Izoh / Talqin</h3>
+    <pre id="codeNotes"></pre>
+  </div>
+
+  <div class="panel" id="embedPanel" style="display:none;margin-top:10px">
+    <h3>Ichki ko'rinish (iframe)</h3>
+    <div class="iframe-box" id="embedBox"></div>
+    <div class="muted" style="margin-top:6px">Eslatma: Internetga ulanish talab etiladi.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🎨 Interaktiv demo</h2>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="ode1">1-tartibli ODE</div>
+    <div class="tab" data-tab="ode2">2-tartibli ODE</div>
+    <div class="tab" data-tab="system">Tizim</div>
+    <div class="tab" data-tab="phase">Fazaviy portret</div>
+  </div>
+
+  <!-- 1-TARTIBLI ODE TAB -->
+  <div class="tab-content active" id="tab-ode1">
+    <div class="equation-box">
+      <div class="eq">$\frac{dy}{dt} = ay + b$</div>
+      <div class="muted">Boshlang'ich shart: $y(0) = y_0$</div>
+    </div>
+    
+    <div class="split">
+      <div class="panel">
+        <h3>Parametrlar</h3>
+        
+        <div class="row" style="margin-top:8px">
+          <label>Koeffitsient $a$</label>
+          <input type="range" id="param_ode1_a" min="-2" max="2" step="0.1" value="0.5" aria-label="Koeffitsient a">
+          <span id="val_ode1_a">0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Konstanta $b$</label>
+          <input type="range" id="param_ode1_b" min="-3" max="3" step="0.1" value="1" aria-label="Konstanta b">
+          <span id="val_ode1_b">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Boshlang'ich qiymat $y_0$</label>
+          <input type="range" id="param_ode1_y0" min="-2" max="2" step="0.1" value="0" aria-label="Boshlang'ich qiymat">
+          <span id="val_ode1_y0">0.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Vaqt oralig'i</label>
+          <input type="number" id="time_range" min="1" max="20" value="10" aria-label="Vaqt oralig'i">
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="solve_ode1">Yechish</button>
+          <button class="btn ghost" id="clear_ode1">Tozalash</button>
+          <button class="btn success" id="save_ode1">PNG yuklab olish</button>
+        </div>
+
+        <div class="solution-display" id="solution_ode1">
+          <strong>Analitik yechim:</strong> $y(t) = Ce^{at} - \frac{b}{a}$
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas_ode1" width="800" height="400" aria-label="1-tartibli ODE yechimi"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-TARTIBLI ODE TAB -->
+  <div class="tab-content" id="tab-ode2">
+    <div class="equation-box">
+      <div class="eq">$\frac{d^2y}{dt^2} + c\frac{dy}{dt} + ky = 0$</div>
+      <div class="muted">Garmonik tebranish tenglamasi (dämpfung bilan)</div>
+    </div>
+    
+    <div class="split">
+      <div class="panel">
+        <h3>Parametrlar</h3>
+        
+        <div class="row" style="margin-top:8px">
+          <label>Dämpfung koeff. $c$</label>
+          <input type="range" id="param_ode2_c" min="0" max="3" step="0.1" value="0.5" aria-label="Dämpfung">
+          <span id="val_ode2_c">0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Bikrlik koeff. $k$</label>
+          <input type="range" id="param_ode2_k" min="0.1" max="5" step="0.1" value="2" aria-label="Bikrlik">
+          <span id="val_ode2_k">2.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$y(0)$</label>
+          <input type="range" id="param_ode2_y0" min="-2" max="2" step="0.1" value="1" aria-label="y(0)">
+          <span id="val_ode2_y0">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$y'(0)$</label>
+          <input type="range" id="param_ode2_v0" min="-2" max="2" step="0.1" value="0" aria-label="y'(0)">
+          <span id="val_ode2_v0">0.0</span>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="solve_ode2">Yechish</button>
+          <button class="btn ghost" id="clear_ode2">Tozalash</button>
+          <button class="btn success" id="save_ode2">PNG yuklab olish</button>
+        </div>
+
+        <div class="solution-display" id="solution_ode2">
+          <strong>Tebranish turi:</strong> <span id="oscillation_type">Dämpfung tebranish</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas_ode2" width="800" height="400" aria-label="2-tartibli ODE yechimi"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIZIM TAB -->
+  <div class="tab-content" id="tab-system">
+    <div class="equation-box">
+      <div class="eq">$\frac{dx}{dt} = ax + by$, $\frac{dy}{dt} = cx + dy$</div>
+      <div class="muted">Chiziqli tizim (2D)</div>
+    </div>
+    
+    <div class="split">
+      <div class="panel">
+        <h3>Matritsa koeffitsientlari</h3>
+        
+        <div class="row" style="margin-top:8px">
+          <label>$a$ (x tenglamada x koeff.)</label>
+          <input type="range" id="param_sys_a" min="-2" max="2" step="0.1" value="-0.5" aria-label="Matritsa a">
+          <span id="val_sys_a">-0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$b$ (x tenglamada y koeff.)</label>
+          <input type="range" id="param_sys_b" min="-2" max="2" step="0.1" value="1" aria-label="Matritsa b">
+          <span id="val_sys_b">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$c$ (y tenglamada x koeff.)</label>
+          <input type="range" id="param_sys_c" min="-2" max="2" step="0.1" value="-1" aria-label="Matritsa c">
+          <span id="val_sys_c">-1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$d$ (y tenglamada y koeff.)</label>
+          <input type="range" id="param_sys_d" min="-2" max="2" step="0.1" value="-0.5" aria-label="Matritsa d">
+          <span id="val_sys_d">-0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Boshlang'ich $x_0$</label>
+          <input type="range" id="param_sys_x0" min="-2" max="2" step="0.1" value="1" aria-label="x0">
+          <span id="val_sys_x0">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Boshlang'ich $y_0$</label>
+          <input type="range" id="param_sys_y0" min="-2" max="2" step="0.1" value="0.5" aria-label="y0">
+          <span id="val_sys_y0">0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="solve_system">Yechish</button>
+          <button class="btn ghost" id="clear_system">Tozalash</button>
+          <button class="btn success" id="save_system">PNG yuklab olish</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas_system" width="800" height="400" aria-label="Tizim yechimi"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAZAVIY PORTRET TAB -->
+  <div class="tab-content" id="tab-phase">
+    <div class="equation-box">
+      <div class="eq">Van der Pol tenglamasi: $\frac{d^2x}{dt^2} - \mu(1-x^2)\frac{dx}{dt} + x = 0$</div>
+      <div class="muted">Nochiziqli tebranuvchi</div>
+    </div>
+    
+    <div class="split">
+      <div class="panel">
+        <h3>Parametrlar</h3>
+        
+        <div class="row" style="margin-top:8px">
+          <label>$\mu$ parametri</label>
+          <input type="range" id="param_mu" min="0.1" max="3" step="0.1" value="1" aria-label="mu parametri">
+          <span id="val_mu">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Traektoriyalar soni</label>
+          <input type="range" id="param_trajectories" min="3" max="10" step="1" value="5" aria-label="Traektoriyalar">
+          <span id="val_trajectories">5</span>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn" id="draw_phase">Fazaviy portret</button>
+          <button class="btn ghost" id="clear_phase">Tozalash</button>
+          <button class="btn ghost" id="animate_phase">Animatsiya</button>
+          <button class="btn success" id="save_phase">PNG yuklab olish</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Van der Pol tenglamasi nochiziqli tebranish misolini ko'rsatadi.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas_phase" class="phase-portrait" width="800" height="350" aria-label="Fazaviy portret"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ====== Yordamchi yuklab olish funksiyalari ====== */
+function downloadFromDataUrl(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  downloadFromDataUrl(url, filename);
+  URL.revokeObjectURL(url);
+}
+
+/* ========== 1) Kod snippetlar ========== */
+const SNIPPETS = {
+  Matlab: {
+    code:
+`% MATLAB - Differensial tenglamalar yechimi
+
+% 1-tartibli ODE: dy/dt = ay + b
+function dydt = firstorder(t, y, a, b)
+    dydt = a*y + b;
+end
+
+% Yechish
+a = 0.5; b = 1; y0 = 0; tspan = [0 10];
+[t, y] = ode45(@(t,y) firstorder(t,y,a,b), tspan, y0);
+plot(t, y, 'LineWidth', 2); grid on;
+
+% 2-tartibli ODE (harmonik tebranish)
+function dydt = harmonic(t, y, c, k)
+    dydt = [y(2); -k*y(1) - c*y(2)];
+end
+
+% Dämpfung tebranish
+c = 0.5; k = 2; y0 = [1; 0]; % [position; velocity]
+[t, y] = ode45(@(t,y) harmonic(t,y,c,k), [0 20], y0);
+plot(t, y(:,1), 'b-', t, y(:,2), 'r--');
+legend('Position', 'Velocity');
+
+% Chiziqli tizim
+A = [-0.5 1; -1 -0.5]; % Matritsa koeffitsientlari
+function dydt = linear_system(t, y, A)
+    dydt = A * y;
+end
+
+y0 = [1; 0.5];
+[t, y] = ode45(@(t,y) linear_system(t,y,A), [0 10], y0);
+plot(y(:,1), y(:,2)); % Fazaviy portret
+xlabel('x'); ylabel('y');
+
+% Van der Pol tenglamasi
+function dydt = vanderpol(t, y, mu)
+    dydt = [y(2); mu*(1-y(1)^2)*y(2) - y(1)];
+end
+
+mu = 1; y0 = [2; 0];
+[t, y] = ode15s(@(t,y) vanderpol(t,y,mu), [0 20], y0);
+plot(y(:,1), y(:,2)); title('Van der Pol Phase Portrait');`,
+    notes:
+`• ode45() -- Runge-Kutta 4-5 tartibli
+• ode15s() -- stiff tenglamalar uchun
+• Tizimlar uchun vektor shaklida yozing
+• Fazaviy portret: x vs y grafigi`
+  },
+
+  Python: {
+    code:
+`import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint, solve_ivp
+
+# 1-tartibli ODE
+def first_order(y, t, a, b):
+    return a*y + b
+
+a, b = 0.5, 1
+y0 = 0
+t = np.linspace(0, 10, 100)
+y = odeint(first_order, y0, t, args=(a, b))
+plt.plot(t, y); plt.grid(); plt.show()
+
+# 2-tartibli ODE (harmonik tebranish)
+def harmonic(t, y, c, k):
+    return [y[1], -k*y[0] - c*y[1]]
+
+c, k = 0.5, 2
+y0 = [1, 0]  # [position, velocity]
+sol = solve_ivp(harmonic, [0, 20], y0, args=(c, k), dense_output=True)
+t = np.linspace(0, 20, 500)
+y = sol.sol(t)
+plt.plot(t, y[0], label='Position')
+plt.plot(t, y[1], label='Velocity')
+plt.legend(); plt.grid(); plt.show()
+
+# Chiziqli tizim
+def linear_system(t, y, A):
+    return A @ y
+
+A = np.array([[-0.5, 1], [-1, -0.5]])
+y0 = [1, 0.5]
+sol = solve_ivp(linear_system, [0, 10], y0, args=(A,))
+plt.plot(sol.y[0], sol.y[1])
+plt.xlabel('x'); plt.ylabel('y'); plt.show()
+
+# Van der Pol
+def vanderpol(t, y, mu):
+    return [y[1], mu*(1-y[0]**2)*y[1] - y[0]]
+
+mu = 1
+y0 = [2, 0]
+sol = solve_ivp(vanderpol, [0, 20], y0, args=(mu,))
+plt.plot(sol.y[0], sol.y[1])
+plt.title('Van der Pol Phase Portrait'); plt.show()`,
+    notes:
+`• scipy.integrate -- ODE yechuvchilar
+• odeint() -- eski interfeys
+• solve_ivp() -- yangi, kuchliroq
+• dense_output=True -- silliq interpolatsiya`
+  },
+
+  Maple: {
+    code:
+`restart:
+with(DEtools):
+with(plots):
+
+# 1-tartibli ODE
+ode1 := diff(y(t), t) = a*y(t) + b;
+sol1 := dsolve({ode1, y(0)=y0}, y(t));
+
+# Raqamli yechim
+a := 0.5: b := 1: y0 := 0:
+sol_numeric := dsolve({ode1, y(0)=y0}, y(t), numeric);
+odeplot(sol_numeric, [t, y(t)], 0..10);
+
+# 2-tartibli ODE
+ode2 := diff(y(t), t, t) + c*diff(y(t), t) + k*y(t) = 0;
+dsolve({ode2, y(0)=1, D(y)(0)=0}, y(t));
+
+# Tizim
+sys := {diff(x(t), t) = a*x(t) + b*y(t),
+        diff(y(t), t) = c*x(t) + d*y(t)};
+DEplot(sys, [x(t), y(t)], t=0..10, 
+       [[x(0)=1, y(0)=0.5]], x=-2..2, y=-2..2);
+
+# Van der Pol
+vdp := diff(x(t), t, t) - mu*(1-x(t)^2)*diff(x(t), t) + x(t) = 0;
+mu := 1:
+DEplot(vdp, [x(t), diff(x(t), t)], t=0..20,
+       [[x(0)=2, D(x)(0)=0]], x=-3..3, y=-3..3);`,
+    notes:
+`• DEtools paketini yuklash kerak
+• dsolve() -- analitik va raqamli yechim
+• DEplot() -- fazaviy portret
+• odeplot() -- vaqt bo'yicha grafik`
+  },
+
+  Mathematica: {
+    code:
+`(* 1-tartibli ODE *)
+sol1 = DSolve[{y'[t] == a*y[t] + b, y[0] == y0}, y[t], t]
+NDSolve[{y'[t] == 0.5*y[t] + 1, y[0] == 0}, y, {t, 0, 10}]
+
+(* 2-tartibli ODE *)
+sol2 = DSolve[{y''[t] + c*y'[t] + k*y[t] == 0, 
+              y[0] == 1, y'[0] == 0}, y[t], t]
+
+(* Raqamli yechim va grafik *)
+sol = NDSolve[{y''[t] + 0.5*y'[t] + 2*y[t] == 0, 
+              y[0] == 1, y'[0] == 0}, y, {t, 0, 20}]
+Plot[Evaluate[y[t] /. sol], {t, 0, 20}]
+
+(* Tizim *)
+sys = NDSolve[{x'[t] == -0.5*x[t] + y[t],
+               y'[t] == -x[t] - 0.5*y[t],
+               x[0] == 1, y[0] == 0.5}, {x, y}, {t, 0, 10}]
+ParametricPlot[Evaluate[{x[t], y[t]} /. sys], {t, 0, 10}]
+
+(* Van der Pol *)
+vdp = NDSolve[{x''[t] - 1*(1-x[t]^2)*x'[t] + x[t] == 0,
+               x[0] == 2, x'[0] == 0}, x, {t, 0, 20}]
+ParametricPlot[Evaluate[{x[t], x'[t]} /. vdp], {t, 0, 20}]`,
+    notes:
+`• DSolve() -- analitik yechim
+• NDSolve() -- raqamli yechim
+• ParametricPlot() -- fazaviy portret`
+  },
+
+  Julia: {
+    code:
+`using DifferentialEquations, Plots
+
+# 1-tartibli ODE
+function first_order!(du, u, p, t)
+    a, b = p
+    du[1] = a*u[1] + b
+end
+
+u0 = [0.0]; tspan = (0.0, 10.0); p = (0.5, 1.0)
+prob = ODEProblem(first_order!, u0, tspan, p)
+sol = solve(prob)
+plot(sol)
+
+# 2-tartibli ODE (harmonik)
+function harmonic!(du, u, p, t)
+    c, k = p
+    du[1] = u[2]
+    du[2] = -k*u[1] - c*u[2]
+end
+
+u0 = [1.0, 0.0]; p = (0.5, 2.0)
+prob = ODEProblem(harmonic!, u0, (0.0, 20.0), p)
+sol = solve(prob)
+plot(sol, vars=(0,1), label="Position")
+
+# Van der Pol
+function vanderpol!(du, u, p, t)
+    μ = p[1]
+    du[1] = u[2]
+    du[2] = μ*(1-u[1]^2)*u[2] - u[1]
+end
+
+u0 = [2.0, 0.0]; p = [1.0]
+prob = ODEProblem(vanderpol!, u0, (0.0, 20.0), p)
+sol = solve(prob)
+plot(sol, vars=(1,2), title="Van der Pol Phase Portrait")`,
+    notes:
+`• DifferentialEquations.jl -- eng kuchli paket
+• In-place modifikatsiya tezroq
+• solve() avtomatik usul tanlaydi`
+  },
+
+  R: {
+    code:
+`library(deSolve)
+library(ggplot2)
+
+# 1-tartibli ODE
+first_order <- function(t, y, parms) {
+  list(parms$a * y + parms$b)
+}
+
+parms <- list(a = 0.5, b = 1)
+yini <- c(y = 0)
+times <- seq(0, 10, by = 0.1)
+out <- ode(y = yini, times = times, func = first_order, parms = parms)
+plot(out)
+
+# 2-tartibli ODE (harmonik tebranish)
+harmonic <- function(t, state, parms) {
+  with(as.list(c(state, parms)), {
+    dx <- v
+    dv <- -k*x - c*v
+    list(c(dx, dv))
+  })
+}
+
+parms <- list(c = 0.5, k = 2)
+state <- c(x = 1, v = 0)
+times <- seq(0, 20, by = 0.1)
+out <- ode(y = state, times = times, func = harmonic, parms = parms)
+plot(out)
+
+# Van der Pol
+vanderpol <- function(t, state, parms) {
+  with(as.list(c(state, parms)), {
+    dx <- y
+    dy <- mu*(1-x^2)*y - x
+    list(c(dx, dy))
+  })
+}
+
+parms <- list(mu = 1)
+state <- c(x = 2, y = 0)
+out <- ode(y = state, times = times, func = vanderpol, parms = parms)
+plot(out[,"x"], out[,"y"], type="l")`,
+    notes:
+`• deSolve paketi eng asosiysi
+• ode() funktsiyasi universal
+• with() sintaksisi qulayroq`
+  }
+};
+
+/* ========== 2) Onlayn xizmat mapping ========== */
+const ONLINE_URL = {
+  Matlab: "https://matlab.mathworks.com/",
+  Python: "https://jupyter.org/try",
+  Maple: "https://www.maplesoft.com/products/MapleLearn/",
+  Mathematica: "https://www.wolframcloud.com/",
+  Julia: "https://julialang.org/learning/tryjulia/",
+  R: "https://rstudio.cloud/"
+};
+
+/* ========== 3) UI elementlar ========== */
+const grid = document.getElementById('softwareGrid');
+const codeTitle = document.getElementById('codeTitle');
+const codeBlock = document.getElementById('codeBlock');
+const codeNotes = document.getElementById('codeNotes');
+const codeCard = document.getElementById('codeCard');
+const openOnlineBtn = document.getElementById('openOnline');
+
+let currentSoft = 'Matlab';
+function setSoftware(soft){
+  currentSoft = soft;
+  [...grid.querySelectorAll('.software-item')].forEach(el=>{
+    el.classList.toggle('active', el.dataset.soft === soft);
+  });
+  const pack = SNIPPETS[soft];
+  codeTitle.textContent = soft + " -- Differensial tenglamalar";
+  codeBlock.textContent = pack?.code || "// Snippet topilmadi.";
+  codeNotes.textContent = pack?.notes || "";
+  codeCard.scrollIntoView({behavior:'smooth', block:'start'});
+  saveState();
+}
+grid.addEventListener('click', (e)=>{
+  const item = e.target.closest('.software-item');
+  if(!item) return;
+  setSoftware(item.dataset.soft);
+});
+openOnlineBtn.addEventListener('click', ()=>{
+  const url = ONLINE_URL[currentSoft];
+  if(url) window.open(url, '_blank', 'noopener,noreferrer');
+});
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(codeBlock.textContent).then(()=>{
+    const b = document.getElementById('copyBtn');
+    const t = b.textContent;
+    b.textContent = "Nusxalandi!";
+    setTimeout(()=> b.textContent = t, 1200);
+  });
+});
+document.getElementById('downloadCodeBtn').addEventListener('click', ()=>{
+  const filename = (currentSoft || 'code') + "_ode_snippet.txt";
+  downloadText(codeBlock.textContent, filename);
+});
+document.getElementById('downloadStateBtn').addEventListener('click', ()=>{
+  const state = getState();
+  downloadText(JSON.stringify(state, null, 2), "ode_state.json", "application/json");
+});
+
+/* ========== 4) Tab tizimi ========== */
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${targetTab}`).classList.add('active');
+    saveState();
+  });
+});
+
+/* ========== 5) Matematik yordamchi funksiyalar ========== */
+
+// Runge-Kutta 4-tartibli usuli
+function rungeKutta4(f, y0, t0, tf, h) {
+  const n = Math.floor((tf - t0) / h);
+  const t = [], y = [];
+  
+  t[0] = t0;
+  y[0] = y0;
+  
+  for (let i = 0; i < n; i++) {
+    const k1 = f(t[i], y[i]);
+    const k2 = f(t[i] + h/2, y[i] + h*k1/2);
+    const k3 = f(t[i] + h/2, y[i] + h*k2/2);
+    const k4 = f(t[i] + h, y[i] + h*k3);
+    
+    y[i+1] = y[i] + h/6 * (k1 + 2*k2 + 2*k3 + k4);
+    t[i+1] = t[i] + h;
+  }
+  
+  return {t, y};
+}
+
+// Tizimlar uchun RK4
+function rungeKutta4System(f, y0, t0, tf, h) {
+  const n = Math.floor((tf - t0) / h);
+  const t = [], y = [];
+  
+  t[0] = t0;
+  y[0] = [...y0];
+  
+  for (let i = 0; i < n; i++) {
+    const k1 = f(t[i], y[i]);
+    const k2 = f(t[i] + h/2, y[i].map((val, idx) => val + h*k1[idx]/2));
+    const k3 = f(t[i] + h/2, y[i].map((val, idx) => val + h*k2[idx]/2));
+    const k4 = f(t[i] + h, y[i].map((val, idx) => val + h*k3[idx]));
+    
+    y[i+1] = y[i].map((val, idx) => val + h/6 * (k1[idx] + 2*k2[idx] + 2*k3[idx] + k4[idx]));
+    t[i+1] = t[i] + h;
+  }
+  
+  return {t, y};
+}
+
+/* ========== 6) 1-tartibli ODE ========== */
+const canvas_ode1 = document.getElementById('canvas_ode1');
+const ctx_ode1 = canvas_ode1.getContext('2d');
+
+const param_ode1_a = document.getElementById('param_ode1_a');
+const param_ode1_b = document.getElementById('param_ode1_b');
+const param_ode1_y0 = document.getElementById('param_ode1_y0');
+const time_range = document.getElementById('time_range');
+
+const val_ode1_a = document.getElementById('val_ode1_a');
+const val_ode1_b = document.getElementById('val_ode1_b');
+const val_ode1_y0 = document.getElementById('val_ode1_y0');
+
+function drawAxes(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Grid
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  for(let i = 0; i <= canvas.width; i += 40) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, canvas.height);
+    ctx.stroke();
+  }
+  for(let i = 0; i <= canvas.height; i += 40) {
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(canvas.width, i);
+    ctx.stroke();
+  }
+  
+  // Axes
+  const centerX = 50, centerY = canvas.height / 2;
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(centerX, 0);
+  ctx.lineTo(centerX, canvas.height);
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(0, centerY);
+  ctx.lineTo(canvas.width, centerY);
+  ctx.stroke();
+}
+
+function solve_ode1_function() {
+  const a = parseFloat(param_ode1_a.value);
+  const b = parseFloat(param_ode1_b.value);
+  const y0 = parseFloat(param_ode1_y0.value);
+  const tf = parseFloat(time_range.value);
+  
+  val_ode1_a.textContent = a.toFixed(1);
+  val_ode1_b.textContent = b.toFixed(1);
+  val_ode1_y0.textContent = y0.toFixed(1);
+  
+  drawAxes(ctx_ode1, canvas_ode1);
+  
+  // ODE: dy/dt = ay + b
+  const f = (t, y) => a * y + b;
+  const result = rungeKutta4(f, y0, 0, tf, 0.05);
+  
+  // Masshtab
+  const scaleX = (canvas_ode1.width - 60) / tf;
+  const centerY = canvas_ode1.height / 2;
+  const maxY = Math.max(...result.y.map(Math.abs));
+  const scaleY = Math.min(150, centerY * 0.8 / (maxY || 1));
+  
+  // Grafik chizish
+  ctx_ode1.strokeStyle = '#f59e0b';
+  ctx_ode1.lineWidth = 3;
+  ctx_ode1.beginPath();
+  
+  for (let i = 0; i < result.t.length; i++) {
+    const x = 50 + result.t[i] * scaleX;
+    const y = centerY - result.y[i] * scaleY;
+    
+    if (i === 0) ctx_ode1.moveTo(x, y);
+    else ctx_ode1.lineTo(x, y);
+  }
+  ctx_ode1.stroke();
+  
+  // Analitik yechimni ko'rsatish
+  const solution_ode1 = document.getElementById('solution_ode1');
+  if (Math.abs(a) < 1e-10) {
+    solution_ode1.innerHTML = `<strong>Analitik yechim:</strong> $y(t) = ${y0.toFixed(2)} + ${b.toFixed(2)}t$`;
+  } else {
+    const C = y0 + b/a;
+    solution_ode1.innerHTML = `<strong>Analitik yechim:</strong> $y(t) = ${C.toFixed(2)}e^{${a.toFixed(2)}t} - ${(b/a).toFixed(2)}$`;
+  }
+}
+
+param_ode1_a.addEventListener('input', solve_ode1_function);
+param_ode1_b.addEventListener('input', solve_ode1_function);
+param_ode1_y0.addEventListener('input', solve_ode1_function);
+time_range.addEventListener('input', solve_ode1_function);
+
+document.getElementById('solve_ode1').addEventListener('click', solve_ode1_function);
+document.getElementById('clear_ode1').addEventListener('click', () => drawAxes(ctx_ode1, canvas_ode1));
+document.getElementById('save_ode1').addEventListener('click', () => {
+  const url = canvas_ode1.toDataURL('image/png');
+  downloadFromDataUrl(url, 'ode1_solution.png');
+});
+
+/* ========== 7) 2-tartibli ODE ========== */
+const canvas_ode2 = document.getElementById('canvas_ode2');
+const ctx_ode2 = canvas_ode2.getContext('2d');
+
+const param_ode2_c = document.getElementById('param_ode2_c');
+const param_ode2_k = document.getElementById('param_ode2_k');
+const param_ode2_y0 = document.getElementById('param_ode2_y0');
+const param_ode2_v0 = document.getElementById('param_ode2_v0');
+
+const val_ode2_c = document.getElementById('val_ode2_c');
+const val_ode2_k = document.getElementById('val_ode2_k');
+const val_ode2_y0 = document.getElementById('val_ode2_y0');
+const val_ode2_v0 = document.getElementById('val_ode2_v0');
+
+function solve_ode2_function() {
+  const c = parseFloat(param_ode2_c.value);
+  const k = parseFloat(param_ode2_k.value);
+  const y0 = parseFloat(param_ode2_y0.value);
+  const v0 = parseFloat(param_ode2_v0.value);
+  
+  val_ode2_c.textContent = c.toFixed(1);
+  val_ode2_k.textContent = k.toFixed(1);
+  val_ode2_y0.textContent = y0.toFixed(1);
+  val_ode2_v0.textContent = v0.toFixed(1);
+  
+  drawAxes(ctx_ode2, canvas_ode2);
+  
+  // ODE: y'' + c*y' + k*y = 0
+  // Tizim: dy1/dt = y2, dy2/dt = -k*y1 - c*y2
+  const f = (t, y) => [y[1], -k*y[0] - c*y[1]];
+  const result = rungeKutta4System(f, [y0, v0], 0, 20, 0.05);
+  
+  // Masshtab
+  const scaleX = (canvas_ode2.width - 60) / 20;
+  const centerY = canvas_ode2.height / 2;
+  const maxY = Math.max(...result.y.map(row => Math.max(Math.abs(row[0]), Math.abs(row[1]))));
+  const scaleY = Math.min(150, centerY * 0.8 / (maxY || 1));
+  
+  // Position grafigi
+  ctx_ode2.strokeStyle = '#f59e0b';
+  ctx_ode2.lineWidth = 3;
+  ctx_ode2.beginPath();
+  
+  for (let i = 0; i < result.t.length; i++) {
+    const x = 50 + result.t[i] * scaleX;
+    const y = centerY - result.y[i][0] * scaleY;
+    
+    if (i === 0) ctx_ode2.moveTo(x, y);
+    else ctx_ode2.lineTo(x, y);
+  }
+  ctx_ode2.stroke();
+  
+  // Velocity grafigi
+  ctx_ode2.strokeStyle = '#dc2626';
+  ctx_ode2.lineWidth = 2;
+  ctx_ode2.setLineDash([5, 5]);
+  ctx_ode2.beginPath();
+  
+  for (let i = 0; i < result.t.length; i++) {
+    const x = 50 + result.t[i] * scaleX;
+    const y = centerY - result.y[i][1] * scaleY;
+    
+    if (i === 0) ctx_ode2.moveTo(x, y);
+    else ctx_ode2.lineTo(x, y);
+  }
+  ctx_ode2.stroke();
+  ctx_ode2.setLineDash([]);
+  
+  // Tebranish turini aniqlash
+  const discriminant = c*c - 4*k;
+  const oscillation_type = document.getElementById('oscillation_type');
+  if (discriminant < 0) {
+    oscillation_type.textContent = "Dämpfung tebranish";
+  } else if (discriminant === 0) {
+    oscillation_type.textContent = "Kritik dämpfung";
+  } else {
+    oscillation_type.textContent = "Yuqori dämpfung";
+  }
+}
+
+param_ode2_c.addEventListener('input', solve_ode2_function);
+param_ode2_k.addEventListener('input', solve_ode2_function);
+param_ode2_y0.addEventListener('input', solve_ode2_function);
+param_ode2_v0.addEventListener('input', solve_ode2_function);
+
+document.getElementById('solve_ode2').addEventListener('click', solve_ode2_function);
+document.getElementById('clear_ode2').addEventListener('click', () => drawAxes(ctx_ode2, canvas_ode2));
+document.getElementById('save_ode2').addEventListener('click', () => {
+  const url = canvas_ode2.toDataURL('image/png');
+  downloadFromDataUrl(url, 'ode2_solution.png');
+});
+
+/* ========== 8) Tizim ========== */
+const canvas_system = document.getElementById('canvas_system');
+const ctx_system = canvas_system.getContext('2d');
+
+const param_sys_a = document.getElementById('param_sys_a');
+const param_sys_b = document.getElementById('param_sys_b');
+const param_sys_c = document.getElementById('param_sys_c');
+const param_sys_d = document.getElementById('param_sys_d');
+const param_sys_x0 = document.getElementById('param_sys_x0');
+const param_sys_y0 = document.getElementById('param_sys_y0');
+
+const val_sys_a = document.getElementById('val_sys_a');
+const val_sys_b = document.getElementById('val_sys_b');
+const val_sys_c = document.getElementById('val_sys_c');
+const val_sys_d = document.getElementById('val_sys_d');
+const val_sys_x0 = document.getElementById('val_sys_x0');
+const val_sys_y0 = document.getElementById('val_sys_y0');
+
+function solve_system_function() {
+  const a = parseFloat(param_sys_a.value);
+  const b = parseFloat(param_sys_b.value);
+  const c = parseFloat(param_sys_c.value);
+  const d = parseFloat(param_sys_d.value);
+  const x0 = parseFloat(param_sys_x0.value);
+  const y0 = parseFloat(param_sys_y0.value);
+  
+  val_sys_a.textContent = a.toFixed(1);
+  val_sys_b.textContent = b.toFixed(1);
+  val_sys_c.textContent = c.toFixed(1);
+  val_sys_d.textContent = d.toFixed(1);
+  val_sys_x0.textContent = x0.toFixed(1);
+  val_sys_y0.textContent = y0.toFixed(1);
+  
+  ctx_system.clearRect(0, 0, canvas_system.width, canvas_system.height);
+  
+  // Grid
+  const centerX = canvas_system.width / 2;
+  const centerY = canvas_system.height / 2;
+  
+  ctx_system.strokeStyle = '#f1f5f9';
+  ctx_system.lineWidth = 1;
+  for(let i = 0; i <= canvas_system.width; i += 40) {
+    ctx_system.beginPath();
+    ctx_system.moveTo(i, 0);
+    ctx_system.lineTo(i, canvas_system.height);
+    ctx_system.stroke();
+  }
+  for(let i = 0; i <= canvas_system.height; i += 40) {
+    ctx_system.beginPath();
+    ctx_system.moveTo(0, i);
+    ctx_system.lineTo(canvas_system.width, i);
+    ctx_system.stroke();
+  }
+  
+  // Axes
+  ctx_system.strokeStyle = '#64748b';
+  ctx_system.lineWidth = 2;
+  ctx_system.beginPath();
+  ctx_system.moveTo(centerX, 0);
+  ctx_system.lineTo(centerX, canvas_system.height);
+  ctx_system.stroke();
+  
+  ctx_system.beginPath();
+  ctx_system.moveTo(0, centerY);
+  ctx_system.lineTo(canvas_system.width, centerY);
+  ctx_system.stroke();
+  
+  // Tizim: dx/dt = ax + by, dy/dt = cx + dy
+  const f = (t, state) => [a*state[0] + b*state[1], c*state[0] + d*state[1]];
+  const result = rungeKutta4System(f, [x0, y0], 0, 10, 0.05);
+  
+  // Masshtab
+  const scale = 100;
+  
+  // Traektoriya
+  ctx_system.strokeStyle = '#f59e0b';
+  ctx_system.lineWidth = 3;
+  ctx_system.beginPath();
+  
+  for (let i = 0; i < result.y.length; i++) {
+    const x = centerX + result.y[i][0] * scale;
+    const y = centerY - result.y[i][1] * scale;
+    
+    if (i === 0) ctx_system.moveTo(x, y);
+    else ctx_system.lineTo(x, y);
+  }
+  ctx_system.stroke();
+  
+  // Boshlang'ich nuqta
+  ctx_system.fillStyle = '#16a34a';
+  ctx_system.beginPath();
+  ctx_system.arc(centerX + x0 * scale, centerY - y0 * scale, 6, 0, 2*Math.PI);
+  ctx_system.fill();
+  
+  // Oxirgi nuqta
+  if (result.y.length > 0) {
+    const lastX = result.y[result.y.length-1][0];
+    const lastY = result.y[result.y.length-1][1];
+    ctx_system.fillStyle = '#dc2626';
+    ctx_system.beginPath();
+    ctx_system.arc(centerX + lastX * scale, centerY - lastY * scale, 6, 0, 2*Math.PI);
+    ctx_system.fill();
+  }
+}
+
+param_sys_a.addEventListener('input', solve_system_function);
+param_sys_b.addEventListener('input', solve_system_function);
+param_sys_c.addEventListener('input', solve_system_function);
+param_sys_d.addEventListener('input', solve_system_function);
+param_sys_x0.addEventListener('input', solve_system_function);
+param_sys_y0.addEventListener('input', solve_system_function);
+
+document.getElementById('solve_system').addEventListener('click', solve_system_function);
+document.getElementById('clear_system').addEventListener('click', () => {
+  ctx_system.clearRect(0, 0, canvas_system.width, canvas_system.height);
+});
+document.getElementById('save_system').addEventListener('click', () => {
+  const url = canvas_system.toDataURL('image/png');
+  downloadFromDataUrl(url, 'system_solution.png');
+});
+
+/* ========== 9) Fazaviy portret (Van der Pol) ========== */
+const canvas_phase = document.getElementById('canvas_phase');
+const ctx_phase = canvas_phase.getContext('2d');
+
+const param_mu = document.getElementById('param_mu');
+const param_trajectories = document.getElementById('param_trajectories');
+const val_mu = document.getElementById('val_mu');
+const val_trajectories = document.getElementById('val_trajectories');
+
+function draw_phase_function() {
+  const mu = parseFloat(param_mu.value);
+  const numTrajectories = parseInt(param_trajectories.value);
+  
+  val_mu.textContent = mu.toFixed(1);
+  val_trajectories.textContent = numTrajectories.toString();
+  
+  ctx_phase.clearRect(0, 0, canvas_phase.width, canvas_phase.height);
+  
+  const centerX = canvas_phase.width / 2;
+  const centerY = canvas_phase.height / 2;
+  
+  // Grid
+  ctx_phase.strokeStyle = '#f1f5f9';
+  ctx_phase.lineWidth = 1;
+  for(let i = 0; i <= canvas_phase.width; i += 40) {
+    ctx_phase.beginPath();
+    ctx_phase.moveTo(i, 0);
+    ctx_phase.lineTo(i, canvas_phase.height);
+    ctx_phase.stroke();
+  }
+  for(let i = 0; i <= canvas_phase.height; i += 40) {
+    ctx_phase.beginPath();
+    ctx_phase.moveTo(0, i);
+    ctx_phase.lineTo(canvas_phase.width, i);
+    ctx_phase.stroke();
+  }
+  
+  // Axes
+  ctx_phase.strokeStyle = '#64748b';
+  ctx_phase.lineWidth = 2;
+  ctx_phase.beginPath();
+  ctx_phase.moveTo(centerX, 0);
+  ctx_phase.lineTo(centerX, canvas_phase.height);
+  ctx_phase.stroke();
+  
+  ctx_phase.beginPath();
+  ctx_phase.moveTo(0, centerY);
+  ctx_phase.lineTo(canvas_phase.width, centerY);
+  ctx_phase.stroke();
+  
+  // Van der Pol: x'' - mu*(1-x^2)*x' + x = 0
+  // Tizim: dx/dt = y, dy/dt = mu*(1-x^2)*y - x
+  const f = (t, state) => [state[1], mu*(1-state[0]*state[0])*state[1] - state[0]];
+  
+  const scale = 50;
+  const colors = ['#f59e0b', '#dc2626', '#16a34a', '#0ea5e9', '#8b5cf6', '#f97316', '#06b6d4', '#84cc16'];
+  
+  // Turli boshlang'ich shartlardan traektoriyalar
+  for (let i = 0; i < numTrajectories; i++) {
+    const angle = (2 * Math.PI * i) / numTrajectories;
+    const radius = 0.5 + i * 0.3;
+    const x0 = radius * Math.cos(angle);
+    const y0 = radius * Math.sin(angle);
+    
+    const result = rungeKutta4System(f, [x0, y0], 0, 20, 0.05);
+    
+    ctx_phase.strokeStyle = colors[i % colors.length];
+    ctx_phase.lineWidth = 2;
+    ctx_phase.beginPath();
+    
+    for (let j = 0; j < result.y.length; j++) {
+      const x = centerX + result.y[j][0] * scale;
+      const y = centerY - result.y[j][1] * scale;
+      
+      if (j === 0) ctx_phase.moveTo(x, y);
+      else ctx_phase.lineTo(x, y);
+    }
+    ctx_phase.stroke();
+    
+    // Boshlang'ich nuqta
+    ctx_phase.fillStyle = colors[i % colors.length];
+    ctx_phase.beginPath();
+    ctx_phase.arc(centerX + x0 * scale, centerY - y0 * scale, 4, 0, 2*Math.PI);
+    ctx_phase.fill();
+  }
+}
+
+param_mu.addEventListener('input', draw_phase_function);
+param_trajectories.addEventListener('input', draw_phase_function);
+
+document.getElementById('draw_phase').addEventListener('click', draw_phase_function);
+document.getElementById('clear_phase').addEventListener('click', () => {
+  ctx_phase.clearRect(0, 0, canvas_phase.width, canvas_phase.height);
+});
+
+let animating_phase = false;
+document.getElementById('animate_phase').addEventListener('click', () => {
+  if (animating_phase) return;
+  animating_phase = true;
+  
+  const originalMu = parseFloat(param_mu.value);
+  let step = 0;
+  
+  const animate = () => {
+    step += 0.1;
+    param_mu.value = originalMu + Math.sin(step) * 0.5;
+    draw_phase_function();
+    
+    if (step < Math.PI * 4) {
+      requestAnimationFrame(animate);
+    } else {
+      param_mu.value = originalMu;
+      draw_phase_function();
+      animating_phase = false;
+    }
+  };
+  animate();
+});
+
+document.getElementById('save_phase').addEventListener('click', () => {
+  const url = canvas_phase.toDataURL('image/png');
+  downloadFromDataUrl(url, 'phase_portrait.png');
+});
+
+/* ========== 10) Holatni saqlash va yuklab olish ========== */
+function getState(){
+  return {
+    soft: currentSoft,
+    activeTab: document.querySelector('.tab.active')?.dataset.tab || 'ode1',
+    ode1_a: param_ode1_a.value,
+    ode1_b: param_ode1_b.value,
+    ode1_y0: param_ode1_y0.value,
+    time_range: time_range.value,
+    ode2_c: param_ode2_c.value,
+    ode2_k: param_ode2_k.value,
+    ode2_y0: param_ode2_y0.value,
+    ode2_v0: param_ode2_v0.value,
+    sys_a: param_sys_a.value,
+    sys_b: param_sys_b.value,
+    sys_c: param_sys_c.value,
+    sys_d: param_sys_d.value,
+    sys_x0: param_sys_x0.value,
+    sys_y0: param_sys_y0.value,
+    mu: param_mu.value,
+    trajectories: param_trajectories.value
+  };
+}
+
+function saveState(){
+  try { localStorage.setItem('kmt_ode_state', JSON.stringify(getState())); } catch(e){}
+}
+
+function restoreState(){
+  try{
+    const s = localStorage.getItem('kmt_ode_state');
+    if(!s) return;
+    const st = JSON.parse(s);
+    
+    if(st.soft) setSoftware(st.soft);
+    if(st.activeTab){
+      document.querySelector(`.tab[data-tab="${st.activeTab}"]`)?.click();
+    }
+    
+    if(st.ode1_a) param_ode1_a.value = st.ode1_a;
+    if(st.ode1_b) param_ode1_b.value = st.ode1_b;
+    if(st.ode1_y0) param_ode1_y0.value = st.ode1_y0;
+    if(st.time_range) time_range.value = st.time_range;
+    
+    if(st.ode2_c) param_ode2_c.value = st.ode2_c;
+    if(st.ode2_k) param_ode2_k.value = st.ode2_k;
+    if(st.ode2_y0) param_ode2_y0.value = st.ode2_y0;
+    if(st.ode2_v0) param_ode2_v0.value = st.ode2_v0;
+    
+    if(st.sys_a) param_sys_a.value = st.sys_a;
+    if(st.sys_b) param_sys_b.value = st.sys_b;
+    if(st.sys_c) param_sys_c.value = st.sys_c;
+    if(st.sys_d) param_sys_d.value = st.sys_d;
+    if(st.sys_x0) param_sys_x0.value = st.sys_x0;
+    if(st.sys_y0) param_sys_y0.value = st.sys_y0;
+    
+    if(st.mu) param_mu.value = st.mu;
+    if(st.trajectories) param_trajectories.value = st.trajectories;
+    
+  }catch(e){ setSoftware('Matlab'); }
+}
+
+['input','change','click'].forEach(evt=>{
+  document.body.addEventListener(evt,(e)=>{
+    if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName)) saveState();
+  }, true);
+});
+
+/* ========== 11) Dastlabki ishga tushirish ========== */
+window.addEventListener('load', ()=>{
+  restoreState();
+  if(!currentSoft) setSoftware('Matlab');
+  
+  solve_ode1_function();
+  solve_ode2_function();
+  solve_system_function();
+  draw_phase_function();
+});
+</script>
+
+</body>
+</html>
