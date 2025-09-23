@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MATLAB grafik muhiti va imkoniyatlari -- Interaktiv modul (Yuklab olish bilan)</title>
+
+<!-- MathJax: formulalarni chiroyli ko'rsatish -->
+<script>
+window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+.header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+.header p{margin:0;color:#64748b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:960px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.card h2{margin:0 0 14px 0;font-size:22px;color:#111827;border-bottom:3px solid #f59e0b;padding-bottom:6px}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+.info-table th{background:#f59e0b;color:#fff}
+.method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.method-item{background:linear-gradient(135deg,#f59e0b,#dc2626);color:#fff;padding:16px;border-radius:12px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;transition:.25s}
+.method-item:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+.method-item.active{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.25) inset}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+.btn{background:#f59e0b;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+.btn.secondary{background:#334155}
+.btn.ghost{background:#f1f5f9;color:#0f172a}
+.btn.success{background:#16a34a}
+.btn.warning{background:#dc2626}
+.btn.matlab{background:#0076a8}
+.btn:hover{filter:brightness(1.05)}
+.codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #f59e0b;padding-left:10px}
+.split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+.panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+.panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:14px;color:#334155}
+input[type=range]{width:220px}
+canvas{width:100%;height:400px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+.iframe-box{position:relative;padding-top:56.25%;background:#e2e8f0;border-radius:12px;overflow:hidden}
+.iframe-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.muted{color:#64748b;font-size:13px}
+.canvas-3d{height:450px}
+.tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+.tab{padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{border-bottom-color:#f59e0b;color:#f59e0b}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.feature-card{background:#fff9e6;border:1px solid #fbbf24;border-radius:8px;padding:16px}
+.feature-card h4{margin:0 0 8px 0;color:#92400e}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>🔬 MATLAB grafik muhiti va imkoniyatlari</h1>
+  <p>Chuqur tahliliy fikrlash • Professional vizualizatsiya • mesh, surf, slice texnikalari</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>📋 Ma'ruza ma'lumotlari</h2>
+    <table class="info-table">
+      <tr><th>Ma'ruza raqami</th><td>4</td></tr>
+      <tr><th>Mavzu</th><td>MATLAB grafik muhiti va imkoniyatlari</td></tr>
+      <tr><th>Nima uchun mos?</th><td>Chuqur tahliliy fikrlash</td></tr>
+      <tr><th>Vizualizatsiya usuli</th><td>mesh, surf, slice, contour</td></tr>
+      <tr><th>Asosiy dastur</th><td>MATLAB</td></tr>
+      <tr><th>Qo'shimcha vositalar</th><td>Octave, Python (matplotlib), Julia</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ MATLAB vizualizatsiya usuli tanlang</h2>
+    <div class="method-grid" id="methodGrid" aria-label="Vizualizatsiya usuli tanlash">
+      <div class="method-item active" data-method="mesh" tabindex="0"><strong>mesh()</strong><br><small>3D to'r</small></div>
+      <div class="method-item" data-method="surf" tabindex="0"><strong>surf()</strong><br><small>3D sirt</small></div>
+      <div class="method-item" data-method="slice" tabindex="0"><strong>slice()</strong><br><small>Kesimlar</small></div>
+      <div class="method-item" data-method="contour" tabindex="0"><strong>contour()</strong><br><small>Kontur</small></div>
+      <div class="method-item" data-method="quiver" tabindex="0"><strong>quiver()</strong><br><small>Vektor maydon</small></div>
+      <div class="method-item" data-method="streamline" tabindex="0"><strong>streamline()</strong><br><small>Oqim chiziqlari</small></div>
+    </div>
+
+    <div class="toolbar" id="onlineToolbar">
+      <button class="btn matlab" id="openMatlab" aria-label="MATLAB Online ochish">MATLAB Online</button>
+      <button class="btn secondary" id="openOctave" aria-label="Octave Online ochish">Octave Online</button>
+      <button class="btn ghost" id="toggleEmbed" style="display:none" aria-expanded="false">Iframe ko'rsat/berkit</button>
+      <span class="muted" id="onlineNote">Professional matematik hisoblash muhiti.</span>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🎯 MATLAB imkoniyatlari</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>3D Vizualizatsiya</h4>
+      <p>mesh, surf, plot3 - professional sifatli 3D grafiklar yaratish</p>
+    </div>
+    <div class="feature-card">
+      <h4>Data Analysis</h4>
+      <p>Katta hajmdagi ma'lumotlarni tahlil qilish va vizualizatsiya qilish</p>
+    </div>
+    <div class="feature-card">
+      <h4>Animatsiya</h4>
+      <p>getframe, movie - professional animatsiyalar yaratish</p>
+    </div>
+    <div class="feature-card">
+      <h4>Interaktiv muhit</h4>
+      <p>Zoom, pan, rotate - real vaqtda grafik bilan ishlash</p>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="codeCard">
+  <h2>📝 MATLAB kodi</h2>
+  <div class="toolbar">
+    <button class="btn secondary" id="copyBtn" aria-label="Kodni nusxalash">Kodni nusxalash</button>
+    <button class="btn success" id="downloadCodeBtn" aria-label="Kodni .m yuklab olish">Kodni .m yuklab olish</button>
+    <button class="btn warning" id="downloadStateBtn" aria-label="Holatni .json yuklab olish">Holatni .json yuklab olish</button>
+    <span class="muted" id="codeTitle">MATLAB -- mesh() usuli</span>
+  </div>
+  <div class="codewrap"><pre id="codeBlock" aria-live="polite"></pre></div>
+
+  <div class="panel" style="margin-top:10px">
+    <h3>Izoh / Talqin</h3>
+    <pre id="codeNotes"></pre></div>
+
+  <div class="panel" id="embedPanel" style="display:none;margin-top:10px">
+    <h3>Ichki ko'rinish (iframe)</h3>
+    <div class="iframe-box" id="embedBox"></div>
+    <div class="muted" style="margin-top:6px">Eslatma: Internetga ulanish talab etiladi.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🎨 Interaktiv MATLAB demo</h2>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="mesh">3D Mesh</div>
+    <div class="tab" data-tab="surf">3D Surface</div>
+    <div class="tab" data-tab="contour">Contour</div>
+    <div class="tab" data-tab="vector">Vector Field</div>
+  </div>
+
+  <!-- MESH TAB -->
+  <div class="tab-content active" id="tab-mesh">
+    <div class="split">
+      <div class="panel">
+        <h3>3D Mesh - To'r ko'rinish</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="meshFunc" value="peaks" checked> MATLAB peaks funktsiyasi</label>
+          <label><input type="radio" name="meshFunc" value="sphere"> Sfera: $x^2 + y^2 + z^2 = r^2$</label>
+          <label><input type="radio" name="meshFunc" value="saddle"> Egar: $z = x^2 - y^2$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>To'r zich $N \times N$</label>
+          <input type="range" id="meshResolution" min="20" max="100" step="10" value="50" aria-label="To'r zich">
+          <span id="val_meshRes">50</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Masshtab koeffitsiyenti</label>
+          <input type="range" id="meshScale" min="0.5" max="3" step="0.1" value="1" aria-label="Masshtab">
+          <span id="val_meshScale">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Aylanish burchagi</label>
+          <input type="range" id="meshRotate" min="0" max="360" step="10" value="45" aria-label="Aylanish">
+          <span id="val_meshRotate">45°</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn matlab" id="drawMesh">Mesh chizish</button>
+          <button class="btn ghost" id="clearMesh">Tozalash</button>
+          <button class="btn ghost" id="animateMesh">Animatsiya</button>
+          <button class="btn success" id="saveMeshPng">PNG yuklab olish</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Mesh - strukturaviy to'r ko'rinishida 3D sirt tasvirlash usuli.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvasMesh" class="canvas-3d" width="800" height="450" aria-label="3D Mesh"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SURF TAB -->
+  <div class="tab-content" id="tab-surf">
+    <div class="split">
+      <div class="panel">
+        <h3>3D Surface - To'la sirt</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="surfFunc" value="ripple" checked> To'lqin: $z = \sin(\sqrt{x^2 + y^2})$</label>
+          <label><input type="radio" name="surfFunc" value="gauss"> Gauss: $z = e^{-(x^2 + y^2)}$</label>
+          <label><input type="radio" name="surfFunc" value="mexican"> Meksika shlyapasi</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Amplituda $A$</label>
+          <input type="range" id="surfAmplitude" min="0.5" max="3" step="0.1" value="1" aria-label="Amplituda">
+          <span id="val_surfAmp">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Chastota $\omega$</label>
+          <input type="range" id="surfFreq" min="0.5" max="5" step="0.1" value="1" aria-label="Chastota">
+          <span id="val_surfFreq">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Rang kartasi</label>
+          <select id="colorMap">
+            <option value="jet">Jet (ko'k-qizil)</option>
+            <option value="hot">Hot (qora-qizil-sariq)</option>
+            <option value="cool">Cool (ko'k-binafsha)</option>
+            <option value="gray">Gray (kulrang)</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn matlab" id="drawSurf">Surface chizish</button>
+          <button class="btn ghost" id="clearSurf">Tozalash</button>
+          <button class="btn ghost" id="animateSurf">To'lqin animatsiyasi</button>
+          <button class="btn success" id="saveSurfPng">PNG yuklab olish</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Surface - to'la rangli sirt ko'rinishi, MATLAB-ning eng kuchli tomoni.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvasSurf" class="canvas-3d" width="800" height="450" aria-label="3D Surface"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTOUR TAB -->
+  <div class="tab-content" id="tab-contour">
+    <div class="split">
+      <div class="panel">
+        <h3>Contour - Kontur chiziqlari</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="contourFunc" value="peaks" checked> MATLAB peaks</label>
+          <label><input type="radio" name="contourFunc" value="circle"> Konsentrik doiralar</label>
+          <label><input type="radio" name="contourFunc" value="hyperbola"> Giperbola: $xy = const$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Kontur sathlar soni</label>
+          <input type="range" id="contourLevels" min="5" max="30" step="1" value="10" aria-label="Kontur sathlar">
+          <span id="val_contourLevels">10</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $a$</label>
+          <input type="range" id="contourParam" min="0.5" max="3" step="0.1" value="1" aria-label="Parametr a">
+          <span id="val_contourParam">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label><input type="checkbox" id="fillContour"> Rangli to'ldirish</label>
+          <label><input type="checkbox" id="showLabels"> Raqamlar ko'rsatish</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn matlab" id="drawContour">Contour chizish</button>
+          <button class="btn ghost" id="clearContour">Tozalash</button>
+          <button class="btn ghost" id="animateContour">Animatsiya</button>
+          <button class="btn success" id="saveContourPng">PNG yuklab olish</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Contour - 3D sirtning 2D proyeksiyada ko'rsatish usuli.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvasContour" width="800" height="400" aria-label="Contour"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- VECTOR TAB -->
+  <div class="tab-content" id="tab-vector">
+    <div class="split">
+      <div class="panel">
+        <h3>Vector Field - Vektor maydon</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="vectorField" value="rotation" checked> Aylanish: $\vec{F} = (-y, x)$</label>
+          <label><input type="radio" name="vectorField" value="radial"> Radial: $\vec{F} = (x, y)$</label>
+          <label><input type="radio" name="vectorField" value="saddle"> Egar nuqta: $\vec{F} = (x, -y)$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Vektor zich</label>
+          <input type="range" id="vectorDensity" min="5" max="20" step="1" value="10" aria-label="Vektor zich">
+          <span id="val_vectorDens">10</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Masshtab</label>
+          <input type="range" id="vectorScale" min="0.1" max="2" step="0.1" value="0.5" aria-label="Vektor masshtab">
+          <span id="val_vectorScale">0.5</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Kuch koeffitsiyenti</label>
+          <input type="range" id="vectorStrength" min="0.1" max="3" step="0.1" value="1" aria-label="Kuch">
+          <span id="val_vectorStr">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn matlab" id="drawVector">Quiver chizish</button>
+          <button class="btn ghost" id="clearVector">Tozalash</button>
+          <button class="btn ghost" id="animateVector">Oqim animatsiyasi</button>
+          <button class="btn success" id="saveVectorPng">PNG yuklab olish</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Quiver - vektor maydonlarni ko'rsatish, fizikada keng qo'llaniladi.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvasVector" width="800" height="400" aria-label="Vector Field"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ====== Yordamchi yuklab olish funksiyalari ====== */
+function downloadFromDataUrl(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  downloadFromDataUrl(url, filename);
+  URL.revokeObjectURL(url);
+}
+
+/* ========== 1) MATLAB kod snippetlar ========== */
+const MATLAB_SNIPPETS = {
+  mesh: {
+    code:
+`% MATLAB - 3D Mesh vizualizatsiya
+[X, Y] = meshgrid(-3:0.1:3, -3:0.1:3);
+Z = peaks(X, Y);  % MATLAB ning maxsus funksiyasi
+
+figure;
+mesh(X, Y, Z);
+title('3D Mesh - Peaks funksiyasi');
+xlabel('X o\'qi'); ylabel('Y o\'qi'); zlabel('Z o\'qi');
+colormap jet;  % Rang kartasi
+grid on;
+rotate3d on;  % Interaktiv aylanish
+
+% Qo'shimcha sozlash
+shading interp;  % Silliq soyalash
+lighting gouraud;  % Yorug'lik
+camlight;  % Yorug'lik manbai`,
+    notes:
+`• mesh() - 3D to'r ko'rinishida chizadi
+• meshgrid() - 2D to'r yaratadi  
+• peaks() - test funksiyasi
+• colormap - rang sxemasini belgilaydi
+• rotate3d - sichqoncha bilan aylantirish`
+  },
+
+  surf: {
+    code:
+`% MATLAB - 3D Surface vizualizatsiya
+[X, Y] = meshgrid(-2*pi:0.1:2*pi, -2*pi:0.1:2*pi);
+Z = sin(sqrt(X.^2 + Y.^2)) ./ sqrt(X.^2 + Y.^2 + 0.1);
+
+figure;
+surf(X, Y, Z);
+title('3D Surface - Sinc funksiyasi');
+xlabel('X'); ylabel('Y'); zlabel('Z');
+
+% Rang va soyalash
+colormap hot;  % "Issiq" rang kartasi
+shading interp;  % Interpolyatsiyali soyalash
+colorbar;  % Rang shkalasi
+
+% Yorug'lik sozlamalari
+lighting phong;
+camlight('left');
+material shiny;
+
+% Ko'rinish burchagi
+view(45, 30);  % Azimut va elevation`,
+    notes:
+`• surf() - to'la sirt chizadi
+• shading interp - silliq ko'rinish
+• lighting phong - professional yorug'lik
+• colorbar - rang shkalasi
+• view() - ko'rinish burchagini sozlaydi`
+  },
+
+  slice: {
+    code:
+`% MATLAB - 3D Slice vizualizatsiya
+[X, Y, Z] = meshgrid(-2:0.2:2, -2:0.2:2, -2:0.2:2);
+V = X.*exp(-X.^2 - Y.^2 - Z.^2);  % 3D skalar maydon
+
+figure;
+% Turli tekisliklar bo'yicha kesimlar
+slice(X, Y, Z, V, [-1.2, 0.8, 2], 2, [-2, 0]);
+title('3D Slice - Skalar maydon kesimlari');
+xlabel('X'); ylabel('Y'); zlabel('Z');
+
+colormap jet;
+colorbar;
+shading interp;
+axis equal;
+
+% Animatsiya uchun kesim pozitsiyasi o'zgartirish
+for t = -2:0.1:2
+    slice(X, Y, Z, V, t, [], []);
+    title(['Slice at X = ', num2str(t)]);
+    pause(0.1);
+end`,
+    notes:
+`• slice() - 3D ma'lumotning 2D kesimlarini ko'rsatadi
+• meshgrid 3D - 3 o'lchamli to'r yaratadi
+• Kesim tekisliklari: x, y, z o'qlari bo'yicha
+• Skalar maydon vizualizatsiyasi uchun ideal`
+  },
+
+  contour: {
+    code:
+`% MATLAB - Contour vizualizatsiya
+[X, Y] = meshgrid(-3:0.1:3, -3:0.1:3);
+Z = peaks(X, Y);
+
+figure;
+% Oddiy kontur
+contour(X, Y, Z, 20);  % 20 ta kontur chizig'i
+title('Contour - 20 ta daraja');
+xlabel('X'); ylabel('Y');
+colorbar;
+
+% To'ldirilgan kontur
+figure;
+contourf(X, Y, Z, 20);  % Rangli to'ldirish
+title('Filled Contour');
+colormap jet;
+colorbar;
+
+% 3D kontur
+figure;
+contour3(X, Y, Z, 20);
+title('3D Contour');
+xlabel('X'); ylabel('Y'); zlabel('Z');
+
+% Aniq qiymatlar bilan kontur
+levels = [-6:1:8];
+contour(X, Y, Z, levels);
+clabel(contour(X, Y, Z, levels));  % Raqamlar`,
+    notes:
+`• contour() - kontur chiziqlari
+• contourf() - to'ldirilgan kontur
+• contour3() - 3D kontur
+• clabel() - kontur qiymatlarini yozadi
+• levels - aniq kontur sathlarini belgilash`
+  },
+
+  quiver: {
+    code:
+`% MATLAB - Quiver (Vector Field) vizualizatsiya
+[X, Y] = meshgrid(-2:0.2:2, -2:0.2:2);
+
+% Vektor maydon komponentlari
+U = -Y;  % X komponent
+V = X;   % Y komponent
+% Bu aylanish maydonini ifodalaydi
+
+figure;
+quiver(X, Y, U, V);
+title('2D Vector Field - Aylanish');
+xlabel('X'); ylabel('Y');
+axis equal;
+grid on;
+
+% Rangli quiver
+figure;
+quiver(X, Y, U, V, 'AutoScale', 'off');
+hold on;
+contour(X, Y, sqrt(U.^2 + V.^2), 10);  % Tezlik konturlari
+title('Vector Field + Tezlik konturlari');
+colorbar;
+
+% 3D quiver
+[X, Y, Z] = meshgrid(-1:0.5:1, -1:0.5:1, -1:0.5:1);
+U = Y; V = -X; W = Z;
+figure;
+quiver3(X, Y, Z, U, V, W);
+title('3D Vector Field');`,
+    notes:
+`• quiver() - 2D vektor maydon
+• quiver3() - 3D vektor maydon  
+• AutoScale - vektorlar masshtabini avtomatik sozlash
+• U, V, W - vektor komponentlari
+• Fizika va muhandislikda keng qo'llaniladi`
+  },
+
+  streamline: {
+    code:
+`% MATLAB - Streamline vizualizatsiya
+[X, Y] = meshgrid(-2:0.1:2, -2:0.1:2);
+U = -Y;  % Aylanish maydon
+V = X;
+
+% Boshlang'ich nuqtalar
+startX = [-1.5, -1, -0.5, 0.5, 1, 1.5];
+startY = zeros(size(startX));
+
+figure;
+% Oqim chiziqlari
+streamline(X, Y, U, V, startX, startY);
+title('Streamlines - Oqim chiziqlari');
+xlabel('X'); ylabel('Y');
+axis equal;
+grid on;
+
+% Oqim chiziqlari + vektor maydon
+figure;
+quiver(X, Y, U, V, 0.5);  % Kichik vektorlar
+hold on;
+streamline(X, Y, U, V, startX, startY);
+title('Streamlines + Vector Field');
+
+% 3D oqim chiziqlari
+[X, Y, Z] = meshgrid(-1:0.2:1, -1:0.2:1, -1:0.2:1);
+U = Y; V = -X; W = 0.1*Z;
+startX = [-0.8, 0, 0.8]; startY = [0, 0, 0]; startZ = [0, 0, 0];
+figure;
+streamline(X, Y, Z, U, V, W, startX, startY, startZ);
+title('3D Streamlines');`,
+    notes:
+`• streamline() - oqim chiziqlari chizadi
+• Suyuqlik dinamikasi va aerdinamikada muhim
+• Boshlang'ich nuqtalarni belgilash kerak
+• 2D va 3D rejimlarida ishlaydi
+• Vektor maydon bilan birgalikda ko'rsatish`
+  }
+};
+
+/* ========== 2) Onlayn xizmat mapping ========== */
+const ONLINE_URL = {
+  matlab: "https://matlab.mathworks.com/",
+  octave: "https://octave-online.net/"
+};
+
+/* ========== 3) UI elementlar ========== */
+const methodGrid = document.getElementById('methodGrid');
+const codeTitle = document.getElementById('codeTitle');
+const codeBlock = document.getElementById('codeBlock');
+const codeNotes = document.getElementById('codeNotes');
+const codeCard = document.getElementById('codeCard');
+const openMatlabBtn = document.getElementById('openMatlab');
+const openOctaveBtn = document.getElementById('openOctave');
+
+let currentMethod = 'mesh';
+function setMethod(method){
+  currentMethod = method;
+  [...methodGrid.querySelectorAll('.method-item')].forEach(el=>{
+    el.classList.toggle('active', el.dataset.method === method);
+  });
+  const pack = MATLAB_SNIPPETS[method];
+  codeTitle.textContent = `MATLAB -- ${method}() usuli`;
+  codeBlock.textContent = pack?.code || "// Snippet topilmadi.";
+  codeNotes.textContent = pack?.notes || "";
+  codeCard.scrollIntoView({behavior:'smooth', block:'start'});
+  saveState();
+}
+
+methodGrid.addEventListener('click', (e)=>{
+  const item = e.target.closest('.method-item');
+  if(!item) return;
+  setMethod(item.dataset.method);
+});
+
+openMatlabBtn.addEventListener('click', ()=>{
+  window.open(ONLINE_URL.matlab, '_blank', 'noopener,noreferrer');
+});
+
+openOctaveBtn.addEventListener('click', ()=>{
+  window.open(ONLINE_URL.octave, '_blank', 'noopener,noreferrer');
+});
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(codeBlock.textContent).then(()=>{
+    const b = document.getElementById('copyBtn');
+    const t = b.textContent;
+    b.textContent = "Nusxalandi!";
+    setTimeout(()=> b.textContent = t, 1200);
+  });
+});
+
+document.getElementById('downloadCodeBtn').addEventListener('click', ()=>{
+  const filename = (currentMethod || 'matlab') + "_code.m";
+  downloadText(codeBlock.textContent, filename);
+});
+
+document.getElementById('downloadStateBtn').addEventListener('click', ()=>{
+  const state = getState();
+  downloadText(JSON.stringify(state, null, 2), "matlab_graphics_state.json", "application/json");
+});
+
+/* ========== 4) Tab tizimi ========== */
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${targetTab}`).classList.add('active');
+    saveState();
+  });
+});
+
+/* ========== 5) Mesh Canvas ========== */
+const canvasMesh = document.getElementById('canvasMesh');
+const ctxMesh = canvasMesh.getContext('2d');
+const meshResolution = document.getElementById('meshResolution');
+const meshScale = document.getElementById('meshScale');
+const meshRotate = document.getElementById('meshRotate');
+const valMeshRes = document.getElementById('val_meshRes');
+const valMeshScale = document.getElementById('val_meshScale');
+const valMeshRotate = document.getElementById('val_meshRotate');
+
+function meshFunction(x, y, type, scale) {
+  switch(type) {
+    case 'peaks':
+      // MATLAB peaks funksiyasining yaqinlashuvi
+      const term1 = 3 * (1 - x) * (1 - x) * Math.exp(-(x*x) - (y+1)*(y+1));
+      const term2 = -10 * (x/5 - x*x*x - y*y*y*y*y) * Math.exp(-x*x - y*y);
+      const term3 = -(1/3) * Math.exp(-(x+1)*(x+1) - y*y);
+      return scale * (term1 + term2 + term3);
+    case 'sphere':
+      const r = Math.sqrt(x*x + y*y);
+      return r < 2 ? scale * Math.sqrt(4 - r*r) : 0;
+    case 'saddle':
+      return scale * (x*x - y*y);
+    default:
+      return 0;
+  }
+}
+
+function project3DMesh(x, y, z, angle) {
+  const rad = angle * Math.PI / 180;
+  const cosA = Math.cos(rad);
+  const sinA = Math.sin(rad);
+  const px = x * cosA - y * sinA;
+  const py = x * sinA + y * cosA - z * 0.5;
+  return [px, py];
+}
+
+function drawMesh() {
+  const type = document.querySelector('input[name="meshFunc"]:checked').value;
+  const res = parseInt(meshResolution.value);
+  const scale = parseFloat(meshScale.value);
+  const angle = parseFloat(meshRotate.value);
+  
+  valMeshRes.textContent = res;
+  valMeshScale.textContent = scale.toFixed(1);
+  valMeshRotate.textContent = angle + '°';
+  
+  ctxMesh.clearRect(0, 0, canvasMesh.width, canvasMesh.height);
+  
+  const centerX = canvasMesh.width / 2;
+  const centerY = canvasMesh.height / 2;
+  const scale3d = 60;
+  
+  ctxMesh.strokeStyle = '#0076a8';
+  ctxMesh.lineWidth = 1;
+  
+  const step = 6 / res;
+  
+  // Horizontal lines
+  for(let i = -3; i <= 3; i += step) {
+    ctxMesh.beginPath();
+    let firstPoint = true;
+    for(let j = -3; j <= 3; j += step * 0.5) {
+      const z = meshFunction(i, j, type, scale);
+      const [px, py] = project3DMesh(i, j, z, angle);
+      const screenX = centerX + px * scale3d;
+      const screenY = centerY + py * scale3d;
+      
+      if(firstPoint) {
+        ctxMesh.moveTo(screenX, screenY);
+        firstPoint = false;
+      } else {
+        ctxMesh.lineTo(screenX, screenY);
+      }
+    }
+    ctxMesh.stroke();
+  }
+  
+  // Vertical lines
+  for(let j = -3; j <= 3; j += step) {
+    ctxMesh.beginPath();
+    let firstPoint = true;
+    for(let i = -3; i <= 3; i += step * 0.5) {
+      const z = meshFunction(i, j, type, scale);
+      const [px, py] = project3DMesh(i, j, z, angle);
+      const screenX = centerX + px * scale3d;
+      const screenY = centerY + py * scale3d;
+      
+      if(firstPoint) {
+        ctxMesh.moveTo(screenX, screenY);
+        firstPoint = false;
+      } else {
+        ctxMesh.lineTo(screenX, screenY);
+      }
+    }
+    ctxMesh.stroke();
+  }
+}
+
+// Mesh events
+meshResolution.addEventListener('input', drawMesh);
+meshScale.addEventListener('input', drawMesh);
+meshRotate.addEventListener('input', drawMesh);
+document.querySelectorAll('input[name="meshFunc"]').forEach(r => r.addEventListener('change', drawMesh));
+document.getElementById('drawMesh').addEventListener('click', drawMesh);
+document.getElementById('clearMesh').addEventListener('click', () => ctxMesh.clearRect(0, 0, canvasMesh.width, canvasMesh.height));
+
+// Mesh animate
+let animatingMesh = false;
+document.getElementById('animateMesh').addEventListener('click', () => {
+  if(animatingMesh) return;
+  animatingMesh = true;
+  let angle = 0;
+  const animate = () => {
+    angle += 3;
+    meshRotate.value = angle % 360;
+    drawMesh();
+    if(angle < 360) {
+      requestAnimationFrame(animate);
+    } else {
+      animatingMesh = false;
+    }
+  };
+  animate();
+});
+
+document.getElementById('saveMeshPng').addEventListener('click', () => {
+  const url = canvasMesh.toDataURL('image/png');
+  downloadFromDataUrl(url, 'matlab_mesh.png');
+});
+
+/* ========== 6) Surface Canvas ========== */
+const canvasSurf = document.getElementById('canvasSurf');
+const ctxSurf = canvasSurf.getContext('2d');
+const surfAmplitude = document.getElementById('surfAmplitude');
+const surfFreq = document.getElementById('surfFreq');
+const colorMap = document.getElementById('colorMap');
+const valSurfAmp = document.getElementById('val_surfAmp');
+const valSurfFreq = document.getElementById('val_surfFreq');
+
+function surfaceFunction(x, y, type, amp, freq) {
+  switch(type) {
+    case 'ripple':
+      const r = Math.sqrt(x*x + y*y);
+      return amp * Math.sin(freq * r) / (r + 0.1);
+    case 'gauss':
+      return amp * Math.exp(-(x*x + y*y) / freq);
+    case 'mexican':
+      const r2 = x*x + y*y;
+      return amp * (2 / (Math.sqrt(3 * freq) * Math.pow(Math.PI, 0.25))) * 
+             (1 - r2 / freq) * Math.exp(-r2 / (2 * freq));
+    default:
+      return 0;
+  }
+}
+
+function getColorFromMap(value, map) {
+  const t = Math.max(0, Math.min(1, (value + 1) / 2)); // normalize to [0,1]
+  
+  switch(map) {
+    case 'jet':
+      if(t < 0.25) return `rgb(0, ${Math.floor(255*4*t)}, 255)`;
+      else if(t < 0.5) return `rgb(0, 255, ${Math.floor(255*(2-4*t))})`;
+      else if(t < 0.75) return `rgb(${Math.floor(255*(4*t-2))}, 255, 0)`;
+      else return `rgb(255, ${Math.floor(255*(4-4*t))}, 0)`;
+    case 'hot':
+      if(t < 0.33) return `rgb(${Math.floor(255*3*t)}, 0, 0)`;
+      else if(t < 0.66) return `rgb(255, ${Math.floor(255*3*(t-0.33))}, 0)`;
+      else return `rgb(255, 255, ${Math.floor(255*3*(t-0.66))})`;
+    case 'cool':
+      return `rgb(${Math.floor(255*t)}, ${Math.floor(255*(1-t))}, 255)`;
+    case 'gray':
+      const gray = Math.floor(255 * t);
+      return `rgb(${gray}, ${gray}, ${gray})`;
+    default:
+      return `rgb(${Math.floor(255*t)}, 0, ${Math.floor(255*(1-t))})`;
+  }
+}
+
+function drawSurface() {
+  const type = document.querySelector('input[name="surfFunc"]:checked').value;
+  const amp = parseFloat(surfAmplitude.value);
+  const freq = parseFloat(surfFreq.value);
+  const cmap = colorMap.value;
+  
+  valSurfAmp.textContent = amp.toFixed(1);
+  valSurfFreq.textContent = freq.toFixed(1);
+  
+  ctxSurf.clearRect(0, 0, canvasSurf.width, canvasSurf.height);
+  
+  const imageData = ctxSurf.createImageData(canvasSurf.width, canvasSurf.height);
+  const data = imageData.data;
+  
+  const centerX = canvasSurf.width / 2;
+  const centerY = canvasSurf.height / 2;
+  const scale = 100;
+  
+  for(let px = 0; px < canvasSurf.width; px += 2) {
+    for(let py = 0; py < canvasSurf.height; py += 2) {
+      const x = (px - centerX) / scale;
+      const y = (py - centerY) / scale;
+      const z = surfaceFunction(x, y, type, amp, freq);
+      
+      const color = getColorFromMap(z / amp, cmap);
+      const rgb = color.match(/\d+/g);
+      
+      for(let dx = 0; dx < 2 && px + dx < canvasSurf.width; dx++) {
+        for(let dy = 0; dy < 2 && py + dy < canvasSurf.height; dy++) {
+          const index = ((py + dy) * canvasSurf.width + (px + dx)) * 4;
+          data[index] = parseInt(rgb[0]);     // R
+          data[index + 1] = parseInt(rgb[1]); // G
+          data[index + 2] = parseInt(rgb[2]); // B
+          data[index + 3] = 255;              // A
+        }
+      }
+    }
+  }
+  
+  ctxSurf.putImageData(imageData, 0, 0);
+}
+
+// Surface events
+surfAmplitude.addEventListener('input', drawSurface);
+surfFreq.addEventListener('input', drawSurface);
+colorMap.addEventListener('change', drawSurface);
+document.querySelectorAll('input[name="surfFunc"]').forEach(r => r.addEventListener('change', drawSurface));
+document.getElementById('drawSurf').addEventListener('click', drawSurface);
+document.getElementById('clearSurf').addEventListener('click', () => ctxSurf.clearRect(0, 0, canvasSurf.width, canvasSurf.height));
+
+// Surface animate
+let animatingSurf = false;
+document.getElementById('animateSurf').addEventListener('click', () => {
+  if(animatingSurf) return;
+  animatingSurf = true;
+  let time = 0;
+  const originalFreq = parseFloat(surfFreq.value);
+  
+  const animate = () => {
+    time += 0.1;
+    surfFreq.value = originalFreq + Math.sin(time) * 0.5;
+    drawSurface();
+    if(time < Math.PI * 4) {
+      setTimeout(() => requestAnimationFrame(animate), 50);
+    } else {
+      surfFreq.value = originalFreq;
+      drawSurface();
+      animatingSurf = false;
+    }
+  };
+  animate();
+});
+
+document.getElementById('saveSurfPng').addEventListener('click', () => {
+  const url = canvasSurf.toDataURL('image/png');
+  downloadFromDataUrl(url, 'matlab_surface.png');
+});
+
+/* ========== 7) Contour Canvas ========== */
+const canvasContour = document.getElementById('canvasContour');
+const ctxContour = canvasContour.getContext('2d');
+const contourLevels = document.getElementById('contourLevels');
+const contourParam = document.getElementById('contourParam');
+const fillContour = document.getElementById('fillContour');
+const showLabels = document.getElementById('showLabels');
+const valContourLevels = document.getElementById('val_contourLevels');
+const valContourParam = document.getElementById('val_contourParam');
+
+function contourFunction(x, y, type, param) {
+  switch(type) {
+    case 'peaks':
+      // Simplified peaks
+      return 3 * (1-x)*(1-x) * Math.exp(-x*x - (y+1)*(y+1)) - 
+             10 * (x/5 - x*x*x - y*y*y*y*y) * Math.exp(-x*x - y*y) - 
+             (1/3) * Math.exp(-(x+1)*(x+1) - y*y);
+    case 'circle':
+      return param * param - (x*x + y*y);
+    case 'hyperbola':
+      return x * y - param;
+    default:
+      return x*x + y*y;
+  }
+}
+
+function drawContour() {
+  const type = document.querySelector('input[name="contourFunc"]:checked').value;
+  const levels = parseInt(contourLevels.value);
+  const param = parseFloat(contourParam.value);
+  const filled = fillContour.checked;
+  const labels = showLabels.checked;
+  
+  valContourLevels.textContent = levels;
+  valContourParam.textContent = param.toFixed(1);
+  
+  ctxContour.clearRect(0, 0, canvasContour.width, canvasContour.height);
+  
+  // Draw axes
+  const centerX = canvasContour.width / 2;
+  const centerY = canvasContour.height / 2;
+  
+  ctxContour.strokeStyle = '#64748b';
+  ctxContour.lineWidth = 1;
+  ctxContour.beginPath();
+  ctxContour.moveTo(0, centerY);
+  ctxContour.lineTo(canvasContour.width, centerY);
+  ctxContour.moveTo(centerX, 0);
+  ctxContour.lineTo(centerX, canvasContour.height);
+  ctxContour.stroke();
+  
+  // Calculate function values
+  const scale = 80;
+  const resolution = 2;
+  const values = [];
+  let minVal = Infinity, maxVal = -Infinity;
+  
+  for(let px = 0; px < canvasContour.width; px += resolution) {
+    values[px] = [];
+    for(let py = 0; py < canvasContour.height; py += resolution) {
+      const x = (px - centerX) / scale;
+      const y = (centerY - py) / scale;
+      const z = contourFunction(x, y, type, param);
+      values[px][py] = z;
+      minVal = Math.min(minVal, z);
+      maxVal = Math.max(maxVal, z);
+    }
+  }
+  
+  // Draw contour lines
+  const levelStep = (maxVal - minVal) / levels;
+  
+  for(let level = 0; level < levels; level++) {
+    const contourValue = minVal + level * levelStep;
+    const hue = (level / levels) * 360;
+    
+    ctxContour.strokeStyle = filled ? 
+      `hsla(${hue}, 70%, 50%, 0.8)` : 
+      `hsl(${hue}, 70%, 40%)`;
+    ctxContour.lineWidth = 2;
+    
+    // Simple contour drawing (marching squares would be better)
+    ctxContour.beginPath();
+    for(let px = 0; px < canvasContour.width - resolution; px += resolution) {
+      for(let py = 0; py < canvasContour.height - resolution; py += resolution) {
+        if(values[px] && values[px][py] !== undefined) {
+          const v = values[px][py];
+          if(Math.abs(v - contourValue) < levelStep * 0.3) {
+            ctxContour.arc(px, py, 1, 0, Math.PI * 2);
+          }
+        }
+      }
+    }
+    ctxContour.stroke();
+    
+    if(labels && level % 2 === 0) {
+      ctxContour.fillStyle = '#333';
+      ctxContour.font = '12px monospace';
+      ctxContour.fillText(contourValue.toFixed(1), 10, 20 + level * 15);
+    }
+  }
+}
+
+// Contour events
+contourLevels.addEventListener('input', drawContour);
+contourParam.addEventListener('input', drawContour);
+fillContour.addEventListener('change', drawContour);
+showLabels.addEventListener('change', drawContour);
+document.querySelectorAll('input[name="contourFunc"]').forEach(r => r.addEventListener('change', drawContour));
+document.getElementById('drawContour').addEventListener('click', drawContour);
+document.getElementById('clearContour').addEventListener('click', () => ctxContour.clearRect(0, 0, canvasContour.width, canvasContour.height));
+
+// Contour animate
+let animatingContour = false;
+document.getElementById('animateContour').addEventListener('click', () => {
+  if(animatingContour) return;
+  animatingContour = true;
+  let step = 0;
+  const originalParam = parseFloat(contourParam.value);
+  
+  const animate = () => {
+    step += 0.1;
+    contourParam.value = originalParam + Math.sin(step) * 0.5;
+    drawContour();
+    if(step < Math.PI * 4) {
+      setTimeout(() => requestAnimationFrame(animate), 100);
+    } else {
+      contourParam.value = originalParam;
+      drawContour();
+      animatingContour = false;
+    }
+  };
+  animate();
+});
+
+document.getElementById('saveContourPng').addEventListener('click', () => {
+  const url = canvasContour.toDataURL('image/png');
+  downloadFromDataUrl(url, 'matlab_contour.png');
+});
+
+/* ========== 8) Vector Field Canvas ========== */
+const canvasVector = document.getElementById('canvasVector');
+const ctxVector = canvasVector.getContext('2d');
+const vectorDensity = document.getElementById('vectorDensity');
+const vectorScale = document.getElementById('vectorScale');
+const vectorStrength = document.getElementById('vectorStrength');
+const valVectorDens = document.getElementById('val_vectorDens');
+const valVectorScale = document.getElementById('val_vectorScale');
+const valVectorStr = document.getElementById('val_vectorStr');
+
+function vectorField(x, y, type, strength) {
+  switch(type) {
+    case 'rotation':
+      return [-strength * y, strength * x];
+    case 'radial':
+      return [strength * x, strength * y];
+    case 'saddle':
+      return [strength * x, -strength * y];
+    default:
+      return [0, 0];
+  }
+}
+
+function drawVector() {
+  const type = document.querySelector('input[name="vectorField"]:checked').value;
+  const density = parseInt(vectorDensity.value);
+  const scale = parseFloat(vectorScale.value);
+  const strength = parseFloat(vectorStrength.value);
+  
+  valVectorDens.textContent = density;
+  valVectorScale.textContent = scale.toFixed(1);
+  valVectorStr.textContent = strength.toFixed(1);
+  
+  ctxVector.clearRect(0, 0, canvasVector.width, canvasVector.height);
+  
+  // Draw axes
+  const centerX = canvasVector.width / 2;
+  const centerY = canvasVector.height / 2;
+  
+  ctxVector.strokeStyle = '#e5e7eb';
+  ctxVector.lineWidth = 1;
+  ctxVector.beginPath();
+  ctxVector.moveTo(0, centerY);
+  ctxVector.lineTo(canvasVector.width, centerY);
+  ctxVector.moveTo(centerX, 0);
+  ctxVector.lineTo(centerX, canvasVector.height);
+  ctxVector.stroke();
+  
+  // Draw grid
+  const gridStep = canvasVector.width / density;
+  
+  ctxVector.strokeStyle = '#f1f5f9';
+  for(let i = 0; i <= canvasVector.width; i += gridStep) {
+    ctxVector.beginPath();
+    ctxVector.moveTo(i, 0);
+    ctxVector.lineTo(i, canvasVector.height);
+    ctxVector.stroke();
+  }
+  for(let i = 0; i <= canvasVector.height; i += gridStep) {
+    ctxVector.beginPath();
+    ctxVector.moveTo(0, i);
+    ctxVector.lineTo(canvasVector.width, i);
+    ctxVector.stroke();
+  }
+  
+  // Draw vectors
+  const coordScale = 3 / density;
+  
+  for(let i = 0; i <= density; i++) {
+    for(let j = 0; j <= density; j++) {
+      const px = i * gridStep;
+      const py = j * gridStep;
+      const x = (px - centerX) * coordScale / (canvasVector.width / 2);
+      const y = (centerY - py) * coordScale / (canvasVector.height / 2);
+      
+      const [u, v] = vectorField(x, y, type, strength);
+      
+      // Vector magnitude for coloring
+      const magnitude = Math.sqrt(u*u + v*v);
+      const hue = Math.min(240, magnitude * 60);
+      
+      ctxVector.strokeStyle = `hsl(${240 - hue}, 70%, 50%)`;
+      ctxVector.lineWidth = 2;
+      
+      // Draw arrow
+      const arrowScale = scale * 20;
+      const endX = px + u * arrowScale;
+      const endY = py - v * arrowScale; // Negative because canvas Y is flipped
+      
+      // Arrow shaft
+      ctxVector.beginPath();
+      ctxVector.moveTo(px, py);
+      ctxVector.lineTo(endX, endY);
+      ctxVector.stroke();
+      
+      // Arrow head
+      const headLength = 8;
+      const angle = Math.atan2(endY - py, endX - px);
+      
+      ctxVector.beginPath();
+      ctxVector.moveTo(endX, endY);
+      ctxVector.lineTo(
+        endX - headLength * Math.cos(angle - Math.PI/6),
+        endY - headLength * Math.sin(angle - Math.PI/6)
+      );
+      ctxVector.moveTo(endX, endY);
+      ctxVector.lineTo(
+        endX - headLength * Math.cos(angle + Math.PI/6),
+        endY - headLength * Math.sin(angle + Math.PI/6)
+      );
+      ctxVector.stroke();
+    }
+  }
+}
+
+// Vector events
+vectorDensity.addEventListener('input', drawVector);
+vectorScale.addEventListener('input', drawVector);
+vectorStrength.addEventListener('input', drawVector);
+document.querySelectorAll('input[name="vectorField"]').forEach(r => r.addEventListener('change', drawVector));
+document.getElementById('drawVector').addEventListener('click', drawVector);
+document.getElementById('clearVector').addEventListener('click', () => ctxVector.clearRect(0, 0, canvasVector.width, canvasVector.height));
+
+// Vector animate
+let animatingVector = false;
+document.getElementById('animateVector').addEventListener('click', () => {
+  if(animatingVector) return;
+  animatingVector = true;
+  let time = 0;
+  const originalStrength = parseFloat(vectorStrength.value);
+  
+  const animate = () => {
+    time += 0.1;
+    vectorStrength.value = originalStrength + Math.sin(time) * 0.5;
+    drawVector();
+    if(time < Math.PI * 6) {
+      setTimeout(() => requestAnimationFrame(animate), 100);
+    } else {
+      vectorStrength.value = originalStrength;
+      drawVector();
+      animatingVector = false;
+    }
+  };
+  animate();
+});
+
+document.getElementById('saveVectorPng').addEventListener('click', () => {
+  const url = canvasVector.toDataURL('image/png');
+  downloadFromDataUrl(url, 'matlab_vector.png');
+});
+
+/* ========== 9) Holatni saqlash va yuklab olish ========== */
+function getState() {
+  return {
+    method: currentMethod,
+    activeTab: document.querySelector('.tab.active')?.dataset.tab || 'mesh',
+    meshFunc: document.querySelector('input[name="meshFunc"]:checked')?.value || 'peaks',
+    surfFunc: document.querySelector('input[name="surfFunc"]:checked')?.value || 'ripple',
+    contourFunc: document.querySelector('input[name="contourFunc"]:checked')?.value || 'peaks',
+    vectorField: document.querySelector('input[name="vectorField"]:checked')?.value || 'rotation',
+    meshResolution: meshResolution.value,
+    meshScale: meshScale.value,
+    meshRotate: meshRotate.value,
+    surfAmplitude: surfAmplitude.value,
+    surfFreq: surfFreq.value,
+    colorMap: colorMap.value,
+    contourLevels: contourLevels.value,
+    contourParam: contourParam.value,
+    fillContour: fillContour.checked,
+    showLabels: showLabels.checked,
+    vectorDensity: vectorDensity.value,
+    vectorScale: vectorScale.value,
+    vectorStrength: vectorStrength.value
+  };
+}
+
+function saveState() {
+  try {
+    localStorage.setItem('matlab_graphics_state', JSON.stringify(getState()));
+  } catch(e) {}
+}
+
+function restoreState() {
+  try {
+    const s = localStorage.getItem('matlab_graphics_state');
+    if(!s) return;
+    const st = JSON.parse(s);
+    
+    if(st.method) setMethod(st.method);
+    if(st.activeTab) {
+      document.querySelector(`.tab[data-tab="${st.activeTab}"]`)?.click();
+    }
+    
+    // Restore radio buttons
+    if(st.meshFunc) {
+      const radio = document.querySelector(`input[name="meshFunc"][value="${st.meshFunc}"]`);
+      if(radio) radio.checked = true;
+    }
+    if(st.surfFunc) {
+      const radio = document.querySelector(`input[name="surfFunc"][value="${st.surfFunc}"]`);
+      if(radio) radio.checked = true;
+    }
+    if(st.contourFunc) {
+      const radio = document.querySelector(`input[name="contourFunc"][value="${st.contourFunc}"]`);
+      if(radio) radio.checked = true;
+    }
+    if(st.vectorField) {
+      const radio = document.querySelector(`input[name="vectorField"][value="${st.vectorField}"]`);
+      if(radio) radio.checked = true;
+    }
+    
+    // Restore sliders and inputs
+    if(st.meshResolution) meshResolution.value = st.meshResolution;
+    if(st.meshScale) meshScale.value = st.meshScale;
+    if(st.meshRotate) meshRotate.value = st.meshRotate;
+    if(st.surfAmplitude) surfAmplitude.value = st.surfAmplitude;
+    if(st.surfFreq) surfFreq.value = st.surfFreq;
+    if(st.colorMap) colorMap.value = st.colorMap;
+    if(st.contourLevels) contourLevels.value = st.contourLevels;
+    if(st.contourParam) contourParam.value = st.contourParam;
+    if(st.fillContour !== undefined) fillContour.checked = st.fillContour;
+    if(st.showLabels !== undefined) showLabels.checked = st.showLabels;
+    if(st.vectorDensity) vectorDensity.value = st.vectorDensity;
+    if(st.vectorScale) vectorScale.value = st.vectorScale;
+    if(st.vectorStrength) vectorStrength.value = st.vectorStrength;
+    
+  } catch(e) {
+    setMethod('mesh');
+  }
+}
+
+// Auto-save state on any input
+['input', 'change', 'click'].forEach(evt => {
+  document.body.addEventListener(evt, (e) => {
+    if(['INPUT', 'SELECT', 'BUTTON'].includes(e.target.tagName)) {
+      saveState();
+    }
+  }, true);
+});
+
+/* ========== 10) Dastlabki ishga tushirish ========== */
+window.addEventListener('load', () => {
+  restoreState();
+  if(!currentMethod) setMethod('mesh');
+  
+  // Draw initial graphics
+  drawMesh();
+  drawSurface();
+  drawContour();
+  drawVector();
+});
+</script>
+
+</body>
+</html>
