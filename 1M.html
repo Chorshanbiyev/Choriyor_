@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Differensial tenglamalarni yechish — Interaktiv modul</title>
+
+  <!-- MathJax: formulalarni chiroyli ko'rsatish -->
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+    .container{max-width:1200px;margin:0 auto;padding:24px}
+    .header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+    .header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+    .header p{margin:0;color:#64748b}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+    @media (max-width:960px){.grid{grid-template-columns:1fr}}
+    .card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+    .card h2{margin:0 0 14px 0;font-size:22px;color:#111827;border-bottom:3px solid #38bdf8;padding-bottom:6px}
+    .info-table{width:100%;border-collapse:collapse}
+    .info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+    .info-table th{background:#38bdf8;color:#fff}
+    .software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+    .software-item{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px;border-radius:12px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;transition:.25s}
+    .software-item:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+    .software-item.active{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.25) inset}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+    .btn{background:#0ea5e9;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+    .btn.secondary{background:#334155}
+    .btn.ghost{background:#f1f5f9;color:#0f172a}
+    .btn:hover{filter:brightness(1.05)}
+    .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+    pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #22d3ee;padding-left:10px}
+    .split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+    @media (max-width:1100px){.split{grid-template-columns:1fr}}
+    .panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+    .panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    label{font-size:14px;color:#334155}
+    input[type=range]{width:220px}
+    canvas{width:100%;height:400px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+    .iframe-box{position:relative;padding-top:56.25%;background:#e2e8f0;border-radius:12px;overflow:hidden}
+    .iframe-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .muted{color:#64748b;font-size:13px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔬 Differensial tenglamalarni yechish</h1>
+      <p>Grafiklar • Animatsiyalar • Simulyatsion (imitatsion) modellar</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>📊 Ma’ruza ma’lumotlari</h2>
+        <table class="info-table">
+          <tr><th>Ma’ruza raqami</th><td>1</td></tr>
+          <tr><th>Mavzu</th><td>Mapleda differensial tenglamalarni yechish</td></tr>
+          <tr><th>Nima uchun mos?</th><td>Modellashtirish, jarayon tahlili</td></tr>
+          <tr><th>Vizualizatsiya usuli</th><td>DEplot, animate</td></tr>
+          <tr><th>Dasturlar</th><td>Maple, MATLAB, GeoGebra, Desmos, Mathematica, Mathcad</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>🛠️ Dastur tanlang (kodga & onlayn xizmatga o‘tamiz)</h2>
+        <div class="software-grid" id="softwareGrid" aria-label="Dastur tanlash">
+          <div class="software-item active" data-soft="Maple" tabindex="0"><strong>Maple</strong></div>
+          <div class="software-item" data-soft="Matlab" tabindex="0"><strong>MATLAB</strong></div>
+          <div class="software-item" data-soft="GeoGebra" tabindex="0"><strong>GeoGebra</strong></div>
+          <div class="software-item" data-soft="Desmos" tabindex="0"><strong>Desmos</strong></div>
+          <div class="software-item" data-soft="Mathematica" tabindex="0"><strong>Mathematica</strong></div>
+          <div class="software-item" data-soft="Mathcad" tabindex="0"><strong>Mathcad</strong></div>
+        </div>
+
+        <div class="toolbar" id="onlineToolbar">
+          <button class="btn" id="openOnline" aria-label="Onlayn xizmatni ochish">Onlayn xizmatni ochish</button>
+          <button class="btn ghost" id="toggleEmbed" style="display:none" aria-expanded="false">Iframe ko‘rsat/berkit (GeoGebra/Desmos)</button>
+          <span class="muted" id="onlineNote">Tanlangan dasturga mos onlayn sahifa ochiladi.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="codeCard">
+      <h2>📝 Hisoblash kodi</h2>
+      <div class="toolbar">
+        <button class="btn secondary" id="copyBtn" aria-label="Kodni nusxalash">Kodni nusxalash</button>
+        <span class="muted" id="codeTitle">Maple — DE, grafik, animatsiya</span>
+      </div>
+      <div class="codewrap"><pre id="codeBlock" aria-live="polite"></pre></div>
+
+      <div class="panel" style="margin-top:10px">
+        <h3>Izoh / Talqin</h3>
+        <pre id="codeNotes"></pre>
+      </div>
+
+      <div class="panel" id="embedPanel" style="display:none;margin-top:10px">
+        <h3>Ichki ko‘rinish (iframe) — GeoGebra/Desmos</h3>
+        <div class="iframe-box" id="embedBox"></div>
+        <div class="muted" style="margin-top:6px">Eslatma: Internetga ulanish talab etiladi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🎯 Interaktiv demo (kanvas)</h2>
+      <div class="split">
+        <div class="panel">
+          <h3>Model tanlang</h3>
+          <div class="row" style="margin-top:6px">
+            <label><input type="radio" name="model" value="xy" checked> $y' = x + y$</label>
+            <label><input type="radio" name="model" value="ay_x"> $y' = a\,y - x$</label>
+            <label><input type="radio" name="model" value="x2_y"> $y' = x^2 - y$</label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>Boshlang‘ich shart: $y(x_0)=y_0$</label>
+            <label>$x_0$ <input type="number" id="x0" value="0" step="0.1" style="width:90px"></label>
+            <label>$y_0$ <input type="number" id="y0" value="1" step="0.1" style="width:90px"></label>
+          </div>
+
+          <!-- USUL TANLASH + QADAM -->
+          <div class="row" style="margin-top:8px">
+            <label>Usul:
+              <select id="methodSel" style="padding:6px 10px;border-radius:8px;border:1px solid #cbd5e1">
+                <option value="rk4" selected>RK4</option>
+                <option value="rk2">RK2 (Midpoint)</option>
+                <option value="euler">Euler</option>
+              </select>
+            </label>
+            <label>Qadam $h$
+              <input type="number" id="hStep" value="0.02" step="0.005" min="0.005" style="width:100px">
+            </label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>$a$ (faqat $y' = a\,y - x$ uchun)</label>
+            <input type="range" id="aSlider" min="-2" max="2" step="0.1" value="1" aria-label="Parametr a">
+            <span id="aVal">1.0</span>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="drawBtn">Chizish</button>
+            <button class="btn ghost" id="clearBtn">Tozalash</button>
+            <button class="btn ghost" id="savePngBtn">PNG yuklab olish</button>
+          </div>
+
+          <div class="muted" style="margin-top:8px">
+            Vizualizatsiya: yo‘nalish maydoni (kulrang) • yechim trayektoriyasi (ko‘k) • boshlang‘ich nuqta (qizil).
+          </div>
+        </div>
+
+        <div class="panel">
+          <canvas id="plot" width="800" height="400" aria-label="ODE grafiki"></canvas>
+        </div>
+      </div>
+    </div>
+
+    
+
+  <script>
+    // ---------- 1) Kod snippetlar ----------
+    const SNIPPETS = {
+      Maple: {
+        code:
+`restart:
+with(DEtools): with(plots):
+
+# 1) y' = x + y  — yo'nalish maydoni
+de  := diff(y(x),x) = x + y(x):
+DEplot(de, y(x), x=-2..2, y=-2..5, arrows=medium);
+
+# 2) y(0)=1  — trayektoriya
+ics := y(0) = 1:
+DEplot(de, y(x), x=-2..2, y=-2..5,
+       arrows=medium, [[ics]], linecolour=red, thickness=2);
+
+# 3) y' = a*y - x, y(0)=0  — animatsiya
+A := animate( rhs(dsolve({diff(y(x),x)=a*y(x)-x, y(0)=0}, y(x))),
+              x=-2..2, frames=45, a=-1..2 ):
+# display(A);
+
+# 4) y' = x^2 - y, y(0)=0
+de2  := diff(y(x),x) = x^2 - y(x):
+ics2 := y(0) = 0:
+DEplot(de2, y(x), x=0..3, y=-1..6, arrows=slim,
+       [[ics2]], linecolour=blue, thickness=2);`,
+        notes:
+`• DEplot — yo'nalish maydoni + trayektoriyalar.
+• a parametriga ko'ra: a<0 — so'nish, a>0 — o'sish.
+• Boshlang'ich shart sezgirligi muhim.`
+      },
+
+      Matlab: {
+        code:
+`% y' = x + y, y(0)=1
+f = @(x,y) x + y;
+[x,y] = ode45(f, [-2 2], 1);
+figure; plot(x,y,'b','LineWidth',1.8); grid on; xlabel x; ylabel y; title(\"y' = x + y\")
+
+% y' = a*y - x, y(0)=0 (a = -1,0,1,2)
+figure; hold on;
+for a=[-1 0 1 2]
+  f = @(x,y) a*y - x;
+  [x,y] = ode45(f, [-2 2], 0);
+  plot(x,y,'DisplayName',sprintf('a=%g',a));
+end
+grid on; legend show; title(\"y' = a*y - x\")
+
+% y' = x^2 - y, y(0)=0
+f = @(x,y) x.^2 - y;
+[x,y] = ode45(f, [0 3], 0);
+figure; plot(x,y,'m','LineWidth',1.8); grid on; xlabel x; ylabel y; title(\"y' = x^2 - y\")`,
+        notes:
+`• ode45 — Runge–Kutta (4–5) usuli.`
+      },
+
+      GeoGebra: {
+        code:
+`// GeoGebra Graphing (onlayn)
+// 1) SlopeField[x + y] kiriting (CAS/Classic'da)
+// 2) Boshlang'ich nuqta qo'shing va yechim egri chizig'ini kuzating
+// 3) Slider a -> dy/dx = a*y - x ni dinamik tahlil qiling
+// 4) y' = x^2 - y ni ham tekshiring`,
+        notes:
+`• Slider bilan parametrni o'zgartirib real vaqtda tahlil qiling.`
+      },
+
+      Desmos: {
+        code:
+`// Desmos Graphing Calculator
+// 1) Kiriting: dy/dx = x + y
+// 2) Sliderlar qo'shing (x0,y0) boshlang'ich nuqtani boshqarish uchun
+// 3) Parametrli model: dy/dx = a*y - x (a uchun slider)
+// 4) y' = x^2 - y ni ham sinab ko'ring`,
+        notes:
+`• Onlayn, tez va ko'rgazmali.`
+      },
+
+      Mathematica: {
+        code:
+`StreamPlot[{1, x + y}, {x, -2, 2}, {y, -2, 5}, StreamStyle -> Gray]
+
+sol = DSolve[{y'[x] == x + y[x], y[0] == 1}, y, x];
+Plot[Evaluate[y[x] /. sol], {x, -2, 2}, PlotStyle -> Red]
+
+Manipulate[
+  sol = NDSolve[{y'[x] == a*y[x] - x, y[0] == 0}, y, {x, -2, 2}];
+  Plot[Evaluate[y[x] /. sol], {x, -2, 2}, PlotRange -> All],
+ {a, -1, 2}]
+
+sol2 = NDSolve[{y'[x] == x^2 - y[x], y[0] == 0}, y, {x, 0, 3}];
+Plot[Evaluate[y[x] /. sol2], {x, 0, 3}, PlotStyle -> Blue]`,
+        notes:
+`• StreamPlot (maydon), Manipulate (parametrli dinamika).`
+      },
+
+      Mathcad: {
+        code:
+`// Mathcad Prime
+// Odesolve bloki: Given — y'(x) = x^2 - y(x), IC: y(0)=0
+// x := 0, 0.01 .. 3 (range)
+// y(x) ni hisoblab, 2D Plot va jadvalga chiqaring.`,
+        notes:
+`• Muhandislik hisobi + hujjatlashtirish.`
+      }
+    };
+
+    // ---------- 2) Onlayn xizmat mapping ----------
+    const ONLINE_URL = {
+      Maple:       "https://www.maplesoft.com/products/MapleLearn/",
+      Matlab:      "https://matlab.mathworks.com/",
+      GeoGebra:    "https://www.geogebra.org/graphing",
+      Desmos:      "https://www.desmos.com/calculator",
+      Mathematica: "https://www.wolframcloud.com/",
+      Mathcad:     "https://www.mathcad.com/"
+    };
+
+    // ---------- 3) GeoGebra/Desmos iframe embed URL ----------
+    const EMBED_URL = {
+      GeoGebra: "https://www.geogebra.org/graphing",
+      Desmos:   "https://www.desmos.com/calculator"
+    };
+
+    // ---------- 4) UI elementlar ----------
+    const grid = document.getElementById('softwareGrid');
+    const codeTitle = document.getElementById('codeTitle');
+    const codeBlock = document.getElementById('codeBlock');
+    const codeNotes = document.getElementById('codeNotes');
+    const codeCard = document.getElementById('codeCard');
+    const openOnlineBtn = document.getElementById('openOnline');
+    const toggleEmbedBtn = document.getElementById('toggleEmbed');
+    const embedPanel = document.getElementById('embedPanel');
+    const embedBox = document.getElementById('embedBox');
+
+    let currentSoft = 'Maple';
+    function setSoftware(soft){
+      currentSoft = soft;
+      [...grid.querySelectorAll('.software-item')].forEach(el=>{
+        el.classList.toggle('active', el.dataset.soft === soft);
+      });
+      const pack = SNIPPETS[soft];
+      codeTitle.textContent = soft + " — hisoblash kodi";
+      codeBlock.textContent = pack?.code || "// Snippet topilmadi.";
+      codeNotes.textContent = pack?.notes || "";
+
+      // Iframe tugmasi faqat GeoGebra / Desmos uchun
+      if (soft === 'GeoGebra' || soft === 'Desmos'){
+        toggleEmbedBtn.style.display = 'inline-block';
+      } else {
+        toggleEmbedBtn.style.display = 'none';
+        embedPanel.style.display = 'none';
+        toggleEmbedBtn.setAttribute('aria-expanded','false');
+      }
+
+      // Kod bo'limiga skroll
+      codeCard.scrollIntoView({behavior:'smooth', block:'start'});
+
+      // holatni saqlash
+      saveState();
+    }
+
+    // klaviatura bilan ham tanlansin
+    grid.addEventListener('keydown',(e)=>{
+      const item = e.target.closest('.software-item');
+      if(!item) return;
+      if(e.key==='Enter' || e.key===' '){
+        e.preventDefault();
+        setSoftware(item.dataset.soft);
+      }
+    });
+    grid.addEventListener('click', (e)=>{
+      const item = e.target.closest('.software-item');
+      if(!item) return;
+      setSoftware(item.dataset.soft);
+    });
+
+    // Onlayn xizmatni ochish
+    openOnlineBtn.addEventListener('click', ()=>{
+      const url = ONLINE_URL[currentSoft];
+      if(url) window.open(url, '_blank', 'noopener,noreferrer');
+    });
+
+    // Iframe ko'rsat/berkit (GeoGebra / Desmos)
+    let embedVisible = false;
+    toggleEmbedBtn.addEventListener('click', ()=>{
+      embedVisible = !embedVisible;
+      if(embedVisible){
+        const src = EMBED_URL[currentSoft];
+        embedBox.innerHTML = `<iframe src="${src}" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
+        embedPanel.style.display = 'block';
+        toggleEmbedBtn.textContent = "Iframe berkit";
+        toggleEmbedBtn.setAttribute('aria-expanded','true');
+      } else {
+        embedPanel.style.display = 'none';
+        embedBox.innerHTML = "";
+        toggleEmbedBtn.textContent = "Iframe ko‘rsat";
+        toggleEmbedBtn.setAttribute('aria-expanded','false');
+      }
+    });
+
+    // Nusxalash
+    document.getElementById('copyBtn').addEventListener('click', ()=>{
+      navigator.clipboard.writeText(codeBlock.textContent).then(()=>{
+        const b = document.getElementById('copyBtn');
+        const t = b.textContent;
+        b.textContent = "Nusxalandi!";
+        setTimeout(()=> b.textContent = t, 1200);
+      });
+    });
+
+    // ---------- 5) Interaktiv demo (canvas) ----------
+    const canvas = document.getElementById('plot');
+    const ctx = canvas.getContext('2d');
+    const x0El = document.getElementById('x0');
+    const y0El = document.getElementById('y0');
+    const aSlider = document.getElementById('aSlider');
+    const aVal = document.getElementById('aVal');
+    const drawBtn = document.getElementById('drawBtn');
+    const clearBtn = document.getElementById('clearBtn');
+
+    const methodSel = document.getElementById('methodSel');
+    const hStep = document.getElementById('hStep');
+
+    function modelType(){
+      return document.querySelector('input[name="model"]:checked').value;
+    }
+    function f_xy(x,y,a){
+      const m = modelType();
+      if(m === 'xy')   return x + y;
+      if(m === 'ay_x') return a*y - x;
+      if(m === 'x2_y') return x*x - y;
+      return x + y;
+    }
+
+    // Koordinata
+    const XMIN=-3, XMAX=3, YMIN=-3, YMAX=3;
+    function worldToCanvas(x,y){
+      const u = (x - XMIN)/(XMAX - XMIN) * canvas.width;
+      const v = canvas.height - (y - YMIN)/(YMAX - YMIN) * canvas.height;
+      return [u,v];
+    }
+    function drawAxes(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      // grid
+      ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 1;
+      for(let gx=Math.ceil(XMIN); gx<=Math.floor(XMAX); gx++){
+        const [u0,v0]=worldToCanvas(gx,YMIN), [u1,v1]=worldToCanvas(gx,YMAX);
+        ctx.beginPath(); ctx.moveTo(u0,v0); ctx.lineTo(u1,v1); ctx.stroke();
+      }
+      for(let gy=Math.ceil(YMIN); gy<=Math.floor(YMAX); gy++){
+        const [u0,v0]=worldToCanvas(XMIN,gy), [u1,v1]=worldToCanvas(XMAX,gy);
+        ctx.beginPath(); ctx.moveTo(u0,v0); ctx.lineTo(u1,v1); ctx.stroke();
+      }
+      // axes
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5;
+      const [ux0,uy0]=worldToCanvas(0,YMIN), [ux1,uy1]=worldToCanvas(0,YMAX);
+      ctx.beginPath(); ctx.moveTo(ux0,uy0); ctx.lineTo(ux1,uy1); ctx.stroke();
+      const [vx0,vy0]=worldToCanvas(XMIN,0), [vx1,vy1]=worldToCanvas(XMAX,0);
+      ctx.beginPath(); ctx.moveTo(vx0,vy0); ctx.lineTo(vx1,vy1); ctx.stroke();
+    }
+    function drawSlopeField(a){
+      ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+      const step = 0.6;
+      for(let x=XMIN; x<=XMAX; x+=step){
+        for(let y=YMIN; y<=YMAX; y+=step){
+          const s = f_xy(x,y,a);
+          const len = Math.sqrt(1 + s*s);
+          const dx = 0.22/len, dy = s*0.22/len;
+          const x0=x-dx, y0=y-dy, x1=x+dx, y1=y+dy;
+          const [u0,v0]=worldToCanvas(x0,y0), [u1,v1]=worldToCanvas(x1,y1);
+          ctx.beginPath(); ctx.moveTo(u0,v0); ctx.lineTo(u1,v1); ctx.stroke();
+        }
+      }
+    }
+
+    // Sonli usullar
+    function stepOnce(x,y,a,h,method){
+      if(method==='euler'){
+        const k1 = f_xy(x,y,a);
+        return [x+h, y + h*k1];
+      }
+      if(method==='rk2'){
+        const k1 = f_xy(x,y,a);
+        const k2 = f_xy(x + h/2, y + h*k1/2, a);
+        return [x+h, y + h*k2];
+      }
+      // rk4
+      const k1 = f_xy(x,y,a);
+      const k2 = f_xy(x + h/2, y + h*k1/2, a);
+      const k3 = f_xy(x + h/2, y + h*k2/2, a);
+      const k4 = f_xy(x + h,   y + h*k3,   a);
+      return [x+h, y + h*(k1 + 2*k2 + 2*k3 + k4)/6];
+    }
+    function integrate(x0,y0,a,dir){
+      const h = Math.max(0.001, Math.abs(parseFloat(hStep.value)||0.02)) * dir;
+      const N = Math.floor((XMAX - XMIN)/Math.abs(h));
+      const method = methodSel.value;
+      let pts=[[x0,y0]], x=x0, y=y0;
+      for(let i=0;i<N;i++){
+        if(x<XMIN||x>XMAX||y<YMIN||y>YMAX) break;
+        [x,y] = stepOnce(x,y,a,h,method);
+        pts.push([x,y]);
+      }
+      return pts;
+    }
+
+    function drawCurve(pts,color){
+      if(pts.length<2) return;
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.beginPath();
+      const [u0,v0] = worldToCanvas(pts[0][0], pts[0][1]);
+      ctx.moveTo(u0,v0);
+      for(let i=1;i<pts.length;i++){
+        const [u,v]=worldToCanvas(pts[i][0], pts[i][1]);
+        ctx.lineTo(u,v);
+      }
+      ctx.stroke();
+    }
+    function drawIC(x0,y0){
+      const [u,v] = worldToCanvas(x0,y0);
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(u,v,4,0,Math.PI*2); ctx.fill();
+    }
+    function render(){
+      const a = parseFloat(aSlider.value);
+      aVal.textContent = a.toFixed(1);
+      const x0 = parseFloat(x0El.value);
+      const y0 = parseFloat(y0El.value);
+
+      drawAxes();
+      drawSlopeField(a);
+      drawIC(x0,y0);
+
+      drawCurve(integrate(x0,y0,a,+1), '#2563eb');
+      drawCurve(integrate(x0,y0,a,-1), '#2563eb');
+
+      saveState(); // oxirgi holatni saqlab qo'yamiz
+    }
+
+    // PNG yuklab olish
+    document.getElementById('savePngBtn').addEventListener('click', ()=>{
+      const link = document.createElement('a');
+      link.download = 'ode_plot.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // Chizish/Tozalash
+    drawBtn.addEventListener('click', render);
+    clearBtn.addEventListener('click', drawAxes);
+
+    // Parametr o'zgarsa jonli yangilash
+    aSlider.addEventListener('input', ()=>{
+      aVal.textContent = parseFloat(aSlider.value).toFixed(1);
+      if (document.querySelector('input[name="model"]:checked').value === 'ay_x') {
+        render();
+      }
+    });
+    document.querySelectorAll('input[name="model"]').forEach(r=> r.addEventListener('change', render));
+    methodSel.addEventListener('change', render);
+    hStep.addEventListener('input', ()=>{ /* debounce o'rniga oddiy tekshiruv */ });
+
+    // ---------- 6) Fazoviy portret (2D sistema) ----------
+    const phase = document.getElementById('phase');
+    const pctx = phase.getContext('2d');
+    function WCp(x,y){
+      const X1=-3, X2=3, Y1=-2.2, Y2=2.2;
+      const u = (x - X1)/(X2 - X1)*phase.width;
+      const v = phase.height - (y - Y1)/(Y2 - Y1)*phase.height;
+      return [u,v];
+    }
+    function f_sys(x,y, mode){
+      if(mode==='node') return [x, 0.5*y];
+      return [-y, x]; // rotator (default)
+    }
+    function drawPhaseField(){
+      pctx.clearRect(0,0,phase.width,phase.height);
+      // grid
+      pctx.strokeStyle='#e5e7eb'; pctx.lineWidth=1;
+      const X1=-3, X2=3, Y1=-2.2, Y2=2.2;
+      for(let gx=Math.ceil(X1); gx<=Math.floor(X2); gx++){
+        const [u0,v0]=WCp(gx,Y1), [u1,v1]=WCp(gx,Y2);
+        pctx.beginPath(); pctx.moveTo(u0,v0); pctx.lineTo(u1,v1); pctx.stroke();
+      }
+      for(let gy=Math.ceil(Y1); gy<=Math.floor(Y2); gy++){
+        const [u0,v0]=WCp(X1,gy), [u1,v1]=WCp(X2,gy);
+        pctx.beginPath(); pctx.moveTo(u0,v0); pctx.lineTo(u1,v1); pctx.stroke();
+      }
+      // axes
+      pctx.strokeStyle='#94a3b8'; pctx.lineWidth=1.5;
+      let p0=WCp(0,Y1), p1=WCp(0,Y2);
+      pctx.beginPath(); pctx.moveTo(p0[0],p0[1]); pctx.lineTo(p1[0],p1[1]); pctx.stroke();
+      p0=WCp(X1,0); p1=WCp(X2,0);
+      pctx.beginPath(); pctx.moveTo(p0[0],p0[1]); pctx.lineTo(p1[0],p1[1]); pctx.stroke();
+
+      // arrows
+      const mode = document.getElementById('sysSel').value;
+      pctx.strokeStyle='#64748b'; pctx.lineWidth=1.5;
+      for(let x=-3; x<=3; x+=0.6){
+        for(let y=-2.2; y<=2.2; y+=0.6){
+          const [fx,fy]=f_sys(x,y,mode);
+          const len=Math.hypot(fx,fy)||1;
+          const dx=0.28*fx/len, dy=0.28*fy/len;
+          const [u0,v0]=WCp(x-dx,y-dy), [u1,v1]=WCp(x+dx,y+dy);
+          pctx.beginPath(); pctx.moveTo(u0,v0); pctx.lineTo(u1,v1); pctx.stroke();
+        }
+      }
+    }
+    document.getElementById('sysSel').addEventListener('change', drawPhaseField);
+    document.getElementById('drawFieldBtn').addEventListener('click', drawPhaseField);
+
+    // ---------- 7) Holatni saqlash (localStorage) ----------
+    function saveState(){
+      const state = {
+        soft: currentSoft,
+        model: document.querySelector('input[name="model"]:checked').value,
+        x0: x0El.value, y0: y0El.value, a: aSlider.value,
+        method: methodSel.value, h: hStep.value
+      };
+      try { localStorage.setItem('kmt_ode_state', JSON.stringify(state)); } catch(e){}
+    }
+    function restoreState(){
+      try{
+        const s = localStorage.getItem('kmt_ode_state');
+        if(!s) return;
+        const st = JSON.parse(s);
+        // dastur
+        if(st.soft) setSoftware(st.soft); else setSoftware('Maple');
+        // model va paramlar
+        const mRadio = document.querySelector(`input[name="model"][value="${st.model}"]`);
+        if(mRadio) mRadio.checked = true;
+        if(st.x0!=null) x0El.value = st.x0;
+        if(st.y0!=null) y0El.value = st.y0;
+        if(st.a!=null)  { aSlider.value = st.a; aVal.textContent = (+st.a).toFixed(1); }
+        if(st.method)   methodSel.value = st.method;
+        if(st.h)        hStep.value = st.h;
+      }catch(e){
+        setSoftware('Maple');
+      }
+    }
+    ['input','change','click'].forEach(evt=>{
+      document.body.addEventListener(evt, (e)=>{
+        if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName)) saveState();
+      }, true);
+    });
+
+    // ---------- 8) Dastlabki ishga tushirish ----------
+    window.addEventListener('load', ()=>{
+      restoreState();
+      if(!currentSoft) setSoftware('Maple'); // fallback
+      drawAxes();
+      render();
+      drawPhaseField();
+    });
+  </script>
+</body>
+</html>
