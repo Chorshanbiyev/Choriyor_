@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>2D va 3D grafik muhiti -- Interaktiv modul (Yuklab olish bilan)</title>
+
+<!-- MathJax: formulalarni chiroyli ko'rsatish -->
+<script>
+window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+.header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+.header p{margin:0;color:#64748b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:960px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.card h2{margin:0 0 14px 0;font-size:22px;color:#111827;border-bottom:3px solid #38bdf8;padding-bottom:6px}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+.info-table th{background:#38bdf8;color:#fff}
+.software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.software-item{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px;border-radius:12px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;transition:.25s}
+.software-item:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+.software-item.active{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.25) inset}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+.btn{background:#0ea5e9;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+.btn.secondary{background:#334155}
+.btn.ghost{background:#f1f5f9;color:#0f172a}
+.btn.success{background:#16a34a}
+.btn.warning{background:#f59e0b;color:#111827}
+.btn:hover{filter:brightness(1.05)}
+.codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #22d3ee;padding-left:10px}
+.split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+.panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+.panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:14px;color:#334155}
+input[type=range]{width:220px}
+canvas{width:100%;height:400px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+.iframe-box{position:relative;padding-top:56.25%;background:#e2e8f0;border-radius:12px;overflow:hidden}
+.iframe-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.muted{color:#64748b;font-size:13px}
+.canvas-3d{height:450px}
+.tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+.tab{padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{border-bottom-color:#0ea5e9;color:#0ea5e9}
+.tab-content{display:none}
+.tab-content.active{display:block}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>📊 2D va 3D grafik muhiti</h1>
+  <p>Ko'rgazmali matematik analiz • Fazoviy tafakkur • plot3d animatsiyalar</p>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>📋 Ma'ruza ma'lumotlari</h2>
+    <table class="info-table">
+      <tr><th>Ma'ruza raqami</th><td>2</td></tr>
+      <tr><th>Mavzu</th><td>Mapleda 2D va 3D grafik muhiti</td></tr>
+      <tr><th>Nima uchun mos?</th><td>Grafik tafakkur, ko'rinish</td></tr>
+      <tr><th>Vizualizatsiya usuli</th><td>plot, plot3d, animatsiya</td></tr>
+      <tr><th>Dasturlar</th><td>Maple, MATLAB, GeoGebra, Desmos, Mathematica, Python</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>🛠️ Dastur tanlang (kod & onlayn xizmat)</h2>
+    <div class="software-grid" id="softwareGrid" aria-label="Dastur tanlash">
+      <div class="software-item active" data-soft="Maple" tabindex="0"><strong>Maple</strong></div>
+      <div class="software-item" data-soft="Matlab" tabindex="0"><strong>MATLAB</strong></div>
+      <div class="software-item" data-soft="GeoGebra" tabindex="0"><strong>GeoGebra</strong></div>
+      <div class="software-item" data-soft="Desmos" tabindex="0"><strong>Desmos</strong></div>
+      <div class="software-item" data-soft="Mathematica" tabindex="0"><strong>Mathematica</strong></div>
+      <div class="software-item" data-soft="Python" tabindex="0"><strong>Python</strong></div>
+    </div>
+
+    <div class="toolbar" id="onlineToolbar">
+      <button class="btn" id="openOnline" aria-label="Onlayn xizmatni ochish">Onlayn xizmatni ochish</button>
+      <button class="btn ghost" id="toggleEmbed" style="display:none" aria-expanded="false">Iframe ko'rsat/berkit</button>
+      <span class="muted" id="onlineNote">Tanlangan dasturga mos onlayn sahifa ochiladi.</span>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="codeCard">
+  <h2>📝 Hisoblash kodi</h2>
+  <div class="toolbar">
+    <button class="btn secondary" id="copyBtn" aria-label="Kodni nusxalash">Kodni nusxalash</button>
+    <button class="btn success" id="downloadCodeBtn" aria-label="Kodni .txt yuklab olish">Kodni .txt yuklab olish</button>
+    <button class="btn warning" id="downloadStateBtn" aria-label="Holatni .json yuklab olish">Holatni .json yuklab olish</button>
+    <span class="muted" id="codeTitle">Maple -- 2D/3D grafiklar</span>
+  </div>
+  <div class="codewrap"><pre id="codeBlock" aria-live="polite"></pre></div>
+
+  <div class="panel" style="margin-top:10px">
+    <h3>Izoh / Talqin</h3>
+    <pre id="codeNotes"></pre>
+  </div>
+
+  <div class="panel" id="embedPanel" style="display:none;margin-top:10px">
+    <h3>Ichki ko'rinish (iframe)</h3>
+    <div class="iframe-box" id="embedBox"></div>
+    <div class="muted" style="margin-top:6px">Eslatma: Internetga ulanish talab etiladi.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🎨 Interaktiv demo</h2>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="2d">2D Grafiklar</div>
+    <div class="tab" data-tab="3d">3D Sirtlar</div>
+    <div class="tab" data-tab="parametric">Parametrik egrilar</div>
+  </div>
+
+  <!-- 2D TAB -->
+  <div class="tab-content active" id="tab-2d">
+    <div class="split">
+      <div class="panel">
+        <h3>2D Funksiya</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="func2d" value="sin" checked> $y = \sin(ax + b)$</label>
+          <label><input type="radio" name="func2d" value="poly"> $y = ax^3 + bx^2 + cx$</label>
+          <label><input type="radio" name="func2d" value="exp"> $y = ae^{bx}$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $a$</label>
+          <input type="range" id="param_a" min="-3" max="3" step="0.1" value="1" aria-label="Parametr a">
+          <span id="val_a">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $b$</label>
+          <input type="range" id="param_b" min="-3" max="3" step="0.1" value="0" aria-label="Parametr b">
+          <span id="val_b">0.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $c$ (faqat polinom uchun)</label>
+          <input type="range" id="param_c" min="-2" max="2" step="0.1" value="1" aria-label="Parametr c">
+          <span id="val_c">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="draw2d">Chizish</button>
+          <button class="btn ghost" id="clear2d">Tozalash</button>
+          <button class="btn ghost" id="animate2d">Animatsiya</button>
+          <button class="btn success" id="save2dPng">PNG yuklab olish (2D)</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Parametrlarni o'zgartirib turli funksiya shakllarini kuzating.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas2d" width="800" height="400" aria-label="2D grafiklar"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D TAB -->
+  <div class="tab-content" id="tab-3d">
+    <div class="split">
+      <div class="panel">
+        <h3>3D Sirt</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="surface" value="wave" checked> $z = \sin(ax) \cos(by)$</label>
+          <label><input type="radio" name="surface" value="paraboloid"> $z = a(x^2 + y^2)$</label>
+          <label><input type="radio" name="surface" value="saddle"> $z = ax^2 - by^2$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $a$</label>
+          <input type="range" id="param3d_a" min="0.5" max="3" step="0.1" value="1" aria-label="3D parametr a">
+          <span id="val3d_a">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $b$</label>
+          <input type="range" id="param3d_b" min="0.5" max="3" step="0.1" value="1" aria-label="3D parametr b">
+          <span id="val3d_b">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Aylanish burchagi</label>
+          <input type="range" id="rotate3d" min="0" max="360" step="5" value="45" aria-label="Aylanish burchagi">
+          <span id="val_rotate">45°</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="draw3d">Chizish</button>
+          <button class="btn ghost" id="clear3d">Tozalash</button>
+          <button class="btn ghost" id="animate3d">Aylantirib ko'rish</button>
+          <button class="btn success" id="save3dPng">PNG yuklab olish (3D)</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          3D sirtlarni turli burchakdan kuzating va parametrlarini o'zgartiring.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvas3d" class="canvas-3d" width="800" height="450" aria-label="3D sirtlar"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- PARAMETRIC TAB -->
+  <div class="tab-content" id="tab-parametric">
+    <div class="split">
+      <div class="panel">
+        <h3>Parametrik egrilar</h3>
+        <div class="row" style="margin-top:6px">
+          <label><input type="radio" name="parametric" value="circle" checked> Aylana: $x=a\cos(t)$, $y=b\sin(t)$</label>
+          <label><input type="radio" name="parametric" value="spiral"> Spiral: $x=at\cos(t)$, $y=bt\sin(t)$</label>
+          <label><input type="radio" name="parametric" value="lissajous"> Lissajous: $x=\sin(at)$, $y=\sin(bt)$</label>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $a$</label>
+          <input type="range" id="param_par_a" min="0.5" max="4" step="0.1" value="2" aria-label="Parametrik a">
+          <span id="val_par_a">2.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>Parametr $b$</label>
+          <input type="range" id="param_par_b" min="0.5" max="4" step="0.1" value="1" aria-label="Parametrik b">
+          <span id="val_par_b">1.0</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <label>$t$ oralig'i</label>
+          <input type="range" id="t_range" min="1" max="10" step="0.5" value="6.28" aria-label="t oralig'i">
+          <span id="val_t_range">6.3</span>
+        </div>
+
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="drawPar">Chizish</button>
+          <button class="btn ghost" id="clearPar">Tozalash</button>
+          <button class="btn ghost" id="animatePar">Progressiv chizish</button>
+          <button class="btn success" id="saveParPng">PNG yuklab olish (Parametrik)</button>
+        </div>
+
+        <div class="muted" style="margin-top:8px">
+          Parametrik tenglamalar orqali murakkab shakllarni hosil qiling.
+        </div>
+      </div>
+
+      <div class="panel">
+        <canvas id="canvasPar" width="800" height="400" aria-label="Parametrik egrilar"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ====== Yordamchi yuklab olish funksiyalari ====== */
+function downloadFromDataUrl(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  downloadFromDataUrl(url, filename);
+  URL.revokeObjectURL(url);
+}
+
+/* ========== 1) Kod snippetlar ========== */
+const SNIPPETS = {
+  Maple: {
+    code:
+`restart:
+with(plots):
+
+# 2D grafiklar
+plot(sin(x), x=-2*Pi..2*Pi, color=blue, thickness=2);
+plot([x^2, x^3, sqrt(x)], x=0..3, color=[red,green,blue]);
+
+# 3D sirtlar
+plot3d(sin(x)*cos(y), x=-Pi..Pi, y=-Pi..Pi,
+       axes=boxed, style=surface, orientation=[45,60]);
+
+# Parametrik egrilar
+p1 := plot([2*cos(t), sin(t), t=0..2*Pi], color=red):
+p2 := plot([t*cos(t), t*sin(t), t=0..6*Pi], color=blue):
+display(p1, p2);
+
+# 3D parametrik sirt
+plot3d([u*cos(v), u*sin(v), u^2], u=0..2, v=0..2*Pi,
+       style=surface, color=red);
+
+# Animatsiya
+animate(plot, [sin(a*x), x=-Pi..Pi], a=1..3, frames=30);
+animate3d(sin(a*x)*cos(y), x=-Pi..Pi, y=-Pi..Pi, a=0.5..2);`,
+    notes:
+`• plot() — 2D grafiklar
+• plot3d() — 3D sirtlar
+• animate()/animate3d() — parametrli animatsiya
+• display() — grafika kompozitsiyasi
+• style=surface/wireframe — ko'rinish tanlash`
+  },
+
+  Matlab: {
+    code:
+`% 2D grafiklar
+x = linspace(-2*pi, 2*pi, 1000);
+y1 = sin(x); y2 = cos(x); y3 = tan(x);
+figure; plot(x, y1, 'b-', x, y2, 'r--', x, y3, 'g:');
+legend('sin(x)', 'cos(x)', 'tan(x)'); grid on;
+
+% 3D sirtlar
+[X,Y] = meshgrid(-2:0.1:2, -2:0.1:2);
+Z = sin(X).*cos(Y);
+figure; surf(X, Y, Z); colormap jet; shading interp;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+
+% Parametrik egrilar
+t = linspace(0, 4*pi, 1000);
+x = t.*cos(t); y = t.*sin(t);
+figure; plot(x, y, 'LineWidth', 2); axis equal;
+
+% 3D parametrik (sfera)
+u = linspace(0, 2*pi, 50); v = linspace(0, pi, 25);
+[U,V] = meshgrid(u, v);
+X = sin(V).*cos(U); Y = sin(V).*sin(U); Z = cos(V);
+figure; surf(X, Y, Z); axis equal;`,
+    notes:
+`• meshgrid(), surf() — 3D tayanchlari
+• plot() — 2D egrilar
+• linspace() — nuqtalar taqsimoti`
+  },
+
+  GeoGebra: {
+    code:
+`// GeoGebra 2D/3D
+// 2D: f(x) = sin(x)
+// 3D: f(x,y) = sin(x)*cos(y)
+// Parametrik: Curve(t*cos(t), t*sin(t), t, 0, 6π)
+// Sliderlar bilan parametrlarni boshqaring`,
+    notes:
+`• To'liq interaktiv muhit (onlayn)`
+  },
+
+  Desmos: {
+    code:
+`// Desmos Graphing Calculator
+// 2D: y = sin(x)
+// Parametrik: (t*cos(t), t*sin(t))
+// Sliderlar: y = a*sin(b*x + c)`,
+    notes:
+`• Juda tez va intuitiv 2D grafika`
+  },
+
+  Mathematica: {
+    code:
+`Plot[{Sin[x], Cos[x]}, {x, -2π, 2π}, PlotStyle -> {Blue, Red}]
+Plot3D[Sin[x]*Cos[y], {x, -π, π}, {y, -π, π}, ColorFunction -> "Rainbow"]
+ParametricPlot[{t*Cos[t], t*Sin[t]}, {t, 0, 6π}, PlotStyle -> Thick]
+Animate[Plot[Sin[a*x], {x, -π, π}], {a, 1, 3}]`,
+    notes:
+`• Plot/Plot3D/ParametricPlot — asosiy quruvchilar`
+  },
+
+  Python: {
+    code:
+`import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# 2D
+x = np.linspace(-2*np.pi, 2*np.pi, 1000)
+plt.plot(x, np.sin(x)); plt.grid(); plt.show()
+
+# 3D
+X,Y = np.meshgrid(np.linspace(-2,2,50), np.linspace(-2,2,50))
+Z = np.sin(X)*np.cos(Y)
+ax = plt.figure().add_subplot(projection='3d')
+ax.plot_surface(X,Y,Z,cmap='viridis'); plt.show()
+
+# Parametrik
+t = np.linspace(0,6*np.pi,1000)
+x = t*np.cos(t); y = t*np.sin(t)
+plt.plot(x,y); plt.axis('equal'); plt.show()`,
+    notes:
+`• matplotlib + numpy — standart stek`
+  }
+};
+
+/* ========== 2) Onlayn xizmat mapping ========== */
+const ONLINE_URL = {
+  Maple: "https://www.maplesoft.com/products/MapleLearn/",
+  Matlab: "https://matlab.mathworks.com/",
+  GeoGebra: "https://www.geogebra.org/3d",
+  Desmos: "https://www.desmos.com/calculator",
+  Mathematica: "https://www.wolframcloud.com/",
+  Python: "https://jupyter.org/try"
+};
+const EMBED_URL = {
+  GeoGebra: "https://www.geogebra.org/3d",
+  Desmos: "https://www.desmos.com/calculator"
+};
+
+/* ========== 3) UI elementlar ========== */
+const grid = document.getElementById('softwareGrid');
+const codeTitle = document.getElementById('codeTitle');
+const codeBlock = document.getElementById('codeBlock');
+const codeNotes = document.getElementById('codeNotes');
+const codeCard = document.getElementById('codeCard');
+const openOnlineBtn = document.getElementById('openOnline');
+const toggleEmbedBtn = document.getElementById('toggleEmbed');
+const embedPanel = document.getElementById('embedPanel');
+const embedBox = document.getElementById('embedBox');
+
+let currentSoft = 'Maple';
+function setSoftware(soft){
+  currentSoft = soft;
+  [...grid.querySelectorAll('.software-item')].forEach(el=>{
+    el.classList.toggle('active', el.dataset.soft === soft);
+  });
+  const pack = SNIPPETS[soft];
+  codeTitle.textContent = soft + " -- 2D/3D grafiklar";
+  codeBlock.textContent = pack?.code || "// Snippet topilmadi.";
+  codeNotes.textContent = pack?.notes || "";
+  if (soft === 'GeoGebra' || soft === 'Desmos'){
+    toggleEmbedBtn.style.display = 'inline-block';
+  } else {
+    toggleEmbedBtn.style.display = 'none';
+    embedPanel.style.display = 'none';
+    toggleEmbedBtn.setAttribute('aria-expanded','false');
+  }
+  codeCard.scrollIntoView({behavior:'smooth', block:'start'});
+  saveState();
+}
+grid.addEventListener('click', (e)=>{
+  const item = e.target.closest('.software-item');
+  if(!item) return;
+  setSoftware(item.dataset.soft);
+});
+openOnlineBtn.addEventListener('click', ()=>{
+  const url = ONLINE_URL[currentSoft];
+  if(url) window.open(url, '_blank', 'noopener,noreferrer');
+});
+let embedVisible = false;
+toggleEmbedBtn.addEventListener('click', ()=>{
+  embedVisible = !embedVisible;
+  if(embedVisible){
+    const src = EMBED_URL[currentSoft];
+    embedBox.innerHTML = `<iframe src="${src}" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
+    embedPanel.style.display = 'block';
+    toggleEmbedBtn.textContent = "Iframe berkit";
+    toggleEmbedBtn.setAttribute('aria-expanded','true');
+  } else {
+    embedPanel.style.display = 'none';
+    embedBox.innerHTML = "";
+    toggleEmbedBtn.textContent = "Iframe ko'rsat";
+    toggleEmbedBtn.setAttribute('aria-expanded','false');
+  }
+});
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(codeBlock.textContent).then(()=>{
+    const b = document.getElementById('copyBtn');
+    const t = b.textContent;
+    b.textContent = "Nusxalandi!";
+    setTimeout(()=> b.textContent = t, 1200);
+  });
+});
+document.getElementById('downloadCodeBtn').addEventListener('click', ()=>{
+  const filename = (currentSoft || 'code') + "_snippet.txt";
+  downloadText(codeBlock.textContent, filename);
+});
+document.getElementById('downloadStateBtn').addEventListener('click', ()=>{
+  const state = getState();
+  downloadText(JSON.stringify(state, null, 2), "graphics_state.json", "application/json");
+});
+
+/* ========== 4) Tab tizimi ========== */
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    tabs.forEach(t => t.classList.remove('active'));
+    tabContents.forEach(tc => tc.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(`tab-${targetTab}`).classList.add('active');
+    saveState();
+  });
+});
+
+/* ========== 5) 2D Canvas ========== */
+const canvas2d = document.getElementById('canvas2d');
+const ctx2d = canvas2d.getContext('2d');
+const paramA = document.getElementById('param_a');
+const paramB = document.getElementById('param_b');
+const paramC = document.getElementById('param_c');
+const valA = document.getElementById('val_a');
+const valB = document.getElementById('val_b');
+const valC = document.getElementById('val_c');
+
+function draw2DAxes(){
+  ctx2d.clearRect(0,0,canvas2d.width,canvas2d.height);
+  // Grid
+  ctx2d.strokeStyle = '#f1f5f9'; ctx2d.lineWidth = 1;
+  for(let i=0; i<=canvas2d.width; i+=40){
+    ctx2d.beginPath(); ctx2d.moveTo(i,0); ctx2d.lineTo(i,canvas2d.height); ctx2d.stroke();
+  }
+  for(let i=0; i<=canvas2d.height; i+=40){
+    ctx2d.beginPath(); ctx2d.moveTo(0,i); ctx2d.lineTo(canvas2d.width,i); ctx2d.stroke();
+  }
+  // Axes
+  const centerX = canvas2d.width/2, centerY = canvas2d.height/2;
+  ctx2d.strokeStyle = '#64748b'; ctx2d.lineWidth = 2;
+  ctx2d.beginPath(); ctx2d.moveTo(0,centerY); ctx2d.lineTo(canvas2d.width,centerY); ctx2d.stroke();
+  ctx2d.beginPath(); ctx2d.moveTo(centerX,0); ctx2d.lineTo(centerX,canvas2d.height); ctx2d.stroke();
+}
+
+function func2D(x, type, a, b, c){
+  switch(type){
+    case 'sin': return Math.sin(a*x + b);
+    case 'poly': return a*x*x*x + b*x*x + c*x;
+    case 'exp': return a*Math.exp(b*x);
+    default: return Math.sin(x);
+  }
+}
+function draw2DFunction(){
+  const type = document.querySelector('input[name="func2d"]:checked').value;
+  const a = parseFloat(paramA.value);
+  const b = parseFloat(paramB.value);
+  const c = parseFloat(paramC.value);
+  valA.textContent = a.toFixed(1);
+  valB.textContent = b.toFixed(1);
+  valC.textContent = c.toFixed(1);
+  draw2DAxes();
+  const centerX = canvas2d.width/2, centerY = canvas2d.height/2;
+  const scaleX = 60, scaleY = 60;
+  ctx2d.strokeStyle = '#0ea5e9'; ctx2d.lineWidth = 3;
+  ctx2d.beginPath();
+  let firstPoint = true;
+  for(let px = 0; px < canvas2d.width; px += 2){
+    const x = (px - centerX) / scaleX;
+    const y = func2D(x, type, a, b, c);
+    const py = centerY - y * scaleY;
+    if(py >= 0 && py <= canvas2d.height){
+      if(firstPoint){ ctx2d.moveTo(px, py); firstPoint = false; }
+      else { ctx2d.lineTo(px, py); }
+    }
+  }
+  ctx2d.stroke();
+}
+// 2D events
+paramA.addEventListener('input', draw2DFunction);
+paramB.addEventListener('input', draw2DFunction);
+paramC.addEventListener('input', draw2DFunction);
+document.querySelectorAll('input[name="func2d"]').forEach(r => r.addEventListener('change', draw2DFunction));
+document.getElementById('draw2d').addEventListener('click', draw2DFunction);
+document.getElementById('clear2d').addEventListener('click', draw2DAxes);
+// 2D animate
+let animating2D = false;
+document.getElementById('animate2d').addEventListener('click', ()=>{
+  if(animating2D) return;
+  animating2D = true;
+  const originalA = parseFloat(paramA.value);
+  let step = 0;
+  const animate = () => {
+    step += 0.1;
+    paramA.value = originalA + Math.sin(step) * 2;
+    draw2DFunction();
+    if(step < Math.PI * 4){ requestAnimationFrame(animate); }
+    else { paramA.value = originalA; draw2DFunction(); animating2D = false; }
+  };
+  animate();
+});
+document.getElementById('save2dPng').addEventListener('click', ()=>{
+  const url = canvas2d.toDataURL('image/png');
+  downloadFromDataUrl(url, 'plot_2d.png');
+});
+
+/* ========== 6) 3D Canvas (pseudo-3D) ========== */
+const canvas3d = document.getElementById('canvas3d');
+const ctx3d = canvas3d.getContext('2d');
+const param3dA = document.getElementById('param3d_a');
+const param3dB = document.getElementById('param3d_b');
+const rotate3d = document.getElementById('rotate3d');
+const val3dA = document.getElementById('val3d_a');
+const val3dB = document.getElementById('val3d_b');
+const valRotate = document.getElementById('val_rotate');
+
+function surface3D(x, y, type, a, b){
+  switch(type){
+    case 'wave': return Math.sin(a*x) * Math.cos(b*y);
+    case 'paraboloid': return a * (x*x + y*y);
+    case 'saddle': return a*x*x - b*y*y;
+    default: return Math.sin(x) * Math.cos(y);
+  }
+}
+function project3D(x, y, z, angle){
+  const rad = angle * Math.PI / 180;
+  const cosA = Math.cos(rad), sinA = Math.sin(rad);
+  const px = x * cosA - y * sinA;
+  const py = x * sinA + y * cosA - z;
+  return [px, py];
+}
+function draw3DSurface(){
+  const type = document.querySelector('input[name="surface"]:checked').value;
+  const a = parseFloat(param3dA.value);
+  const b = parseFloat(param3dB.value);
+  const angle = parseFloat(rotate3d.value);
+  val3dA.textContent = a.toFixed(1);
+  val3dB.textContent = b.toFixed(1);
+  valRotate.textContent = angle + '°';
+  ctx3d.clearRect(0,0,canvas3d.width,canvas3d.height);
+  const centerX = canvas3d.width/2, centerY = canvas3d.height/2;
+  const scale = 50;
+  ctx3d.strokeStyle = '#0ea5e9'; ctx3d.lineWidth = 1;
+  for(let i = -3; i <= 3; i += 0.5){
+    ctx3d.beginPath();
+    let firstPoint = true;
+    for(let j = -3; j <= 3; j += 0.2){
+      const z = surface3D(i, j, type, a, b);
+      const [px, py] = project3D(i, j, z, angle);
+      const screenX = centerX + px * scale;
+      const screenY = centerY + py * scale;
+      if(firstPoint){ ctx3d.moveTo(screenX, screenY); firstPoint = false; }
+      else { ctx3d.lineTo(screenX, screenY); }
+    }
+    ctx3d.stroke();
+  }
+  for(let j = -3; j <= 3; j += 0.5){
+    ctx3d.beginPath();
+    let firstPoint = true;
+    for(let i = -3; i <= 3; i += 0.2){
+      const z = surface3D(i, j, type, a, b);
+      const [px, py] = project3D(i, j, z, angle);
+      const screenX = centerX + px * scale;
+      const screenY = centerY + py * scale;
+      if(firstPoint){ ctx3d.moveTo(screenX, screenY); firstPoint = false; }
+      else { ctx3d.lineTo(screenX, screenY); }
+    }
+    ctx3d.stroke();
+  }
+}
+param3dA.addEventListener('input', draw3DSurface);
+param3dB.addEventListener('input', draw3DSurface);
+rotate3d.addEventListener('input', draw3DSurface);
+document.querySelectorAll('input[name="surface"]').forEach(r => r.addEventListener('change', draw3DSurface));
+document.getElementById('draw3d').addEventListener('click', draw3DSurface);
+document.getElementById('clear3d').addEventListener('click', ()=>ctx3d.clearRect(0,0,canvas3d.width,canvas3d.height));
+let animating3D = false;
+document.getElementById('animate3d').addEventListener('click', ()=>{
+  if(animating3D) return;
+  animating3D = true;
+  let angle = 0;
+  const animate = () => {
+    angle += 5;
+    rotate3d.value = angle % 360;
+    draw3DSurface();
+    if(angle < 360){ requestAnimationFrame(animate); }
+    else { animating3D = false; }
+  };
+  animate();
+});
+document.getElementById('save3dPng').addEventListener('click', ()=>{
+  const url = canvas3d.toDataURL('image/png');
+  downloadFromDataUrl(url, 'plot_3d.png');
+});
+
+/* ========== 7) Parametrik Canvas ========== */
+const canvasPar = document.getElementById('canvasPar');
+const ctxPar = canvasPar.getContext('2d');
+const paramParA = document.getElementById('param_par_a');
+const paramParB = document.getElementById('param_par_b');
+const tRange = document.getElementById('t_range');
+const valParA = document.getElementById('val_par_a');
+const valParB = document.getElementById('val_par_b');
+const valTRange = document.getElementById('val_t_range');
+
+function drawParAxes(){
+  ctxPar.clearRect(0,0,canvasPar.width,canvasPar.height);
+  // Grid
+  ctxPar.strokeStyle = '#f1f5f9'; ctxPar.lineWidth = 1;
+  for(let i=0; i<=canvasPar.width; i+=40){
+    ctxPar.beginPath(); ctxPar.moveTo(i,0); ctxPar.lineTo(i,canvasPar.height); ctxPar.stroke();
+  }
+  for(let i=0; i<=canvasPar.height; i+=40){
+    ctxPar.beginPath(); ctxPar.moveTo(0,i); ctxPar.lineTo(canvasPar.width,i); ctxPar.stroke();
+  }
+  // Axes
+  const centerX = canvasPar.width/2, centerY = canvasPar.height/2;
+  ctxPar.strokeStyle = '#64748b'; ctxPar.lineWidth = 2;
+  ctxPar.beginPath(); ctxPar.moveTo(0,centerY); ctxPar.lineTo(canvasPar.width,centerY); ctxPar.stroke();
+  ctxPar.beginPath(); ctxPar.moveTo(centerX,0); ctxPar.lineTo(centerX,canvasPar.height); ctxPar.stroke();
+}
+function parametricXY(t, type, a, b){
+  switch(type){
+    case 'circle': return [a*Math.cos(t), b*Math.sin(t)];
+    case 'spiral': return [a*t*Math.cos(t), b*t*Math.sin(t)];
+    case 'lissajous': return [Math.sin(a*t), Math.sin(b*t)];
+    default: return [Math.cos(t), Math.sin(t)];
+  }
+}
+function drawParametric(){
+  const type = document.querySelector('input[name="parametric"]:checked').value;
+  const a = parseFloat(paramParA.value);
+  const b = parseFloat(paramParB.value);
+  const maxT = parseFloat(tRange.value);
+  valParA.textContent = a.toFixed(1);
+  valParB.textContent = b.toFixed(1);
+  valTRange.textContent = maxT.toFixed(1);
+  drawParAxes();
+  const centerX = canvasPar.width/2, centerY = canvasPar.height/2;
+  const scale = 50;
+  ctxPar.strokeStyle = '#dc2626'; ctxPar.lineWidth = 2;
+  ctxPar.beginPath();
+  let firstPoint = true;
+  const steps = 1000;
+  for(let i = 0; i <= steps; i++){
+    const t = (i / steps) * maxT;
+    const [x, y] = parametricXY(t, type, a, b);
+    const px = centerX + x * scale;
+    const py = centerY - y * scale;
+    if(firstPoint){ ctxPar.moveTo(px, py); firstPoint = false; }
+    else { ctxPar.lineTo(px, py); }
+  }
+  ctxPar.stroke();
+}
+// Parametrik events
+paramParA.addEventListener('input', drawParametric);
+paramParB.addEventListener('input', drawParametric);
+tRange.addEventListener('input', drawParametric);
+document.querySelectorAll('input[name="parametric"]').forEach(r => r.addEventListener('change', drawParametric));
+document.getElementById('drawPar').addEventListener('click', drawParametric);
+document.getElementById('clearPar').addEventListener('click', drawParAxes);
+// Parametrik animate
+let animatingPar = false;
+document.getElementById('animatePar').addEventListener('click', ()=>{
+  if(animatingPar) return;
+  animatingPar = true;
+  const type = document.querySelector('input[name="parametric"]:checked').value;
+  const a = parseFloat(paramParA.value);
+  const b = parseFloat(paramParB.value);
+  const maxT = parseFloat(tRange.value);
+  drawParAxes();
+  const centerX = canvasPar.width/2, centerY = canvasPar.height/2;
+  const scale = 50;
+  ctxPar.strokeStyle = '#dc2626'; ctxPar.lineWidth = 2;
+  let step = 0;
+  const totalSteps = 200;
+  const animate = () => {
+    const t = (step / totalSteps) * maxT;
+    const [x, y] = parametricXY(t, type, a, b);
+    const px = centerX + x * scale;
+    const py = centerY - y * scale;
+    if(step === 0){ ctxPar.beginPath(); ctxPar.moveTo(px, py); }
+    else { ctxPar.lineTo(px, py); ctxPar.stroke(); }
+    step++;
+    if(step <= totalSteps){ setTimeout(()=>requestAnimationFrame(animate), 20); }
+    else { animatingPar = false; }
+  };
+  animate();
+});
+document.getElementById('saveParPng').addEventListener('click', ()=>{
+  const url = canvasPar.toDataURL('image/png');
+  downloadFromDataUrl(url, 'plot_parametric.png');
+});
+
+/* ========== 8) Holatni saqlash va yuklab olish ========== */
+function getState(){
+  return {
+    soft: currentSoft,
+    activeTab: document.querySelector('.tab.active')?.dataset.tab || '2d',
+    func2d: document.querySelector('input[name="func2d"]:checked')?.value || 'sin',
+    surface: document.querySelector('input[name="surface"]:checked')?.value || 'wave',
+    parametric: document.querySelector('input[name="parametric"]:checked')?.value || 'circle',
+    paramA: paramA.value, paramB: paramB.value, paramC: paramC.value,
+    param3dA: param3dA.value, param3dB: param3dB.value, rotate3d: rotate3d.value,
+    paramParA: paramParA.value, paramParB: paramParB.value, tRange: tRange.value
+  };
+}
+function saveState(){
+  try { localStorage.setItem('kmt_graphics_state', JSON.stringify(getState())); } catch(e){}
+}
+function restoreState(){
+  try{
+    const s = localStorage.getItem('kmt_graphics_state');
+    if(!s) return;
+    const st = JSON.parse(s);
+    if(st.soft) setSoftware(st.soft);
+    if(st.activeTab){
+      document.querySelector(`.tab[data-tab="${st.activeTab}"]`)?.click();
+    }
+    if(st.func2d){
+      const radio = document.querySelector(`input[name="func2d"][value="${st.func2d}"]`);
+      if(radio) radio.checked = true;
+    }
+    if(st.surface){
+      const r = document.querySelector(`input[name="surface"][value="${st.surface}"]`);
+      if(r) r.checked = true;
+    }
+    if(st.parametric){
+      const r = document.querySelector(`input[name="parametric"][value="${st.parametric}"]`);
+      if(r) r.checked = true;
+    }
+    if(st.paramA) paramA.value = st.paramA;
+    if(st.paramB) paramB.value = st.paramB;
+    if(st.paramC) paramC.value = st.paramC;
+    if(st.param3dA) param3dA.value = st.param3dA;
+    if(st.param3dB) param3dB.value = st.param3dB;
+    if(st.rotate3d) rotate3d.value = st.rotate3d;
+    if(st.paramParA) paramParA.value = st.paramParA;
+    if(st.paramParB) paramParB.value = st.paramParB;
+    if(st.tRange) tRange.value = st.tRange;
+  }catch(e){ setSoftware('Maple'); }
+}
+['input','change','click'].forEach(evt=>{
+  document.body.addEventListener(evt,(e)=>{
+    if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName)) saveState();
+  }, true);
+});
+
+/* ========== 9) Dastlabki ishga tushirish ========== */
+window.addEventListener('load', ()=>{
+  restoreState();
+  if(!currentSoft) setSoftware('Maple');
+  draw2DAxes(); draw2DFunction();
+  draw3DSurface();
+  drawParAxes(); drawParametric();
+});
+</script>
+
+</body>
+</html>
