@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>6-ma’ruza — Matlab/Maple’da dasturlash elementlari (if/for → grafik)</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#111827;background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .header{background:#fff;border-radius:16px;padding:26px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 6px;font-size:30px}
+  .header p{margin:0;color:#64748b}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:960px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .card h2{margin:0 0 12px;font-size:20px;border-bottom:3px solid #22d3ee;padding-bottom:6px}
+
+  .info-table{width:100%;border-collapse:collapse}
+  .info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+  .info-table th{background:#22d3ee;color:#fff}
+
+  .software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .pill{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;text-align:center;padding:14px;border-radius:12px;cursor:pointer;border:2px solid transparent}
+  .pill.active{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.25) inset}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+  .btn{background:#0ea5e9;border:none;color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer}
+  .btn.ghost{background:#eef2ff;color:#111827}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706}
+  .btn.secondary{background:#334155;color:#fff}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+
+  .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:12px}
+  pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-left:4px solid #22d3ee;padding-left:10px}
+
+  .panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+  .panel h3{margin:0 0 8px;font-size:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .muted{color:#6b7280;font-size:13px}
+
+  canvas{width:100%;height:380px;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
+  .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+  .tab{padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent}
+  .tab.active{border-bottom-color:#0ea5e9;color:#0ea5e9}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Matlab/Maple’da dasturlash elementlari</h1>
+    <p><em>if/for</em> → grafik natija • Kod → vizual bog‘lanish • Tezkor tajriba</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📋 Ma’ruza ma’lumotlari</h2>
+      <table class="info-table">
+        <tr><th>Ma’ruza raqami</th><td>6</td></tr>
+        <tr><th>Ma’ruza mavzusi</th><td>Matlab/Maple’da dasturlash elementlari</td></tr>
+        <tr><th>Nima uchun mos?</th><td>Kod → grafik natija bog‘lanishi</td></tr>
+        <tr><th>Vizualizatsiya usuli</th><td><code>if</code>/<code>for</code> → grafik chiqish</td></tr>
+        <tr><th>Dasturiy vosita</th><td>MATLAB / Maple</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🛠️ Dastur tanlang (kod & onlayn xizmat)</h2>
+      <div class="software-grid" id="softGrid">
+        <div class="pill active" data-soft="MATLAB">MATLAB</div>
+        <div class="pill" data-soft="Maple">Maple</div>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="openOnline">Onlayn xizmatni ochish</button>
+        <button class="btn ghost" id="copyCode">Kodni nusxalash</button>
+        <button class="btn success" id="downloadM">.m/.mpl yuklab olish</button>
+      </div>
+      <div class="codewrap"><pre id="codeBlock"></pre></div>
+      <div class="panel" style="margin-top:10px">
+        <h3>Izoh</h3>
+        <pre id="codeNotes"></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>🎨 Interaktiv laboratoriya — if/for dan grafikgacha</h2>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="demo1">1) for → sinus to‘plami</div>
+      <div class="tab" data-tab="demo2">2) if → bo‘lakli funksiya</div>
+      <div class="tab" data-tab="demo3">3) for+rand → Monte‑Carlo π</div>
+      <div class="tab" data-tab="demo4">4) for → Lissajous</div>
+    </div>
+
+    <!-- DEMO 1 -->
+    <div class="tab-content active" id="demo1">
+      <div class="panel">
+        <h3>for sikli bilan $y_k = A\sin(kx)$ yig‘indi</h3>
+        <div class="row">
+          <label>$A$ <input type="range" id="d1_A" min="0.2" max="2" step="0.1" value="1"></label><span id="d1_A_v">1.0</span>
+          <label>$k_{max}$ <input type="range" id="d1_K" min="1" max="10" step="1" value="5"></label><span id="d1_K_v">5</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="d1_draw">Chizish</button>
+          <button class="btn ghost" id="d1_anim">Animatsiya</button>
+          <button class="btn success" id="d1_png">PNG</button>
+          <button class="btn warn" id="d1_csv">CSV</button>
+        </div>
+        <div class="muted">Kod g‘oyasi (MATLAB): <code>y=zeros(size(x)); for k=1:K, y=y+A*sin(k*x); end</code></div>
+      </div>
+      <canvas id="c1" width="1000" height="380"></canvas>
+    </div>
+
+    <!-- DEMO 2 -->
+    <div class="tab-content" id="demo2">
+      <div class="panel">
+        <h3>if/else bo‘lakli funksiya</h3>
+        <div class="row">
+          <label>$f(x)=\begin{cases}\sin x,& x\le 0\\ x^2,& 0<x\le 2\\ 2x-2,& x>2\end{cases}$</label>
+        </div>
+        <div class="row">
+          <button class="btn" id="d2_draw">Chizish</button>
+          <button class="btn success" id="d2_png">PNG</button>
+          <button class="btn warn" id="d2_csv">CSV</button>
+        </div>
+        <div class="muted">Kod g‘oyasi (Maple): <code>if x<=0 then sin(x) elif x<=2 then x^2 else 2*x-2 fi;</code></div>
+      </div>
+      <canvas id="c2" width="1000" height="380"></canvas>
+    </div>
+
+    <!-- DEMO 3 -->
+    <div class="tab-content" id="demo3">
+      <div class="panel">
+        <h3>Monte‑Carlo orqali $\pi$ baholash (for + rand)</h3>
+        <div class="row">
+          <label>Nuqtalar soni <input type="range" id="d3_N" min="100" max="10000" step="100" value="2000"></label><span id="d3_N_v">2000</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="d3_run">Hisoblash</button>
+          <button class="btn ghost" id="d3_anim">Animatsiya</button>
+          <button class="btn success" id="d3_png">PNG</button>
+          <button class="btn warn" id="d3_csv">CSV</button>
+        </div>
+        <div class="muted">G‘oya: birlik kvadrat ichida tasodifiy nuqtalar; doira ichidagi ulush  $\approx \pi/4$.</div>
+      </div>
+      <canvas id="c3" width="1000" height="380"></canvas>
+    </div>
+
+    <!-- DEMO 4 -->
+    <div class="tab-content" id="demo4">
+      <div class="panel">
+        <h3>for bilan Lissajous egri chizig‘i: $x=\sin(at)$, $y=\sin(bt)$</h3>
+        <div class="row">
+          <label>$a$ <input type="range" id="d4_a" min="1" max="10" step="1" value="3"></label><span id="d4_a_v">3</span>
+          <label>$b$ <input type="range" id="d4_b" min="1" max="10" step="1" value="2"></label><span id="d4_b_v">2</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="d4_draw">Chizish</button>
+          <button class="btn ghost" id="d4_anim">Animatsiya</button>
+          <button class="btn success" id="d4_png">PNG</button>
+          <button class="btn warn" id="d4_csv">CSV</button>
+        </div>
+      </div>
+      <canvas id="c4" width="1000" height="380"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ======== Helper: download ======== */
+function downloadText(text, filename, type='text/plain'){
+  const blob=new Blob([text], {type:type+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function png(canvas, name){ const a=document.createElement('a'); a.href=canvas.toDataURL('image/png'); a.download=name; a.click(); }
+function csv(rows, name){ downloadText(rows.map(r=>r.join(',')).join('\\n'), name, 'text/csv'); }
+
+/* ======== Snippets & software ======== */
+const SNIPPETS = {
+  MATLAB: {
+    url: "https://matlab.mathworks.com/",
+    code:
+`% --- for → sinus yig'indi ---
+x = linspace(-pi,pi,2000);
+A = 1; K = 5; y = zeros(size(x));
+for k = 1:K
+  y = y + A*sin(k*x);
+end
+plot(x,y,'b','LineWidth',1.6); grid on; title('for: y=\\sum A sin(kx)');
+
+% --- if → piecewise ---
+f = @(x) (x<=0).*sin(x) + (x>0 & x<=2).*x.^2 + (x>2).*(2*x-2);
+figure; fplot(f,[-3,4]); grid on; title('if/else bo\\'lakli funksiya');
+
+% --- Monte-Carlo pi ---
+N=5000; x=rand(1,N); y=rand(1,N);
+inside = (x-0.5).^2 + (y-0.5).^2 <= 0.5^2;
+pi_est = 4*nnz(inside)/N
+
+% --- Lissajous ---
+a=3; b=2; t=linspace(0,2*pi,2000);
+plot(sin(a*t), sin(b*t),'m'); axis equal; grid on;`
+,
+    notes:
+`• for: ko'p sinus yig'indisi  • if: bo'lakli funksiya
+• rand: Monte‑Carlo π  • for: Lissajous trajektoriyasi`
+  },
+  Maple: {
+    url: "https://www.maplesoft.com/products/MapleLearn/",
+    code:
+`restart: with(plots):
+
+# --- for → sinus yig'indi ---
+x := -Pi..Pi: A:=1: K:=5:
+y := x-> add(A*sin(k*x), k=1..K):
+plot(y(x), x=-Pi..Pi, thickness=2, color=blue);
+
+# --- if → piecewise ---
+f := x -> piecewise(x<=0, sin(x), x<=2, x^2, 2*x-2):
+plot(f(x), x=-3..4, thickness=2, color=red);
+
+# --- Monte-Carlo pi ---
+with(RandomTools):
+N := 5000:
+X := Generate(list(float(range=0..1), N)):
+Y := Generate(list(float(range=0..1), N)):
+inside := map(i-> (X[i]-0.5)^2+(Y[i]-0.5)^2 <= 0.5^2, [$1..N]):
+PiEst := 4*add(inside[i], i=1..N)/N;
+
+# --- Lissajous ---
+a:=3: b:=2:
+p := plot([sin(a*t), sin(b*t), t=0..2*Pi], color=magenta, thickness=2):
+display(p);`,
+    notes:
+`• add/for, piecewise(if), RandomTools: Monte‑Carlo, parametrik plot`
+  }
+};
+const grid=document.getElementById('softGrid');
+const codeBlock=document.getElementById('codeBlock');
+const codeNotes=document.getElementById('codeNotes');
+let currentSoft='MATLAB';
+function setSoft(name){
+  currentSoft=name;
+  grid.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',p.dataset.soft===name));
+  codeBlock.textContent=SNIPPETS[name].code;
+  codeNotes.textContent=SNIPPETS[name].notes;
+  localStorage.setItem('lec6_soft', name);
+}
+grid.addEventListener('click', e=>{
+  const p=e.target.closest('.pill'); if(!p) return; setSoft(p.dataset.soft);
+});
+document.getElementById('openOnline').addEventListener('click', ()=>{ window.open(SNIPPETS[currentSoft].url,'_blank','noopener'); });
+document.getElementById('copyCode').addEventListener('click', ()=>navigator.clipboard.writeText(codeBlock.textContent));
+document.getElementById('downloadM').addEventListener('click', ()=>{
+  const ext = currentSoft==='MATLAB' ? '.m' : '.mpl';
+  downloadText(codeBlock.textContent, 'lec6_'+currentSoft.toLowerCase()+ext, currentSoft==='MATLAB'?'text/x-matlab':'text/plain');
+});
+setSoft(localStorage.getItem('lec6_soft') || 'MATLAB');
+
+/* ======== Tabs ======== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.tab).classList.add('active');
+  });
+});
+
+/* ======== Canvas helpers ======== */
+function axes(ctx, w, h){
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#eef2ff'; for(let x=0;x<=w;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=0;y<=h;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  const cx=w/2, cy=h/2; ctx.strokeStyle='#94a3b8'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.stroke();
+}
+
+/* ---------- DEMO 1: for-sum sin ---------- */
+const c1=document.getElementById('c1'), ctx1=c1.getContext('2d');
+const d1A=document.getElementById('d1_A'), d1K=document.getElementById('d1_K');
+const d1Av=document.getElementById('d1_A_v'), d1Kv=document.getElementById('d1_K_v');
+function drawD1(){
+  const A=+d1A.value, K=+d1K.value; d1Av.textContent=A.toFixed(1); d1Kv.textContent=K;
+  axes(ctx1,c1.width,c1.height);
+  const cx=c1.width/2, cy=c1.height/2, sx=70, sy=60;
+  ctx1.strokeStyle='#2563eb'; ctx1.lineWidth=3; ctx1.beginPath();
+  let first=true; const rows=[['x','y']];
+  for(let px=0; px<c1.width; px+=2){
+    const x=(px-cx)/sx;
+    let y=0; for(let k=1;k<=K;k++) y += A*Math.sin(k*x);
+    const py=cy - y*sy; if(first){ctx1.moveTo(px,py);first=false;} else ctx1.lineTo(px,py);
+    rows.push([x.toFixed(5),y.toFixed(5)]);
+  }
+  ctx1.stroke(); c1._csv=rows;
+}
+document.getElementById('d1_draw').addEventListener('click', drawD1);
+[d1A,d1K].forEach(el=>el.addEventListener('input', drawD1));
+document.getElementById('d1_anim').addEventListener('click', ()=>{
+  const base=+d1K.value; let k=1;
+  function loop(){ d1K.value=k; drawD1(); k++; if(k<=base) requestAnimationFrame(loop); else {d1K.value=base; drawD1();} }
+  loop();
+});
+document.getElementById('d1_png').addEventListener('click', ()=>png(c1,'for_sum_sin.png'));
+document.getElementById('d1_csv').addEventListener('click', ()=>csv(c1._csv||[], 'for_sum_sin.csv'));
+
+/* ---------- DEMO 2: if piecewise ---------- */
+const c2=document.getElementById('c2'), ctx2=c2.getContext('2d');
+function f_piece(x){
+  if(x<=0) return Math.sin(x);
+  else if(x<=2) return x*x;
+  return 2*x-2;
+}
+function drawD2(){
+  axes(ctx2,c2.width,c2.height);
+  const cx=c2.width/2, cy=c2.height/2, sx=90, sy=60;
+  ctx2.lineWidth=3; const rows=[['x','y']];
+  ctx2.strokeStyle='#dc2626'; ctx2.beginPath();
+  let first=true;
+  for(let px=0; px<c2.width; px+=2){
+    const x=(px-cx)/sx, y=f_piece(x), py=cy - y*sy;
+    if(first){ctx2.moveTo(px,py); first=false;} else ctx2.lineTo(px,py);
+    rows.push([x.toFixed(5),y.toFixed(5)]);
+  }
+  ctx2.stroke(); c2._csv=rows;
+}
+document.getElementById('d2_draw').addEventListener('click', drawD2);
+document.getElementById('d2_png').addEventListener('click', ()=>png(c2,'piecewise_if.png'));
+document.getElementById('d2_csv').addEventListener('click', ()=>csv(c2._csv||[], 'piecewise_if.csv'));
+
+/* ---------- DEMO 3: Monte Carlo π ---------- */
+const c3=document.getElementById('c3'), ctx3=c3.getContext('2d');
+const d3N=document.getElementById('d3_N'), d3Nv=document.getElementById('d3_N_v');
+function drawD3(anim=false){
+  const N=+d3N.value; d3Nv.textContent=N;
+  ctx3.clearRect(0,0,c3.width,c3.height);
+  const W=c3.width, H=c3.height; const min=Math.min(W,H); const s=min*0.8; const ox=(W-s)/2, oy=(H-s)/2;
+  // kvadrat
+  ctx3.strokeStyle='#94a3b8'; ctx3.lineWidth=2; ctx3.strokeRect(ox,oy,s,s);
+  // doira
+  ctx3.beginPath(); ctx3.arc(ox+s/2, oy+s/2, s/2, 0, Math.PI*2); ctx3.stroke();
+  let inside=0; const rows=[['x','y','inside']];
+  let i=0;
+  function step(){
+    // [0,1] kvadratda nuqta
+    const x=Math.random(), y=Math.random();
+    const dx=x-0.5, dy=y-0.5, inC=(dx*dx+dy*dy <= 0.25); if(inC) inside++;
+    // chizish
+    ctx3.fillStyle = inC ? '#10b981' : '#ef4444';
+    ctx3.fillRect(ox + x*s - 1.5, oy + y*s - 1.5, 3, 3);
+    rows.push([x.toFixed(5),y.toFixed(5), inC?1:0]);
+    i++;
+    if(anim && i<N) { if(i%200===0) requestAnimationFrame(step); else step(); }
+    if(!anim && i<N){ while(i<N) step(); }
+    if(i===N){
+      const pi_est = 4*inside/N;
+      ctx3.fillStyle='#111827'; ctx3.fillText('π ≈ '+pi_est.toFixed(5), 14, 20);
+      c3._csv=rows;
+    }
+  }
+  step();
+}
+document.getElementById('d3_run').addEventListener('click', ()=>drawD3(false));
+document.getElementById('d3_anim').addEventListener('click', ()=>drawD3(true));
+document.getElementById('d3_png').addEventListener('click', ()=>png(c3,'monte_carlo_pi.png'));
+document.getElementById('d3_csv').addEventListener('click', ()=>csv(c3._csv||[], 'monte_carlo_pi.csv'));
+
+/* ---------- DEMO 4: Lissajous ---------- */
+const c4=document.getElementById('c4'), ctx4=c4.getContext('2d');
+const d4a=document.getElementById('d4_a'), d4b=document.getElementById('d4_b');
+const d4av=document.getElementById('d4_a_v'), d4bv=document.getElementById('d4_b_v');
+function drawD4(){
+  const a=+d4a.value, b=+d4b.value; d4av.textContent=a; d4bv.textContent=b;
+  ctx4.clearRect(0,0,c4.width,c4.height);
+  const cx=c4.width/2, cy=c4.height/2, s=Math.min(cx,cy)*0.8;
+  ctx4.strokeStyle='#a855f7'; ctx4.lineWidth=2; ctx4.beginPath();
+  const rows=[['x','y']];
+  let first=true;
+  for(let i=0;i<=1500;i++){
+    const t=2*Math.PI*i/1500;
+    const x=Math.sin(a*t), y=Math.sin(b*t);
+    const px=cx+x*s, py=cy-y*s;
+    if(first){ctx4.moveTo(px,py); first=false;} else ctx4.lineTo(px,py);
+    rows.push([x.toFixed(6),y.toFixed(6)]);
+  }
+  ctx4.stroke(); c4._csv=rows;
+}
+document.getElementById('d4_draw').addEventListener('click', drawD4);
+[d4a,d4b].forEach(el=>el.addEventListener('input', drawD4));
+document.getElementById('d4_anim').addEventListener('click', ()=>{
+  let t=0; function loop(){ t+=0.05; d4a.value = 2 + Math.round(2+2*Math.sin(t)); d4b.value = 2 + Math.round(2+2*Math.cos(t)); drawD4(); if(t<6.28) requestAnimationFrame(loop); }
+  loop();
+});
+document.getElementById('d4_png').addEventListener('click', ()=>png(c4,'lissajous.png'));
+document.getElementById('d4_csv').addEventListener('click', ()=>csv(c4._csv||[], 'lissajous.csv'));
+
+/* Initial draws */
+drawD1(); drawD2(); drawD3(false); drawD4();
+</script>
+</body>
+</html>
