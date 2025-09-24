@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>2D/3D Grafiklar + Simulink — Bitta interaktiv modul</title>
+
+<!-- MathJax: formulalar -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#111827;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
+  .container{max-width:1280px;margin:0 auto;padding:24px}
+
+  .header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 6px;font-size:30px}
+  .header p{margin:0;color:#64748b}
+
+  /* Top level tabs */
+  .top-tabs{display:flex;gap:10px;margin:0 0 16px}
+  .top-tab{background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;border-radius:999px;padding:8px 14px;cursor:pointer}
+  .top-tab.active{background:#6366f1;color:#fff;border-color:#6366f1}
+  .top-section{display:none}
+  .top-section.active{display:block}
+
+  /* Cards & layout */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:960px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .card h2{margin:0 0 12px;font-size:20px;border-bottom:3px solid #a855f7;padding-bottom:6px}
+  .panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+  .panel h3{margin:0 0 8px;font-size:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0}
+  .muted{color:#6b7280;font-size:13px}
+
+  /* Buttons */
+  .btn{background:#6366f1;border:none;color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer}
+  .btn.ghost{background:#f1f5f9;color:#111827}
+  .btn.secondary{background:#334155}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+
+  /* Software pills */
+  .software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+  .pill{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;text-align:center;padding:14px;border-radius:12px;cursor:pointer;border:2px solid transparent}
+  .pill.active{border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,.25) inset}
+
+  /* Code */
+  .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:12px}
+  pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-left:4px solid #a855f7;padding-left:10px}
+
+  /* Canvases */
+  canvas{width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:10px}
+  #g2d,#g3d,#gpar{height:380px}
+  #s-sim{height:420px}
+
+  /* Simulink blocks */
+  .block{border:2px solid #6366f1;background:#eef2ff;padding:10px 12px;border-radius:8px;min-width:84px;text-align:center;display:inline-block;cursor:grab;user-select:none;margin:6px}
+  .block.input{background:#dcfce7;border-color:#16a34a}
+  .block.output{background:#fef3c7;border-color:#d97706}
+  .block.math{background:#ddd6fe;border-color:#7c3aed}
+  .block.cont{background:#fce7f3;border-color:#ec4899}
+
+  .model-area{border:2px dashed #d1d5db;min-height:320px;background:#fafafa;border-radius:12px;padding:16px;position:relative;overflow:hidden}
+  .mnode{position:absolute;background:#fff;border:2px solid #6366f1;border-radius:10px;padding:10px 12px;min-width:110px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+  .port{position:absolute;width:10px;height:10px;border-radius:50%;background:#6366f1;top:50%;transform:translateY(-50%)}
+  .port.in{left:-5px}
+  .port.out{right:-5px}
+  svg.connections{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎛️ 2D/3D Grafiklar + Simulink — Interaktiv laboratoriya</h1>
+      <p>Grafik vizualizatsiya • Parametrik egrilar • Blokli model qurish • Simulyatsiya • Yuklab olish</p>
+    </div>
+
+    <!-- TOP TABS -->
+    <div class="top-tabs">
+      <button class="top-tab active" data-top="graphics">2D/3D Grafiklar</button>
+      <button class="top-tab" data-top="simulink">Simulink blok kutubxonasi</button>
+    </div>
+
+    <!-- ========== GRAPHICS SECTION ========== -->
+    <section id="sec-graphics" class="top-section active">
+      <div class="grid">
+        <div class="card">
+          <h2>🛠️ Dastur & kod snippetlari</h2>
+          <div class="software-grid" id="g-soft">
+            <div class="pill active" data-soft="Maple">Maple</div>
+            <div class="pill" data-soft="Matlab">MATLAB</div>
+            <div class="pill" data-soft="GeoGebra">GeoGebra</div>
+            <div class="pill" data-soft="Desmos">Desmos</div>
+            <div class="pill" data-soft="Mathematica">Mathematica</div>
+            <div class="pill" data-soft="Python">Python</div>
+          </div>
+          <div class="row">
+            <button class="btn" id="g-open">Onlayn xizmatni ochish</button>
+            <button class="btn ghost" id="g-embed" style="display:none">Iframe ko‘rsat/berkit</button>
+          </div>
+          <div class="codewrap" style="margin-top:10px"><pre id="g-code"></pre></div>
+          <div class="panel" style="display:none;margin-top:10px" id="g-embed-panel">
+            <h3>Ichki ko‘rinish</h3>
+            <div style="position:relative;padding-top:56.25%;background:#e5e7eb;border-radius:10px;overflow:hidden" id="g-embed-box"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🎨 2D funksiya</h2>
+          <div class="panel">
+            <div class="row">
+              <label><input type="radio" name="g2dtype" value="sin" checked> $y=\sin(ax+b)$</label>
+              <label><input type="radio" name="g2dtype" value="poly"> $y=ax^3+bx^2+cx$</label>
+              <label><input type="radio" name="g2dtype" value="exp"> $y=a e^{bx}$</label>
+            </div>
+            <div class="row">
+              <label>a <input type="range" id="g2d_a" min="-3" max="3" step="0.1" value="1"></label><span id="g2d_a_v">1.0</span>
+              <label>b <input type="range" id="g2d_b" min="-3" max="3" step="0.1" value="0"></label><span id="g2d_b_v">0.0</span>
+              <label>c <input type="range" id="g2d_c" min="-2" max="2" step="0.1" value="1"></label><span id="g2d_c_v">1.0</span>
+            </div>
+            <div class="row">
+              <button class="btn" id="g2d_draw">Chizish</button>
+              <button class="btn ghost" id="g2d_anim">Animatsiya</button>
+              <button class="btn success" id="g2d_png">PNG yuklab olish</button>
+              <button class="btn warn" id="g2d_csv">CSV yuklab olish</button>
+            </div>
+          </div>
+          <canvas id="g2d" width="900" height="380"></canvas>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:18px">
+        <div class="card">
+          <h2>🧊 3D sirt (pseudo-3D)</h2>
+          <div class="panel">
+            <div class="row">
+              <label><input type="radio" name="g3dtype" value="wave" checked> $z=\sin(ax)\cos(by)$</label>
+              <label><input type="radio" name="g3dtype" value="parab"> $z=a(x^2+y^2)$</label>
+              <label><input type="radio" name="g3dtype" value="saddle"> $z=ax^2-by^2$</label>
+            </div>
+            <div class="row">
+              <label>a <input type="range" id="g3d_a" min="0.5" max="3" step="0.1" value="1"></label><span id="g3d_a_v">1.0</span>
+              <label>b <input type="range" id="g3d_b" min="0.5" max="3" step="0.1" value="1"></label><span id="g3d_b_v">1.0</span>
+              <label>aylanish <input type="range" id="g3d_rot" min="0" max="360" step="5" value="45"></label><span id="g3d_rot_v">45°</span>
+            </div>
+            <div class="row">
+              <button class="btn" id="g3d_draw">Chizish</button>
+              <button class="btn ghost" id="g3d_anim">Aylantirish</button>
+              <button class="btn success" id="g3d_png">PNG yuklab olish</button>
+            </div>
+          </div>
+          <canvas id="g3d" width="900" height="380"></canvas>
+        </div>
+
+        <div class="card">
+          <h2>➿ Parametrik egrilar</h2>
+          <div class="panel">
+            <div class="row">
+              <label><input type="radio" name="gpar" value="circle" checked> Aylana: $x=a\cos t,\;y=b\sin t$</label>
+              <label><input type="radio" name="gpar" value="spiral"> Spiral: $x=at\cos t,\;y=bt\sin t$</label>
+              <label><input type="radio" name="gpar" value="liss"> Lissajous: $x=\sin(at),\;y=\sin(bt)$</label>
+            </div>
+            <div class="row">
+              <label>a <input type="range" id="gpar_a" min="0.5" max="4" step="0.1" value="2"></label><span id="gpar_a_v">2.0</span>
+              <label>b <input type="range" id="gpar_b" min="0.5" max="4" step="0.1" value="1"></label><span id="gpar_b_v">1.0</span>
+              <label>$t_{max}$ <input type="range" id="gpar_t" min="1" max="10" step="0.5" value="6.28"></label><span id="gpar_t_v">6.3</span>
+            </div>
+            <div class="row">
+              <button class="btn" id="gpar_draw">Chizish</button>
+              <button class="btn ghost" id="gpar_anim">Progressiv chizish</button>
+              <button class="btn success" id="gpar_png">PNG yuklab olish</button>
+            </div>
+          </div>
+          <canvas id="gpar" width="900" height="380"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== SIMULINK SECTION ========== -->
+    <section id="sec-simulink" class="top-section">
+      <div class="grid">
+        <div class="card">
+          <h2>📦 Blok kutubxonasi</h2>
+          <div class="panel">
+            <h3>📥 Kirish bloklar</h3>
+            <div>
+              <div class="block input" draggable="true" data-type="step">Step</div>
+              <div class="block input" draggable="true" data-type="sine">Sine</div>
+              <div class="block input" draggable="true" data-type="const">Constant</div>
+              <div class="block input" draggable="true" data-type="ramp">Ramp</div>
+            </div>
+            <h3 style="margin-top:10px">🧮 Matematik bloklar</h3>
+            <div>
+              <div class="block math" draggable="true" data-type="gain">Gain</div>
+              <div class="block math" draggable="true" data-type="sum">Sum</div>
+              <div class="block math" draggable="true" data-type="integrator">Integrator</div>
+            </div>
+            <h3 style="margin-top:10px">⚡ Uzluksiz bloklar</h3>
+            <div>
+              <div class="block cont" draggable="true" data-type="transfer">Transfer Fcn</div>
+            </div>
+            <h3 style="margin-top:10px">📤 Chiqish bloklar</h3>
+            <div>
+              <div class="block output" draggable="true" data-type="scope">Scope</div>
+              <div class="block output" draggable="true" data-type="display">Display</div>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:10px">
+            <h3>Blok parametrlari</h3>
+            <div id="s-params" class="muted">Blokni tanlang…</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>🧩 Model maydoni</h2>
+          <div class="row">
+            <button class="btn" id="s-clear">Tozalash</button>
+            <button class="btn ghost" id="s-connect">Ulanish rejimi</button>
+            <button class="btn success" id="s-save">Modelni .json yuklab olish</button>
+          </div>
+          <div id="s-canvas" class="model-area" ondragover="event.preventDefault()">
+            <svg class="connections"></svg>
+            <div class="muted" style="text-align:center;margin-top:100px">Blokni tortib tashlang</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2>▶️ Simulyatsiya</h2>
+        <div class="grid">
+          <div class="panel">
+            <h3>Sozlamalar</h3>
+            <div class="row">
+              <label>Vaqt: <input type="range" id="s-time" min="1" max="20" step="1" value="10"></label><span id="s-time-v">10s</span>
+            </div>
+            <div class="row">
+              <label>Qadam: <input type="range" id="s-dt" min="0.01" max="0.5" step="0.01" value="0.1"></label><span id="s-dt-v">0.1</span>
+            </div>
+            <div class="row">
+              <button class="btn" id="s-run">Ishga tushirish</button>
+              <button class="btn ghost" id="s-anim">Animatsiya</button>
+              <button class="btn success" id="s-png">Grafik PNG</button>
+              <button class="btn warn" id="s-csv">Natija CSV</button>
+            </div>
+            <div class="muted">Namuna: birinchi tartibli tizim (bloklardan mustaqil namunaviy simulyatsiya). Blok parametrlari bilan tajriba qiling.</div>
+          </div>
+          <div class="panel">
+            <canvas id="s-sim" width="900" height="420"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="s-codecard" style="margin-top:18px">
+        <h2>📝 Simulink/MATLAB kodi (snippet)</h2>
+        <div class="row">
+          <button class="btn" id="s-copy">Kodni nusxalash</button>
+          <button class="btn success" id="s-code-dl">.m fayl yuklab olish</button>
+        </div>
+        <div class="codewrap" style="margin-top:8px"><pre id="s-code"></pre></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ---------- Yordamchi: yuklab olish ---------- */
+function downloadText(text, filename, type='text/plain'){
+  const blob = new Blob([text], {type: type+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function downloadCanvasPNG(canvas, filename){
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = filename; a.click();
+}
+function downloadCSV(rows, filename){
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  downloadText(csv, filename, 'text/csv');
+}
+
+/* ---------- TOP tabs ---------- */
+document.querySelectorAll('.top-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.top-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.top-section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('sec-'+btn.dataset.top).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+/* =========================================================
+   ===============  GRAPHICS  (2D/3D/PARAM)  ===============
+   ========================================================= */
+const G_SNIPPETS = {
+  Maple: { code:`restart:
+with(plots):
+plot(sin(x), x=-2*Pi..2*Pi, color=blue, thickness=2);
+plot3d(sin(x)*cos(y), x=-Pi..Pi, y=-Pi..Pi, axes=boxed, orientation=[45,60]);
+p1 := plot([2*cos(t), sin(t), t=0..2*Pi], color=red):
+p2 := plot([t*cos(t), t*sin(t), t=0..6*Pi], color=blue):
+display(p1,p2);`,
+    url:"https://www.maplesoft.com/products/MapleLearn/"
+  },
+  Matlab: { code:`x=linspace(-2*pi,2*pi,1000); plot(x,sin(x));
+[X,Y]=meshgrid(-2:0.1:2); Z=sin(X).*cos(Y); surf(X,Y,Z);
+t=linspace(0,6*pi,1000); plot(t.*cos(t),t.*sin(t)); axis equal;`,
+    url:"https://matlab.mathworks.com/"
+  },
+  GeoGebra: { code:`// 3D: f(x,y)=sin(x)cos(y)   2D: y=sin(x)
+// Parametric: Curve(t*cos t, t*sin t, t, 0, 6π)`,
+    url:"https://www.geogebra.org/3d", embed:"https://www.geogebra.org/3d"
+  },
+  Desmos: { code:`// y = a sin(bx + c)  ;  (t cos t, t sin t)
+`, url:"https://www.desmos.com/calculator", embed:"https://www.desmos.com/calculator" },
+  Mathematica: { code:`Plot[Sin[x],{x,-2π,2π}]
+Plot3D[Sin[x] Cos[y],{x,-π,π},{y,-π,π}]
+ParametricPlot[{t Cos[t], t Sin[t]},{t,0,6π}]`,
+    url:"https://www.wolframcloud.com/"
+  },
+  Python: { code:`import numpy as np, matplotlib.pyplot as plt
+x=np.linspace(-2*np.pi,2*np.pi,1000); plt.plot(x,np.sin(x))
+from mpl_toolkits.mplot3d import Axes3D
+# mesh/surf uchun Matplotlib`,
+    url:"https://jupyter.org/try"
+  }
+};
+
+const gCode = document.getElementById('g-code');
+const gSoft = document.getElementById('g-soft');
+const gOpen = document.getElementById('g-open');
+const gEmbedBtn = document.getElementById('g-embed');
+const gEmbedPanel = document.getElementById('g-embed-panel');
+const gEmbedBox = document.getElementById('g-embed-box');
+let gCurrent = 'Maple';
+
+function g_set(soft){
+  gCurrent = soft;
+  gSoft.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active', p.dataset.soft===soft));
+  gCode.textContent = G_SNIPPETS[soft]?.code || '';
+  const emb = G_SNIPPETS[soft]?.embed;
+  gEmbedBtn.style.display = emb ? 'inline-block' : 'none';
+  gEmbedPanel.style.display = 'none'; gEmbedBox.innerHTML = '';
+}
+gSoft.addEventListener('click',e=>{
+  const p=e.target.closest('.pill'); if(!p) return; g_set(p.dataset.soft);
+});
+gOpen.addEventListener('click',()=>{ const u=G_SNIPPETS[gCurrent]?.url; if(u) window.open(u,'_blank','noopener');});
+let gEmbedShown=false;
+gEmbedBtn.addEventListener('click', ()=>{
+  gEmbedShown=!gEmbedShown;
+  if(gEmbedShown){
+    gEmbedPanel.style.display='block';
+    gEmbedBox.innerHTML=`<iframe src="${G_SNIPPETS[gCurrent].embed}" style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>`;
+    gEmbedBtn.textContent='Iframe berkit';
+  } else {
+    gEmbedPanel.style.display='none'; gEmbedBox.innerHTML=''; gEmbedBtn.textContent='Iframe ko‘rsat';
+  }
+});
+g_set('Maple');
+
+/* ----- 2D ----- */
+const g2d = document.getElementById('g2d'); const g2dCtx = g2d.getContext('2d');
+const g2dA = document.getElementById('g2d_a'), g2dB=document.getElementById('g2d_b'), g2dC=document.getElementById('g2d_c');
+const g2dAv=document.getElementById('g2d_a_v'), g2dBv=document.getElementById('g2d_b_v'), g2dCv=document.getElementById('g2d_c_v');
+
+function g2d_axes(){
+  g2dCtx.clearRect(0,0,g2d.width,g2d.height);
+  g2dCtx.strokeStyle='#eef2ff'; for(let x=0;x<=g2d.width;x+=50){g2dCtx.beginPath();g2dCtx.moveTo(x,0);g2dCtx.lineTo(x,g2d.height);g2dCtx.stroke();}
+  for(let y=0;y<=g2d.height;y+=50){g2dCtx.beginPath();g2dCtx.moveTo(0,y);g2dCtx.lineTo(g2d.width,y);g2dCtx.stroke();}
+  const cx=g2d.width/2, cy=g2d.height/2; g2dCtx.strokeStyle='#94a3b8'; g2dCtx.lineWidth=2;
+  g2dCtx.beginPath(); g2dCtx.moveTo(0,cy); g2dCtx.lineTo(g2d.width,cy); g2dCtx.stroke();
+  g2dCtx.beginPath(); g2dCtx.moveTo(cx,0); g2dCtx.lineTo(cx,g2d.height); g2dCtx.stroke();
+}
+function g2d_f(x,typ,a,b,c){
+  if(typ==='sin') return Math.sin(a*x + b);
+  if(typ==='poly') return a*x*x*x + b*x*x + c*x;
+  if(typ==='exp') return a*Math.exp(b*x);
+  return Math.sin(x);
+}
+function g2d_draw(){
+  const typ=document.querySelector('input[name="g2dtype"]:checked').value;
+  const a=+g2dA.value, b=+g2dB.value, c=+g2dC.value;
+  g2dAv.textContent=a.toFixed(1); g2dBv.textContent=b.toFixed(1); g2dCv.textContent=c.toFixed(1);
+  g2d_axes();
+  const cx=g2d.width/2, cy=g2d.height/2, sx=60, sy=60;
+  g2dCtx.strokeStyle='#6366f1'; g2dCtx.lineWidth=3; g2dCtx.beginPath();
+  let first=true; let csv=[['x','y']];
+  for(let px=0;px<g2d.width;px+=2){
+    const x=(px-cx)/sx; const y=g2d_f(x,typ,a,b,c); const py=cy - y*sy;
+    if(first){g2dCtx.moveTo(px,py); first=false;} else g2dCtx.lineTo(px,py);
+    csv.push([x.toFixed(4), y.toFixed(4)]);
+  }
+  g2dCtx.stroke();
+  g2d._lastCSV = csv;
+}
+document.getElementById('g2d_draw').addEventListener('click', g2d_draw);
+['g2d_a','g2d_b','g2d_c'].forEach(id=>document.getElementById(id).addEventListener('input', g2d_draw));
+document.getElementById('g2d_anim').addEventListener('click', ()=>{
+  let t=0; const base=+g2dA.value; function loop(){ t+=0.1; g2dA.value = base + 1.5*Math.sin(t); g2d_draw(); if(t<6.28) requestAnimationFrame(loop); else {g2dA.value=base; g2d_draw();} } loop();
+});
+document.getElementById('g2d_png').addEventListener('click', ()=>downloadCanvasPNG(g2d,'2d_plot.png'));
+document.getElementById('g2d_csv').addEventListener('click', ()=>downloadCSV(g2d._lastCSV||[], '2d_data.csv'));
+
+/* ----- 3D (wireframe) ----- */
+const g3d = document.getElementById('g3d'); const g3dCtx=g3d.getContext('2d');
+const g3dA=document.getElementById('g3d_a'), g3dB=document.getElementById('g3d_b'), g3dRot=document.getElementById('g3d_rot');
+const g3dAv=document.getElementById('g3d_a_v'), g3dBv=document.getElementById('g3d_b_v'), g3dRotV=document.getElementById('g3d_rot_v');
+
+function g3d_z(x,y,typ,a,b){
+  if(typ==='wave') return Math.sin(a*x)*Math.cos(b*y);
+  if(typ==='parab') return a*(x*x+y*y);
+  if(typ==='saddle') return a*x*x - b*y*y;
+  return 0;
+}
+function g3d_proj(x,y,z,ang){
+  const r=ang*Math.PI/180, c=Math.cos(r), s=Math.sin(r);
+  const px=x*c - y*s, py=x*s + y*c - z; return [px,py];
+}
+function g3d_draw(){
+  const typ=document.querySelector('input[name="g3dtype"]:checked').value;
+  const a=+g3dA.value, b=+g3dB.value, ang=+g3dRot.value;
+  g3dAv.textContent=a.toFixed(1); g3dBv.textContent=b.toFixed(1); g3dRotV.textContent=ang+'°';
+  g3dCtx.clearRect(0,0,g3d.width,g3d.height);
+  const cx=g3d.width/2, cy=g3d.height/2, s=50;
+  g3dCtx.strokeStyle='#6366f1'; g3dCtx.lineWidth=1;
+  for(let X=-3; X<=3; X+=0.5){
+    g3dCtx.beginPath(); let first=true;
+    for(let Y=-3; Y<=3; Y+=0.2){
+      const z=g3d_z(X,Y,typ,a,b); const [px,py]=g3d_proj(X,Y,z,ang);
+      const sx=cx+px*s, sy=cy+py*s; if(first){g3dCtx.moveTo(sx,sy); first=false;} else g3dCtx.lineTo(sx,sy);
+    } g3dCtx.stroke();
+  }
+  for(let Y=-3; Y<=3; Y+=0.5){
+    g3dCtx.beginPath(); let first=true;
+    for(let X=-3; X<=3; X+=0.2){
+      const z=g3d_z(X,Y,typ,a,b); const [px,py]=g3d_proj(X,Y,z,ang);
+      const sx=cx+px*s, sy=cy+py*s; if(first){g3dCtx.moveTo(sx,sy); first=false;} else g3dCtx.lineTo(sx,sy);
+    } g3dCtx.stroke();
+  }
+}
+['g3d_a','g3d_b','g3d_rot'].forEach(id=>document.getElementById(id).addEventListener('input', g3d_draw));
+document.getElementById('g3d_draw').addEventListener('click', g3d_draw);
+document.getElementById('g3d_anim').addEventListener('click', ()=>{
+  let a=0; function loop(){ a+=5; g3dRot.value=a%360; g3d_draw(); if(a<360) requestAnimationFrame(loop);} loop();
+});
+document.getElementById('g3d_png').addEventListener('click', ()=>downloadCanvasPNG(g3d,'3d_surface.png'));
+
+/* ----- Parametric ----- */
+const gpar = document.getElementById('gpar'); const gparCtx=gpar.getContext('2d');
+const gparA=document.getElementById('gpar_a'), gparB=document.getElementById('gpar_b'), gparT=document.getElementById('gpar_t');
+const gparAv=document.getElementById('gpar_a_v'), gparBv=document.getElementById('gpar_b_v'), gparTv=document.getElementById('gpar_t_v');
+
+function gpar_xy(t,typ,a,b){
+  if(typ==='circle') return [a*Math.cos(t), b*Math.sin(t)];
+  if(typ==='spiral') return [a*t*Math.cos(t), b*t*Math.sin(t)];
+  if(typ==='liss') return [Math.sin(a*t), Math.sin(b*t)];
+  return [Math.cos(t),Math.sin(t)];
+}
+function gpar_axes(){
+  gparCtx.clearRect(0,0,gpar.width,gpar.height);
+  gparCtx.strokeStyle='#eef2ff'; for(let x=0;x<=gpar.width;x+=50){gparCtx.beginPath();gparCtx.moveTo(x,0);gparCtx.lineTo(x,gpar.height);gparCtx.stroke();}
+  for(let y=0;y<=gpar.height;y+=50){gparCtx.beginPath();gparCtx.moveTo(0,y);gparCtx.lineTo(gpar.width,y);gparCtx.stroke();}
+  const cx=gpar.width/2, cy=gpar.height/2; gparCtx.strokeStyle='#94a3b8'; gparCtx.lineWidth=2;
+  gparCtx.beginPath(); gparCtx.moveTo(0,cy); gparCtx.lineTo(gpar.width,cy); gparCtx.stroke();
+  gparCtx.beginPath(); gparCtx.moveTo(cx,0); gparCtx.lineTo(cx,gpar.height); gparCtx.stroke();
+}
+function gpar_draw(){
+  const typ=document.querySelector('input[name="gpar"]:checked').value;
+  const a=+gparA.value, b=+gparB.value, T=+gparT.value;
+  gparAv.textContent=a.toFixed(1); gparBv.textContent=b.toFixed(1); gparTv.textContent=T.toFixed(1);
+  gpar_axes(); const cx=gpar.width/2, cy=gpar.height/2, s=60;
+  gparCtx.strokeStyle='#d946ef'; gparCtx.lineWidth=2; gparCtx.beginPath(); let first=true;
+  for(let i=0;i<=1000;i++){
+    const t=i/1000*T; const [x,y]=gpar_xy(t,typ,a,b);
+    const px=cx+x*s, py=cy-y*s; if(first){gparCtx.moveTo(px,py); first=false;} else gparCtx.lineTo(px,py);
+  } gparCtx.stroke();
+}
+['gpar_a','gpar_b','gpar_t'].forEach(id=>document.getElementById(id).addEventListener('input', gpar_draw));
+document.getElementById('gpar_draw').addEventListener('click', gpar_draw);
+document.getElementById('gpar_anim').addEventListener('click', ()=>{
+  const typ=document.querySelector('input[name="gpar"]:checked').value; const a=+gparA.value, b=+gparB.value, T=+gparT.value;
+  gpar_axes(); const cx=gpar.width/2, cy=gpar.height/2, s=60; gparCtx.strokeStyle='#d946ef'; gparCtx.lineWidth=2; gparCtx.beginPath();
+  let step=0, tot=220; function loop(){ const t=(step/tot)*T; const [x,y]=gpar_xy(t,typ,a,b); const px=cx+x*s, py=cy-y*s;
+    if(step===0){gparCtx.moveTo(px,py);} else {gparCtx.lineTo(px,py); gparCtx.stroke();}
+    step++; if(step<=tot) setTimeout(()=>requestAnimationFrame(loop),20);
+  } loop();
+});
+document.getElementById('gpar_png').addEventListener('click', ()=>downloadCanvasPNG(gpar,'parametric.png'));
+
+/* initial draws */
+g2d_draw(); g3d_draw(); gpar_draw();
+
+/* =========================================================
+   ====================  SIMULINK PART  ====================
+   ========================================================= */
+const sCanvas = document.getElementById('s-canvas');
+const sSvg = sCanvas.querySelector('svg.connections');
+const sParams = document.getElementById('s-params');
+let S_blocks = [];      // {id,type,x,y,params}
+let S_edges  = [];      // {from,to}
+let S_id = 0;
+let S_connectMode = false;
+let S_selected = null;
+
+function s_addNode(type, x, y){
+  if (sCanvas.querySelector('.muted')) sCanvas.querySelector('.muted').remove();
+  const el=document.createElement('div'); el.className='mnode'; el.style.left=x+'px'; el.style.top=y+'px';
+  el.dataset.id='n'+(++S_id); el.dataset.type=type; el.textContent=type;
+  const pin=document.createElement('div'); pin.className='port in'; const pout=document.createElement('div'); pout.className='port out';
+  el.appendChild(pin); el.appendChild(pout);
+  sCanvas.appendChild(el);
+
+  el.addEventListener('click', ()=>s_select(el));
+  el.addEventListener('mousedown', (e)=>{
+    if(e.target.classList.contains('port')) return;
+    const sx=e.clientX, sy=e.clientY, ox=el.offsetLeft, oy=el.offsetTop;
+    function mm(ev){ el.style.left=(ox+ev.clientX-sx)+'px'; el.style.top=(oy+ev.clientY-sy)+'px'; s_drawEdges();}
+    function up(){document.removeEventListener('mousemove',mm);document.removeEventListener('mouseup',up);}
+    document.addEventListener('mousemove',mm); document.addEventListener('mouseup',up);
+  });
+
+  S_blocks.push({id:el.dataset.id, type, x, y, params:s_defaultParams(type)});
+  return el;
+}
+function s_defaultParams(t){
+  return {
+    step:{time:1,initial:0,final:1},
+    sine:{amp:1,freq:1,phase:0},
+    const:{value:1},
+    ramp:{slope:1},
+    gain:{k:2},
+    sum:{signs:'++'},
+    integrator:{x0:0},
+    transfer:{num:'1', den:'[1 2 1]'},
+    scope:{}, display:{}
+  }[t] || {};
+}
+function s_select(el){
+  document.querySelectorAll('.mnode').forEach(n=>n.style.borderColor='#6366f1');
+  el.style.borderColor='#f59e0b'; S_selected = el;
+  const blk = S_blocks.find(b=>b.id===el.dataset.id);
+  sParams.innerHTML = '<div class="muted">Parametrlarni tahrirlang</div>';
+  const wrap=document.createElement('div');
+  function addRow(lbl, key, val, step='any'){
+    const r=document.createElement('div'); r.className='row';
+    r.innerHTML = `<label style="min-width:120px">${lbl}</label><input type="number" step="${step}" value="${val}" style="width:120px">`;
+    const inp=r.querySelector('input');
+    inp.addEventListener('input',()=>{ blk.params[key] = +inp.value; });
+    wrap.appendChild(r);
+  }
+  if(blk.type==='step'){addRow('Vaqt','time',blk.params.time,0.1); addRow('Initial','initial',blk.params.initial); addRow('Final','final',blk.params.final);}
+  else if(blk.type==='sine'){addRow('Amplituda','amp',blk.params.amp); addRow('Chastota','freq',blk.params.freq); addRow('Faza','phase',blk.params.phase);}
+  else if(blk.type==='const'){addRow('Qiymat','value',blk.params.value);}
+  else if(blk.type==='ramp'){addRow('Slope','slope',blk.params.slope);}
+  else if(blk.type==='gain'){addRow('K','k',blk.params.k);}
+  else if(blk.type==='integrator'){addRow('Boshlang‘ich','x0',blk.params.x0);}
+  else {wrap.innerHTML='<div class="muted">Maxsus parametr yo‘q</div>';}
+  sParams.innerHTML=''; sParams.appendChild(wrap);
+}
+function s_edge(fromEl, toEl){
+  if(fromEl===toEl) return;
+  const e={from:fromEl.dataset.id, to:toEl.dataset.id};
+  if(!S_edges.find(x=>x.from===e.from&&x.to===e.to)){ S_edges.push(e); s_drawEdges(); }
+}
+function s_drawEdges(){
+  sSvg.innerHTML='';
+  function portPos(el, cls){
+    const rect=sCanvas.getBoundingClientRect();
+    const r=el.getBoundingClientRect();
+    const px = (cls==='out'? r.right-5 : r.left+5) - rect.left;
+    const py = r.top + r.height/2 - rect.top;
+    return [px,py];
+  }
+  S_edges.forEach(e=>{
+    const from=document.querySelector(`.mnode[data-id="${e.from}"]`);
+    const to  =document.querySelector(`.mnode[data-id="${e.to}"]`);
+    if(!from||!to) return;
+    const [x1,y1]=portPos(from,'out'); const [x2,y2]=portPos(to,'in');
+    const mid=(x1+x2)/2;
+    const path=`M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`;
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d',path); p.setAttribute('stroke','#6366f1'); p.setAttribute('fill','none'); p.setAttribute('stroke-width','2');
+    sSvg.appendChild(p);
+  });
+}
+/* Drag from palette -> canvas */
+document.addEventListener('dragstart', e=>{
+  if(e.target.classList.contains('block')) e.dataTransfer.setData('type', e.target.dataset.type);
+});
+sCanvas.addEventListener('drop', e=>{
+  const type = e.dataTransfer.getData('type'); if(!type) return;
+  const rect=sCanvas.getBoundingClientRect(); const x=e.clientX-rect.left, y=e.clientY-rect.top;
+  const el=s_addNode(type,x-55,y-25);
+  s_select(el);
+});
+/* Connection mode: click two nodes -> connect */
+document.getElementById('s-connect').addEventListener('click', (ev)=>{
+  S_connectMode = !S_connectMode;
+  ev.target.textContent = S_connectMode ? 'Ulanish rejimi (ON)' : 'Ulanish rejimi';
+  let first=null;
+  function handler(e){
+    const n=e.target.closest('.mnode'); if(!n) return;
+    if(!first){ first=n; first.style.outline='2px dashed #22c55e'; }
+    else { s_edge(first,n); first.style.outline='none'; first=null; }
+  }
+  if(S_connectMode) sCanvas.addEventListener('click', handler);
+  else { sCanvas.removeEventListener('click', handler); document.querySelectorAll('.mnode').forEach(n=>n.style.outline='none'); }
+});
+/* Clear & Save */
+document.getElementById('s-clear').addEventListener('click', ()=>{
+  sCanvas.querySelectorAll('.mnode').forEach(n=>n.remove()); sSvg.innerHTML=''; S_blocks=[]; S_edges=[]; S_id=0;
+  sCanvas.appendChild(Object.assign(document.createElement('div'),{className:'muted',style:'text-align:center;margin-top:100px',textContent:'Blokni tortib tashlang'}));
+  sParams.innerHTML='Blokni tanlang…';
+});
+document.getElementById('s-save').addEventListener('click', ()=>{
+  const data={blocks:S_blocks, edges:S_edges, ts:new Date().toISOString()};
+  downloadText(JSON.stringify(data,null,2),'simulink_model.json','application/json');
+});
+
+/* Snippet & copy */
+const S_SNIPPET = `% Simulink misol modeli (MATLAB Script)
+model='demo_model'; open_system(new_system(model));
+add_block('simulink/Sources/Step',[model '/Step']);
+add_block('simulink/Math Operations/Gain',[model '/Gain']);
+add_block('simulink/Continuous/Integrator',[model '/Integrator']);
+add_block('simulink/Sinks/Scope',[model '/Scope']);
+set_param([model '/Gain'],'Gain','2');
+add_line(model,'Step/1','Gain/1');
+add_line(model,'Gain/1','Integrator/1');
+add_line(model,'Integrator/1','Scope/1');
+set_param(model,'StopTime','10','Solver','ode45'); sim(model);`;
+document.getElementById('s-code').textContent = S_SNIPPET;
+document.getElementById('s-copy').addEventListener('click', ()=>navigator.clipboard.writeText(S_SNIPPET));
+document.getElementById('s-code-dl').addEventListener('click', ()=>downloadText(S_SNIPPET,'simulink_demo.m','text/x-matlab'));
+
+/* Simple simulation demo (first-order step) */
+const sTime=document.getElementById('s-time'), sDt=document.getElementById('s-dt');
+const sTimeV=document.getElementById('s-time-v'), sDtV=document.getElementById('s-dt-v');
+const sCanvasPlot=document.getElementById('s-sim'); const sCtx=sCanvasPlot.getContext('2d');
+function s_axes(){
+  sCtx.clearRect(0,0,sCanvasPlot.width,sCanvasPlot.height);
+  sCtx.strokeStyle='#eef2ff'; for(let x=0;x<=sCanvasPlot.width;x+=60){sCtx.beginPath();sCtx.moveTo(x,0);sCtx.lineTo(x,sCanvasPlot.height);sCtx.stroke();}
+  for(let y=0;y<=sCanvasPlot.height;y+=60){sCtx.beginPath();sCtx.moveTo(0,y);sCtx.lineTo(sCanvasPlot.width,y);sCtx.stroke();}
+  const cy=sCanvasPlot.height/2; sCtx.strokeStyle='#94a3b8'; sCtx.lineWidth=2;
+  sCtx.beginPath(); sCtx.moveTo(0,cy); sCtx.lineTo(sCanvasPlot.width,cy); sCtx.stroke();
+}
+function s_plot(data){
+  s_axes(); const sx=sCanvasPlot.width/(+sTime.value), sy=120, cy=sCanvasPlot.height/2;
+  sCtx.strokeStyle='#10b981'; sCtx.lineWidth=3; sCtx.beginPath();
+  data.forEach((p,i)=>{ const x=p.t*sx; const y=cy - p.y*sy; if(i===0) sCtx.moveTo(x,y); else sCtx.lineTo(x,y); }); sCtx.stroke();
+}
+function s_run(anim=false){
+  const T=+sTime.value, dt=+sDt.value; const N=Math.floor(T/dt);
+  const K=1, tau=2; let y=0; const data=[]; let i=0;
+  function step(){
+    const t=i*dt; const u=(t>=1)?1:0; const dydt=(K*u - y)/tau; y+=dydt*dt; data.push({t,y});
+    s_plot(data); i++; if(anim && i<=N) setTimeout(()=>requestAnimationFrame(step), 16); else if(!anim){ while(i<=N){ step(); } }
+  }
+  if(anim){ i=0; data.length=0; step(); } else { for(i=0;i<=N;i++) step(); }
+  sCanvasPlot._lastData = data;
+}
+document.getElementById('s-run').addEventListener('click', ()=>s_run(false));
+document.getElementById('s-anim').addEventListener('click', ()=>s_run(true));
+document.getElementById('s-png').addEventListener('click', ()=>downloadCanvasPNG(sCanvasPlot,'simulation.png'));
+document.getElementById('s-csv').addEventListener('click', ()=>{
+  const data = sCanvasPlot._lastData || []; const rows=[['t','y'], ...data.map(p=>[p.t.toFixed(4), p.y.toFixed(6)])];
+  downloadCSV(rows,'simulation.csv');
+});
+sTime.addEventListener('input',()=>{sTimeV.textContent=sTime.value+'s';});
+sDt.addEventListener('input',()=>{sDtV.textContent=sDt.value;});
+s_axes();
+</script>
+</body>
+</html>
