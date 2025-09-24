@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Kompyuterli tizimlar integratsiyasi — MATLAB + Maple + Drive (Interaktiv lab)</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#0f172a;line-height:1.55;
+       background:linear-gradient(135deg,#2563eb 0%,#7c3aed 100%)}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 8px;font-size:30px}
+  .header p{margin:0;color:#64748b}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+  .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+  .card h2{margin:0 0 12px;font-size:20px;border-bottom:3px solid #22d3ee;padding-bottom:6px}
+
+  .info-table{width:100%;border-collapse:collapse}
+  .info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+  .info-table th{background:#22d3ee;color:#fff}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
+  .btn{background:#0ea5e9;border:none;color:#fff;padding:8px 14px;border-radius:10px;cursor:pointer}
+  .btn.ghost{background:#eef2ff;color:#111827}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706}
+  .btn.secondary{background:#334155}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .muted{color:#6b7280;font-size:13px}
+
+  .panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb;margin:10px 0}
+  .panel h3{margin:0 0 8px;font-size:16px}
+
+  .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  @media (max-width:900px){.flow{grid-template-columns:1fr}}
+  .step{border:2px dashed #c7d2fe;background:#eef2ff;border-radius:12px;padding:12px}
+  .step h4{margin:0 0 6px}
+  .ok{background:#ecfdf5;border:1px solid #10b981;color:#065f46;padding:8px;border-radius:8px}
+  .bad{background:#fef2f2;border:1px solid #ef4444;color:#7f1d1d;padding:8px;border-radius:8px}
+
+  .tabs{display:flex;border-bottom:2px solid #e5e7eb;margin:12px 0}
+  .tab{padding:8px 14px;cursor:pointer;border-bottom:2px solid transparent}
+  .tab.active{border-bottom-color:#0ea5e9;color:#0ea5e9}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type=number]{padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px;width:110px}
+  input[type=text]{padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px}
+  .pill{background:#eef2ff;border:1px dashed #93c5fd;padding:6px 10px;border-radius:10px;font-size:12px;margin-right:6px}
+
+  canvas{width:100%;height:380px;background:#fff;border:1px solid #e5e7eb;border-radius:12px}
+  pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px;border-left:4px solid #22d3ee}
+  .codewrap{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Kompyuterli tizimlar integratsiyasi — MATLAB + Maple + Drive</h1>
+    <p>Bir nechta paketni uyg‘unlashtirish: <em>fayl almashinuvi</em> va <em>chiqishlar birligi</em> (CSV/JSON + yagona grafik)</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📋 Ma’ruza ma’lumotlari</h2>
+      <table class="info-table">
+        <tr><th>Ma’ruza raqami</th><td>7</td></tr>
+        <tr><th>Mavzu</th><td>Kompyuterli tizimlar integratsiyasi</td></tr>
+        <tr><th>Nima uchun mos?</th><td>Bir nechta paketni uyg‘unlashtirish</td></tr>
+        <tr><th>Vizualizatsiya</th><td>Fayl almashinuvi, chiqishlar birligi</td></tr>
+        <tr><th>Dasturiy vosita</th><td>MATLAB + Maple + “Drive” (bulut yoki lokal)</td></tr>
+      </table>
+
+      <div class="panel">
+        <h3>Oqim (pedagogik bosqichlar)</h3>
+        <div class="flow">
+          <div class="step">
+            <h4>1) MATLAB (sintez)</h4>
+            <div>• Signal/grafik ma’lumot hosil qilinadi</div>
+            <div>• <code>CSV/JSON</code> ga eksport</div>
+          </div>
+          <div class="step">
+            <h4>2) Maple (transform)</h4>
+            <div>• Shu faylni o‘qib, filtrlash/yechish</div>
+            <div>• Natijani qayta <code>CSV/JSON</code> ga yozish</div>
+          </div>
+          <div class="step">
+            <h4>3) Drive (almashuv)</h4>
+            <div>• Faylni yuklash/saqlash</div>
+            <div>• Yagona grafikda taqqoslash</div>
+          </div>
+        </div>
+        <div class="muted" style="margin-top:8px">Didaktik maqsad: talaba **standart format** (ustun nomlari, birliklar) muhimligini amalda ko‘radi.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🧑‍🏫 Metodik maslahatlar (top usullar)</h2>
+      <div class="panel">
+        <h3>“Eng sodda → murakkab” printsipi</h3>
+        <ul>
+          <li>Avval **soddalashtirilgan model** (sinus + shovqin), keyin realroq holat (logistik o‘sish, RC, filtrlash).</li>
+          <li>Har bosqichda **bitta o‘zgaruvchi** qo‘shiladi: shovqin darajasi, diskretizatsiya, filtr uzunligi.</li>
+          <li>Har bir qadamda **vizual taqqoslash** va **tekshiruvchi** (Ajoyib/Qayta urinib ko‘ring!).</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Yagona format</h3>
+        <div><span class="pill">t</span><span class="pill">y_model</span><span class="pill">y_meas</span> — hamma paketlar shu uch ustun asosida ishlaydi.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔗 Integratsiya laboratoriyasi</h2>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="matlab">MATLAB — dataset generator</div>
+      <div class="tab" data-tab="maple">Maple — transform & filtr</div>
+      <div class="tab" data-tab="drive">Drive — almashuv & yagona grafik</div>
+      <div class="tab" data-tab="code">Kod snippetlar (MATLAB/Maple)</div>
+    </div>
+
+    <!-- MATLAB TAB -->
+    <div class="tab-content active" id="matlab">
+      <div class="panel">
+        <h3>1) Sintez parametrlarini belgilang</h3>
+        <div class="row">
+          <label>Aylana chastota $\omega$ <input type="number" id="w" value="2" step="0.1"></label>
+          <label>Amplituda $A$ <input type="number" id="A" value="1" step="0.1"></label>
+          <label>Shovqin $\sigma$ <input type="number" id="sigma" value="0.15" step="0.01"></label>
+          <label>$T_{end}$ <input type="number" id="T" value="6.28" step="0.01"></label>
+          <label>$\Delta t$ <input type="number" id="dt" value="0.02" step="0.01"></label>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="genData">Ma’lumot yaratish</button>
+          <button class="btn ghost" id="dlCSV">CSV yuklab olish</button>
+          <button class="btn ghost" id="dlJSON">JSON yuklab olish</button>
+          <span class="muted">Ustunlar: t,y_model,y_meas</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Grafik (MATLAB sintez emulyatsiyasi)</h3>
+        <canvas id="plot1" width="900" height="380"></canvas>
+        <div class="toolbar">
+          <button class="btn secondary" id="savePNG1">PNG saqlash</button>
+        </div>
+        <div id="sum1" class="muted">—</div>
+      </div>
+    </div>
+
+    <!-- MAPLE TAB -->
+    <div class="tab-content" id="maple">
+      <div class="panel">
+        <h3>2) Maple emulyatsiyasi: silliqlash (harakatlanuvchi o‘rtacha)</h3>
+        <div class="row">
+          <label>Oyna uzunligi $L$ <input type="number" id="L" value="5" step="1"></label>
+          <label>Shovqin pardon (sigma) <input type="number" id="sigma2" value="0.15" step="0.01"></label>
+        </div>
+        <div class="toolbar">
+          <button class="btn" id="runMaple">Transformatsiya</button>
+          <button class="btn ghost" id="dlCSV2">CSV (Maple) yuklab olish</button>
+          <button class="btn ghost" id="dlJSON2">JSON (Maple) yuklab olish</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Grafik (Maple emulyatsiyasi)</h3>
+        <canvas id="plot2" width="900" height="380"></canvas>
+        <div class="toolbar">
+          <button class="btn secondary" id="savePNG2">PNG saqlash</button>
+        </div>
+        <div id="sum2" class="muted">—</div>
+      </div>
+
+      <div class="panel">
+        <h3>Tekshiruvchi</h3>
+        <div class="row">
+          <button class="btn success" id="validate">Yagona chiqish mosligi?</button>
+          <span id="valMsg" class="muted">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRIVE TAB -->
+    <div class="tab-content" id="drive">
+      <div class="panel">
+        <h3>3) “Drive” (almashuv): CSV yuklash / saqlash</h3>
+        <div class="row">
+          <input type="file" id="filePick" accept=".csv,.json"/>
+          <button class="btn" id="loadFile">Yuklash</button>
+          <button class="btn warn" id="saveLocal">Brauzerga saqlash</button>
+          <button class="btn ghost" id="clearLocal">Saqlanganlarni tozalash</button>
+        </div>
+        <div class="muted">JSON/CSV ichida: t, y_model, y_meas (ixtiyoriy: y_maple)</div>
+      </div>
+
+      <div class="panel">
+        <h3>Yagona grafik (Drive’dan o‘qilgan + mavjud natijalar)</h3>
+        <canvas id="plot3" width="900" height="380"></canvas>
+        <div class="toolbar">
+          <button class="btn secondary" id="savePNG3">PNG saqlash</button>
+        </div>
+        <div id="sum3" class="muted">—</div>
+      </div>
+    </div>
+
+    <!-- CODE TAB -->
+    <div class="tab-content" id="code">
+      <div class="panel">
+        <h3>MATLAB (CSV/JSON integratsiya)</h3>
+        <div class="codewrap"><pre>
+% --- Parametrlar ---
+A = 1; w = 2; sigma = 0.15; T = 6.28; dt = 0.02;
+t = (0:dt:T).';
+y_model = A*sin(w*t);
+y_meas  = y_model + sigma*randn(size(t));
+
+% CSV yozish
+TBL = table(t, y_model, y_meas);
+writetable(TBL, 'dataset_matlab.csv');
+
+% JSON yozish
+jsonStr = jsonencode(TBL);
+fid = fopen('dataset_matlab.json','w'); fwrite(fid, jsonStr); fclose(fid);
+
+% O‘qish (Maple yoki boshqa muhit uchun ham mos format)
+TT = readtable('dataset_maple.csv');  % t, y_model, y_meas, y_maple (ixtiyoriy)
+        </pre></div>
+      </div>
+
+      <div class="panel">
+        <h3>Maple (CSV o‘qish, silliqlash, CSV/JSON yozish)</h3>
+        <div class="codewrap"><pre>
+restart: with(Statistics):
+
+# CSV o‘qish: t, y_model, y_meas
+data := Import("dataset_matlab.csv", "CSV"):
+t := Vector( map(x->parse(x), data[..,1]) ):
+y_model := Vector( map(x->parse(x), data[..,2]) ):
+y_meas  := Vector( map(x->parse(x), data[..,3]) ):
+
+# Harakatlanuvchi o‘rtacha (L — oynaning uzunligi)
+L := 5:
+y_maple := Vector(LinearAlgebra[Dimension](y_meas)):
+for i to nops(y_meas) do
+  low  := max(1, i - floor(L/2));
+  high := min(nops(y_meas), i + floor(L/2));
+  y_maple[i] := Mean( convert(y_meas[low..high], list) );
+end do:
+
+# CSV ga yozish
+Export("dataset_maple.csv", < <t | y_model | y_meas | y_maple> >, "CSV"):
+
+# JSON ga yozish (oddiy)
+# (Maple 2021+ da JSONTools bo‘lishi mumkin, minimal ko‘rinish uchun CSV yetarli)
+        </pre></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ====== State ====== */
+let DATA = { t:[], y_model:[], y_meas:[] };      // MATLAB emulyatsiyasi
+let MAPL = { y_maple:[] };                        // Maple emulyatsiyasi
+let DRIVE = { t:[], y_model:[], y_meas:[], y_maple:[] }; // yuklangan/saqlangan
+
+/* ====== UI Helpers ====== */
+function $(id){ return document.getElementById(id); }
+function pretty(num, d=4){ return Number(num).toFixed(d); }
+function rng(){ return Math.random(); }
+
+/* ====== Tabs ====== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active'); document.getElementById(t.dataset.tab).classList.add('active');
+  });
+});
+
+/* ====== Math helpers ====== */
+function movingAverage(arr, L){
+  const n=arr.length, k=Math.max(1,Math.floor(L));
+  const out=new Array(n).fill(0);
+  for(let i=0;i<n;i++){
+    let s=0,c=0;
+    for(let j=i-Math.floor(k/2); j<=i+Math.floor(k/2); j++){
+      if(j>=0 && j<n){ s+=arr[j]; c++; }
+    }
+    out[i]=s/Math.max(1,c);
+  }
+  return out;
+}
+
+/* ====== CSV / JSON helpers ====== */
+function toCSV(obj){
+  const cols = ['t','y_model','y_meas','y_maple'];
+  let rows = ['t,y_model,y_meas,y_maple'];
+  const n = obj.t.length;
+  for(let i=0;i<n;i++){
+    const a = [obj.t[i], obj.y_model?.[i]??'', obj.y_meas?.[i]??'', obj.y_maple?.[i]??''];
+    rows.push(a.join(','));
+  }
+  return rows.join('\n');
+}
+function downloadText(text, filename, type='text/plain'){
+  const blob=new Blob([text],{type:type+';charset=utf-8'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+}
+
+/* ====== Canvas plot ====== */
+function plot(canvas, series, labels){
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // axes
+  ctx.strokeStyle='#f1f5f9';
+  for(let x=0;x<=W;x+=50){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for(let y=0;y<=H;y+=50){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.strokeStyle='#64748b';
+  ctx.beginPath(); ctx.moveTo(40,H-30); ctx.lineTo(W-10,H-30); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,H-30); ctx.stroke();
+
+  // bounds
+  let xmin=+Infinity,xmax=-Infinity,ymin=+Infinity,ymax=-Infinity;
+  series.forEach(s=>{
+    s.x.forEach((v,i)=>{ xmin=Math.min(xmin,v); xmax=Math.max(xmax,v); });
+    s.y.forEach((v,i)=>{ ymin=Math.min(ymin,v); ymax=Math.max(ymax,v); });
+  });
+  if(!isFinite(xmin)){ xmin=0;xmax=1;ymin=-1;ymax=1; }
+  if(xmax===xmin) xmax=xmin+1;
+  if(ymax===ymin) ymax=ymin+1;
+
+  const padX=40, padR=10, padYb=30, padYt=10;
+  function X(v){ return padX + (v-xmin)/(xmax-xmin)*(W-padX-padR); }
+  function Y(v){ return H-padYb - (v-ymin)/(ymax-ymin)*(H-padYb-padYt); }
+
+  // series
+  const colors=['#0ea5e9','#ef4444','#10b981','#f59e0b'];
+  series.forEach((s,si)=>{
+    ctx.strokeStyle = s.color || colors[si%colors.length];
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    s.x.forEach((vx,i)=>{
+      const px=X(vx), py=Y(s.y[i]);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    });
+    ctx.stroke();
+  });
+
+  // legend
+  ctx.font='12px Segoe UI';
+  let lx=W-160, ly=20;
+  labels.forEach((lab,i)=>{
+    ctx.fillStyle=series[i].color || colors[i%colors.length];
+    ctx.fillRect(lx,ly-8,10,10);
+    ctx.fillStyle='#111827';
+    ctx.fillText(lab,lx+16,ly);
+    ly+=16;
+  });
+}
+
+/* ====== 1) MATLAB emulyatsiyasi ====== */
+function genData(){
+  const w=+$('w').value, A=+$('A').value, sigma=+$('sigma').value;
+  const T=+$('T').value, dt=+$('dt').value;
+  const n=Math.max(2,Math.floor(T/dt));
+  const t=[], y_model=[], y_meas=[];
+  for(let i=0;i<=n;i++){
+    const ti=i*dt; t.push(ti);
+    const ym = A*Math.sin(w*ti); y_model.push(ym);
+    const meas = ym + sigma*(Math.random()*2-1); y_meas.push(meas);
+  }
+  DATA={t,y_model,y_meas}; MAPL={y_maple:[]};
+  // plot
+  plot($('plot1'),
+       [{x:t,y:y_model,color:'#0ea5e9'},{x:t,y:y_meas,color:'#ef4444'}],
+       ['y_model (ideal)','y_meas (o‘lchov)']);
+  $('sum1').textContent = `Nuqta: ${t.length} | σ≈${sigma}`;
+}
+$('genData').addEventListener('click', genData);
+$('dlCSV').addEventListener('click', ()=> downloadText(toCSV(DATA),'dataset_matlab.csv','text/csv'));
+$('dlJSON').addEventListener('click', ()=> downloadText(JSON.stringify(DATA,null,2),'dataset_matlab.json','application/json'));
+$('savePNG1').addEventListener('click', ()=> downloadCanvasPNG('plot1','matlab_plot.png'));
+
+/* ====== 2) Maple emulyatsiyasi ====== */
+function runMaple(){
+  if(!DATA.t.length){ alert('Avval MATLAB (sintez) ma’lumotini yarating.'); return; }
+  const L=+$('L').value;
+  const y_maple = movingAverage(DATA.y_meas, L);
+  MAPL.y_maple = y_maple;
+  plot($('plot2'),
+       [{x:DATA.t,y:DATA.y_meas,color:'#ef4444'},
+        {x:DATA.t,y:y_maple,color:'#10b981'}],
+       ['y_meas','y_maple (silliqlangan)']);
+  $('sum2').textContent = `Oyna L = ${L} | MSE(y_meas,y_maple) ≈ ${mse(DATA.y_meas,y_maple).toFixed(4)}`;
+}
+function mse(a,b){
+  const n=Math.min(a.length,b.length); if(!n) return 0;
+  let s=0; for(let i=0;i<n;i++){ const d=a[i]-b[i]; s+=d*d; }
+  return s/n;
+}
+$('runMaple').addEventListener('click', runMaple);
+$('dlCSV2').addEventListener('click', ()=>{
+  if(!MAPL.y_maple.length){ alert('Avval Transformatsiya tugmasini bosing.'); return; }
+  const obj={ t:DATA.t, y_model:DATA.y_model, y_meas:DATA.y_meas, y_maple:MAPL.y_maple };
+  downloadText(toCSV(obj),'dataset_maple.csv','text/csv');
+});
+$('dlJSON2').addEventListener('click', ()=>{
+  if(!MAPL.y_maple.length){ alert('Avval Transformatsiya.'); return; }
+  const obj={ t:DATA.t, y_model:DATA.y_model, y_meas:DATA.y_meas, y_maple:MAPL.y_maple };
+  downloadText(JSON.stringify(obj,null,2),'dataset_maple.json','application/json');
+});
+$('savePNG2').addEventListener('click', ()=> downloadCanvasPNG('plot2','maple_plot.png'));
+
+/* Tekshiruvchi: yagonalashgan chiqish mosmi? */
+$('validate').addEventListener('click', ()=>{
+  if(!MAPL.y_maple.length){ $('valMsg').textContent='— Avval Transformatsiya qiling.'; return; }
+  // oddiy sinov: y_maple va y_model yaqinmi? (silliqlangan o‘lchov idealga yaqinlashadi)
+  const e = mse(DATA.y_model, MAPL.y_maple);
+  if(e < 0.05) $('valMsg').innerHTML = `<span class="ok">Ajoyib natija! ✔️  (MSE ≈ ${e.toFixed(4)})</span>`;
+  else $('valMsg').innerHTML = `<span class="bad">Qayta urinib ko‘ring! ❌  (MSE ≈ ${e.toFixed(4)})</span>`;
+});
+
+/* ====== 3) Drive (yuklash/saqlash) ====== */
+$('loadFile').addEventListener('click', ()=>{
+  const f=$('filePick').files?.[0];
+  if(!f){ alert('Fayl tanlang (CSV yoki JSON).'); return; }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const txt=reader.result;
+    try{
+      if(f.name.endsWith('.json')){
+        const obj=JSON.parse(txt);
+        DRIVE = normalizeObj(obj);
+      }else{
+        DRIVE = parseCSV(txt);
+      }
+      drawDrivePlot();
+    }catch(e){
+      alert('Faylni o‘qib bo‘lmadi: '+e.message);
+    }
+  };
+  reader.readAsText(f);
+});
+$('saveLocal').addEventListener('click', ()=>{
+  localStorage.setItem('mmm_drive', JSON.stringify(DRIVE));
+  alert('Saqlandi (localStorage).');
+});
+$('clearLocal').addEventListener('click', ()=>{
+  localStorage.removeItem('mmm_drive'); alert('Tozalandi.');
+});
+$('savePNG3').addEventListener('click', ()=> downloadCanvasPNG('plot3','drive_plot.png'));
+
+function drawDrivePlot(){
+  // agar localStorage bor bo‘lsa, birlashtiramiz
+  const loc = localStorage.getItem('mmm_drive');
+  if(loc){
+    try{
+      const saved=JSON.parse(loc);
+      // saved va DRIVE ni “eng to‘liq” bilan birlashtirish
+      DRIVE = mergeDrive(DRIVE, saved);
+    }catch{}
+  }
+  // Yagona grafik: y_model, y_meas, (ixtiyoriy) y_maple yoki Maple emulyatsiya
+  const sers=[];
+  if(DRIVE.t?.length && DRIVE.y_model?.length) sers.push({x:DRIVE.t,y:DRIVE.y_model,color:'#0ea5e9'});
+  if(DRIVE.t?.length && DRIVE.y_meas?.length) sers.push({x:DRIVE.t,y:DRIVE.y_meas,color:'#ef4444'});
+  const labels=[];
+  if(sers.length){ labels.push('y_model','y_meas'); }
+  if((DRIVE.y_maple?.length) || (MAPL.y_maple?.length)){
+    const ymap = DRIVE.y_maple?.length ? DRIVE.y_maple : MAPL.y_maple;
+    if(ymap?.length){ sers.push({x:DRIVE.t.length?DRIVE.t:DATA.t, y: ymap, color:'#10b981'}); labels.push('y_maple'); }
+  }
+  if(!sers.length){
+    $('sum3').textContent='— Hali ma’lumot yo‘q. CSV/JSON yuklang yoki yuqorida yarating.';
+    const c=$('plot3').getContext('2d'); c.clearRect(0,0,$('plot3').width,$('plot3').height);
+    return;
+  }
+  plot($('plot3'), sers, labels);
+  $('sum3').textContent= `Drive’da: t=${(DRIVE.t?.length||0)} nuqta | y_maple: ${(DRIVE.y_maple?.length||0)}`;
+}
+
+/* ====== Parsers & Mergers ====== */
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  const head=lines[0].split(',').map(s=>s.trim());
+  const idx=(name)=> head.indexOf(name);
+  const it=idx('t'), im=idx('y_model'), ime=idx('y_meas'), ima=idx('y_maple');
+  const t=[],y_model=[],y_meas=[],y_maple=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=lines[i].split(',');
+    if(it>=0) t.push(+cols[it]);
+    if(im>=0) y_model.push(+cols[im]);
+    if(ime>=0) y_meas.push(+cols[ime]);
+    if(ima>=0 && cols[ima]!==undefined && cols[ima]!=='') y_maple.push(+cols[ima]);
+  }
+  return {t,y_model,y_meas,y_maple};
+}
+function normalizeObj(o){
+  return {
+    t:o.t||[], y_model:o.y_model||[], y_meas:o.y_meas||[], y_maple:o.y_maple||[]
+  };
+}
+function mergeDrive(a,b){
+  // t va massiv uzunligi bo‘yicha ko‘proq nuqta qolgani “ustun”
+  const pick = (x,y)=> ( (x?.length||0) >= (y?.length||0) ? x : y );
+  return {
+    t: pick(a.t,b.t),
+    y_model: pick(a.y_model,b.y_model),
+    y_meas: pick(a.y_meas,b.y_meas),
+    y_maple: pick(a.y_maple,b.y_maple)
+  };
+}
+
+/* ====== Canvas PNG saver ====== */
+function downloadCanvasPNG(id, filename){
+  const url=$(id).toDataURL('image/png');
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+}
+
+/* ====== Init ====== */
+window.addEventListener('load', ()=>{
+  genData();      // boshlang'ich sintez
+  runMaple();     // boshlang'ich silliqlash
+  drawDrivePlot();// drive grafiki
+});
+</script>
+</body>
+</html>
