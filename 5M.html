@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MATLAB Simulink kutubxonasi — Interaktiv modul (Yuklab olish/Animatsiya bilan)</title>
+
+<!-- MathJax: formulalarni chiroyli ko'rsatish -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- html2canvas: DOMni PNGga eksport qilish -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)}
+.container{max-width:1200px;margin:0 auto;padding:24px}
+.header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+.header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+.header p{margin:0;color:#64748b}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media (max-width:960px){.grid{grid-template-columns:1fr}}
+.card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.card h2{margin:0 0 14px 0;font-size:22px;color:#111827;border-bottom:3px solid #6366f1;padding-bottom:6px}
+.info-table{width:100%;border-collapse:collapse}
+.info-table th,.info-table td{padding:10px 12px;border-bottom:1px solid #e5e7eb;text-align:left}
+.info-table th{background:#6366f1;color:#fff}
+.software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.software-item{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:16px;border-radius:12px;text-align:center;cursor:pointer;user-select:none;border:2px solid transparent;transition:.25s}
+.software-item:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+.software-item.active{border-color:#a855f7;box-shadow:0 0 0 3px rgba(168,85,247,.25) inset}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px}
+.btn{background:#6366f1;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+.btn.secondary{background:#475569}
+.btn.ghost{background:#f1f5f9;color:#0f172a}
+.btn.success{background:#059669}
+.btn.warning{background:#d97706;color:#111827}
+.btn.danger{background:#ef4444}
+.btn:hover{filter:brightness(1.05)}
+.codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+pre{margin:0;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #a855f7;padding-left:10px}
+.split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+@media (max-width:1100px){.split{grid-template-columns:1fr}}
+.panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+.panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:14px;color:#334155}
+input[type=range]{width:220px}
+canvas{width:100%;height:400px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+.muted{color:#64748b;font-size:13px}
+.canvas-sim{height:450px}
+.tabs{display:flex;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+.tab{padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab.active{border-bottom-color:#6366f1;color:#6366f1}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.block{border:2px solid #6366f1;background:#f0f9ff;padding:12px;margin:8px;border-radius:8px;text-align:center;cursor:move;user-select:none;min-width:80px;display:inline-block}
+.block.dragging{opacity:0.5}
+.block.input{background:#dcfce7;border-color:#16a34a}
+.block.output{background:#fef3c7;border-color:#d97706}
+.block.math{background:#ddd6fe;border-color:#7c3aed}
+.block.continuous{background:#fce7f3;border-color:#ec4899}
+.canvas-area{border:2px dashed #d1d5db;min-height:300px;background:#fafafa;border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.port{width:8px;height:8px;background:#6366f1;border-radius:50%;position:absolute}
+.port.input{left:-4px;top:50%;transform:translateY(-50%)}
+.port.output{right:-4px;top:50%;transform:translateY(-50%)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;margin-left:8px}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🔧 MATLAB Simulink kutubxonasi</h1>
+    <p>Blokli tizimlar • Simulyatsiya • Model asosida loyihalash</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>📋 Ma'ruza ma'lumotlari</h2>
+      <table class="info-table">
+        <tr><th>Ma'ruza raqami</th><td>5</td></tr>
+        <tr><th>Mavzu</th><td>MATLAB Simulink kutubxonasi bilan ishlash</td></tr>
+        <tr><th>Nima uchun mos?</th><td>Blokli tizimlar, interaktivlik</td></tr>
+        <tr><th>Vizualizatsiya usuli</th><td>Blok-diagramma, simulyatsiya</td></tr>
+        <tr><th>Dasturlar</th><td>Simulink, LabVIEW, GNU Radio, Xcos, Modelica, Octave</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>🛠️ Dastur tanlang (simulyatsiya muhiti)</h2>
+      <div class="software-grid" id="softwareGrid" aria-label="Dastur tanlash">
+        <div class="software-item active" data-soft="Simulink" tabindex="0"><strong>Simulink</strong></div>
+        <div class="software-item" data-soft="LabVIEW" tabindex="0"><strong>LabVIEW</strong></div>
+        <div class="software-item" data-soft="GNU Radio" tabindex="0"><strong>GNU Radio</strong></div>
+        <div class="software-item" data-soft="Xcos" tabindex="0"><strong>Xcos</strong></div>
+        <div class="software-item" data-soft="Modelica" tabindex="0"><strong>Modelica</strong></div>
+        <div class="software-item" data-soft="Octave" tabindex="0"><strong>Octave</strong></div>
+      </div>
+
+      <div class="toolbar" id="onlineToolbar">
+        <button class="btn" id="openOnline" aria-label="Onlayn xizmatni ochish">Onlayn xizmatni ochish</button>
+        <button class="btn ghost" id="toggleEmbed" style="display:none" aria-expanded="false">Iframe ko'rsat/berkit</button>
+        <span class="muted" id="onlineNote">Tanlangan dasturga mos onlayn sahifa ochiladi.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="codeCard">
+    <h2>📝 Model kodi</h2>
+    <div class="toolbar">
+      <button class="btn secondary" id="copyBtn" aria-label="Kodni nusxalash">Kodni nusxalash</button>
+      <button class="btn success" id="downloadCodeBtn" aria-label="Kodni .m yuklab olish">Kodni .m yuklab olish</button>
+      <button class="btn warning" id="downloadStateBtn" aria-label="Holatni .json yuklab olish">Holatni .json yuklab olish</button>
+      <span class="muted" id="codeTitle">Simulink — Blokli modellar</span>
+    </div>
+
+    <div class="codewrap"><pre id="codeBlock" aria-live="polite"></pre></div>
+
+    <div class="panel" style="margin-top:10px">
+      <h3>Izoh / Talqin</h3>
+      <pre id="codeNotes"></pre>
+    </div>
+
+    <div class="panel" id="embedPanel" style="display:none;margin-top:10px">
+      <h3>Ichki ko'rinish (iframe)</h3>
+      <div class="iframe-box" id="embedBox"></div>
+      <div class="muted" style="margin-top:6px">Eslatma: Internetga ulanish talab etiladi.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎛️ Interaktiv Simulink demo</h2>
+    <div class="tabs">
+      <div class="tab" data-tab="simulation">Simulyatsiya</div>
+    </div>
+
+    <!-- BLOCKS TAB -->
+    <div class="tab-content active" id="tab-blocks">
+     </div>
+
+    <!-- MODEL TAB -->
+    <div class="tab-content" id="tab-model">
+      <div class="panel">
+        <h3>Model maydoni <span class="badge">drag&drop</span></h3>
+        <div class="toolbar" style="margin-bottom:10px">
+          <button class="btn" id="clearModel">Modelni tozalash</button>
+          <button class="btn ghost" id="connectMode" data-mode="false">Ulanish rejimi</button>
+          <button class="btn success" id="saveModel">Modelni .json saqlash</button>
+          <button class="btn warning" id="downloadModelPng">Model PNG (screenshot)</button>
+        </div>
+        <div class="canvas-area" id="modelCanvas" ondrop="drop(event)" ondragover="allowDrop(event)">
+          <div class="muted" style="text-align:center;margin-top:100px">Blokni bu yerga torting yoki sichqoncha bilan bosing</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULATION TAB -->
+    <div class="tab-content" id="tab-simulation">
+      <div class="split">
+        <div class="panel">
+          <h3>Simulyatsiya sozlamalari</h3>
+          <div class="row" style="margin-top:8px">
+            <label>Simulyatsiya vaqti</label>
+            <input type="range" id="simTime" min="1" max="20" step="1" value="10" aria-label="Simulyatsiya vaqti">
+            <span id="valSimTime">10s</span>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>Qadam hajmi</label>
+            <input type="range" id="stepSize" min="0.01" max="0.5" step="0.01" value="0.1" aria-label="Qadam hajmi">
+            <span id="valStepSize">0.1</span>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>Algoritm</label>
+            <select id="solver" aria-label="Solver algoritmi">
+              <option value="ode45">ode45 (Runge–Kutta)</option>
+              <option value="ode23">ode23 (Bogacki–Shampine)</option>
+              <option value="ode113">ode113 (Variable order)</option>
+              <option value="ode15s">ode15s (Stiff/NDF)</option>
+            </select>
+          </div>
+
+          <div class="row" style="margin-top:12px">
+            <button class="btn" id="runSim">▶ Simulyatsiyani boshlash</button>
+            <button class="btn ghost" id="pauseSim">⏸ Pauza</button>
+            <button class="btn secondary" id="resetSim">⟲ Qayta boshlash</button>
+          </div>
+
+          <div class="row" style="margin-top:12px">
+            <button class="btn success" id="dlSimPng">PNG yuklab olish</button>
+            <button class="btn warning" id="dlSimCsv">CSV yuklab olish</button>
+            <button class="btn danger" id="recToggle">● Simulatsiyani WEBM yozib olish</button>
+          </div>
+
+          <div class="muted" style="margin-top:8px">
+            Model yaratilgandan so'ng simulyatsiya ishlaydi. PNG/CSV/WEBM yuklab olish tugmalari natijani saqlaydi.
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Natijalar (Scope)</h3>
+          <canvas id="canvasSim" class="canvas-sim" width="800" height="450" aria-label="Simulyatsiya natijalari"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ========= Umumiy yordamchilar ========= */
+function downloadFromDataUrl(dataUrl, filename){
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  downloadFromDataUrl(url, filename);
+  URL.revokeObjectURL(url);
+}
+
+/* ========= 1) Kod snippetlar ========= */
+const SNIPPETS = {
+  Simulink: {
+    code:
+`% Simulink model yaratish va simulyatsiya (soddalashtirilgan skript)
+model_name = 'my_model';
+open_system(new_system(model_name));
+
+% Bloklar
+add_block('simulink/Sources/Step', [model_name '/Step']);
+add_block('simulink/Math Operations/Gain', [model_name '/Gain']);
+add_block('simulink/Continuous/Integrator', [model_name '/Integrator']);
+add_block('simulink/Sinks/Scope', [model_name '/Scope']);
+
+% Joylash
+set_param([model_name '/Step'], 'Position', [30 50 60 80]);
+set_param([model_name '/Gain'], 'Position', [100 50 130 80]);
+set_param([model_name '/Integrator'], 'Position', [170 50 200 80]);
+set_param([model_name '/Scope'], 'Position', [240 50 270 80]);
+
+% Parametrlar
+set_param([model_name '/Gain'], 'Gain', '2');
+set_param([model_name '/Step'], 'Time', '1');
+set_param([model_name '/Step'], 'After', '5');
+
+% Ulanishlar
+add_line(model_name, 'Step/1', 'Gain/1');
+add_line(model_name, 'Gain/1', 'Integrator/1');
+add_line(model_name, 'Integrator/1', 'Scope/1');
+
+% Sim sozlamalari
+set_param(model_name, 'StopTime', '10');
+set_param(model_name, 'Solver', 'ode45');
+
+% Ishga tushirish
+sim(model_name);
+
+% Natijalar olish
+simout = get_param(model_name, 'SimulationOutput');`,
+    notes:
+`• new_system/add_block/set_param — modelni skript orqali qurish
+• add_line — bloklarni ulash
+• sim — simulyatsiyani ishga tushirish
+• Scope — chiqishni ko‘rish`
+  },
+
+  LabVIEW: {
+    code:
+`// LabVIEW (G) — diagram konsepti:
+// Front Panel: Numeric Control, Waveform Chart, Boolean Switch
+// Block Diagram: While Loop, Case Structure, Formula Node, DAQ Assistant
+// Dataflow programming; ko‘p VI lar ierarxiyasi bilan ishlaydi.`,
+    notes:`• Dataflow paradigmasi • VI (Virtual Instrument) • Real-time/DAQ integratsiyasi`
+  },
+
+  'GNU Radio': {
+    code:
+`#!/usr/bin/env python3
+from gnuradio import gr, blocks, analog, audio
+
+class my_flowgraph(gr.top_block):
+    def __init__(self):
+        gr.top_block.__init__(self)
+        self.source = analog.sig_source_f(32000, analog.GR_SIN_WAVE, 1000, 1)
+        self.low_pass = blocks.low_pass_filter_fff(1, 32000, 4000, 100)
+        self.sink = audio.sink(32000)
+        self.connect(self.source, self.low_pass, self.sink)
+
+if __name__ == '__main__':
+    tb = my_flowgraph(); tb.run()`,
+    notes:`• SDR platforma • Python/C++ • GRC — vizual muhiti`
+  },
+
+  Xcos: {
+    code:
+`// Xcos (Scilab) — Simulinkga o‘xshash
+// Sources: Step/Sine/Constant; Math: Gain/Sum/Product
+// Continuous: Integrator; Sinks: Scope
+// Global: Final time=30, Solver=CVode, Max step=0.001`,
+    notes:`• Scilab paketi ichida • Ochiq manba • Mos interfeys`
+  },
+
+  Modelica: {
+    code:
+`model SimpleCircuit
+  import Modelica.Electrical.Analog.Basic.*;
+  import Modelica.Electrical.Analog.Sources.*;
+  Resistor R1(R=100); Resistor R2(R=200); Capacitor C1(C=1e-6);
+  VoltageSource V1(V=10); Ground ground;
+equation
+  connect(V1.p, R1.p); connect(R1.n, R2.p);
+  connect(R1.n, C1.p); connect(R2.n, ground.p);
+  connect(C1.n, ground.p); connect(V1.n, ground.p);
+end SimpleCircuit;`,
+    notes:`• Obyektga yo‘naltirilgan model tili • OpenModelica bilan ishlaydi`
+  },
+
+  Octave: {
+    code:
+`% Octave — boshqaruv tizimlari
+s = tf('s'); G = 1/(s^2 + 2*s + 1);
+step(G); bode(G); rlocus(G); grid on;
+% ODE: lsode() misoli ham mavjud.`,
+    notes:`• MATLABga o‘xshash • Bepul • ODE, TF, Bode/Root locus`
+  }
+};
+
+/* ========= 2) Onlayn xizmat mapping ========= */
+const ONLINE_URL = {
+  Simulink:"https://matlab.mathworks.com/",
+  LabVIEW:"https://www.ni.com/en-us/shop/labview.html",
+  'GNU Radio':"https://www.gnuradio.org/",
+  Xcos:"https://www.scilab.org/software/xcos",
+  Modelica:"https://openmodelica.org/",
+  Octave:"https://octave-online.net/"
+};
+const EMBED_URL = { Octave:"https://octave-online.net/" };
+
+/* ========= 3) UI elementlar ========= */
+const grid = document.getElementById('softwareGrid');
+const codeTitle = document.getElementById('codeTitle');
+const codeBlock = document.getElementById('codeBlock');
+const codeNotes = document.getElementById('codeNotes');
+const codeCard = document.getElementById('codeCard');
+const openOnlineBtn = document.getElementById('openOnline');
+const toggleEmbedBtn = document.getElementById('toggleEmbed');
+const embedPanel = document.getElementById('embedPanel');
+const embedBox = document.getElementById('embedBox');
+
+let currentSoft = 'Simulink';
+function setSoftware(soft){
+  currentSoft = soft;
+  [...grid.querySelectorAll('.software-item')].forEach(el=>{
+    el.classList.toggle('active', el.dataset.soft === soft);
+  });
+  const pack = SNIPPETS[soft];
+  codeTitle.textContent = soft + " — Blokli modellar";
+  codeBlock.textContent = pack?.code || "// Snippet topilmadi.";
+  codeNotes.textContent = pack?.notes || "";
+  if (soft === 'Octave'){
+    toggleEmbedBtn.style.display = 'inline-block';
+  } else {
+    toggleEmbedBtn.style.display = 'none';
+    embedPanel.style.display = 'none';
+    toggleEmbedBtn.setAttribute('aria-expanded','false');
+  }
+  codeCard.scrollIntoView({behavior:'smooth', block:'start'});
+  saveState();
+}
+grid.addEventListener('click', (e)=>{
+  const item=e.target.closest('.software-item'); if(!item) return; setSoftware(item.dataset.soft);
+});
+openOnlineBtn.addEventListener('click', ()=>{
+  const url = ONLINE_URL[currentSoft]; if(url) window.open(url,'_blank','noopener,noreferrer');
+});
+let embedVisible=false;
+toggleEmbedBtn.addEventListener('click', ()=>{
+  embedVisible=!embedVisible;
+  if(embedVisible){
+    const src=EMBED_URL[currentSoft];
+    embedBox.innerHTML=`<iframe src="${src}" allowfullscreen referrerpolicy="no-referrer"></iframe>`;
+    embedPanel.style.display='block'; toggleEmbedBtn.textContent="Iframe berkit";
+    toggleEmbedBtn.setAttribute('aria-expanded','true');
+  }else{
+    embedPanel.style.display='none'; embedBox.innerHTML=""; toggleEmbedBtn.textContent="Iframe ko'rsat";
+    toggleEmbedBtn.setAttribute('aria-expanded','false');
+  }
+});
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  navigator.clipboard.writeText(codeBlock.textContent).then(()=>{
+    const b=document.getElementById('copyBtn'); const t=b.textContent; b.textContent="Nusxalandi!"; setTimeout(()=>b.textContent=t,1200);
+  });
+});
+document.getElementById('downloadCodeBtn').addEventListener('click', ()=>{
+  const filename=(currentSoft||'model')+"_code.m"; downloadText(codeBlock.textContent, filename);
+});
+document.getElementById('downloadStateBtn').addEventListener('click', ()=>{
+  const state=getState(); downloadText(JSON.stringify(state,null,2),"simulink_state.json","application/json");
+});
+
+/* ========= 4) Tab tizimi ========= */
+const tabs=document.querySelectorAll('.tab'); const tabContents=document.querySelectorAll('.tab-content');
+tabs.forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const target=tab.dataset.tab;
+    tabs.forEach(t=>t.classList.remove('active')); tabContents.forEach(tc=>tc.classList.remove('active'));
+    tab.classList.add('active'); document.getElementById(`tab-${target}`).classList.add('active'); saveState();
+  });
+});
+
+/* ========= 5) Drag & Drop Model Builder ========= */
+const modelCanvas=document.getElementById('modelCanvas');
+let draggedElement=null, blockCounter=0, selectedBlock=null;
+let blocks=[], connections=[]; let connectMode=false;
+
+document.addEventListener('dragstart',(e)=>{
+  if(e.target.classList.contains('block') && e.target.draggable){ draggedElement=e.target; e.target.classList.add('dragging'); }
+});
+document.addEventListener('dragend',(e)=>{
+  if(e.target.classList.contains('dragging')){ e.target.classList.remove('dragging'); }
+});
+function allowDrop(ev){ ev.preventDefault(); }
+function drop(ev){
+  ev.preventDefault(); if(!draggedElement) return;
+  const rect=modelCanvas.getBoundingClientRect(); const x=ev.clientX-rect.left; const y=ev.clientY-rect.top;
+  const newBlock=document.createElement('div');
+  newBlock.className=draggedElement.className; newBlock.classList.remove('dragging');
+  newBlock.textContent=draggedElement.textContent; newBlock.style.position='absolute';
+  newBlock.style.left=x+'px'; newBlock.style.top=y+'px'; newBlock.style.cursor='pointer';
+  newBlock.dataset.id='block_'+(++blockCounter); newBlock.dataset.type=draggedElement.dataset.type;
+  const inputPort=document.createElement('div'); inputPort.className='port input';
+  const outputPort=document.createElement('div'); outputPort.className='port output';
+  newBlock.appendChild(inputPort); newBlock.appendChild(outputPort);
+  newBlock.addEventListener('click',()=>selectBlock(newBlock));
+  newBlock.addEventListener('dblclick',()=>editBlock(newBlock));
+  if(modelCanvas.querySelector('.muted')) modelCanvas.innerHTML='';
+  modelCanvas.appendChild(newBlock);
+  blocks.push({id:newBlock.dataset.id, type:newBlock.dataset.type, x, y, parameters:getDefaultParams(newBlock.dataset.type)});
+  draggedElement=null; saveState();
+}
+function selectBlock(block){
+  modelCanvas.querySelectorAll('.block').forEach(b=>b.style.border='2px solid #6366f1');
+  block.style.border='3px solid #f59e0b'; selectedBlock=block; showBlockParams(block);
+}
+function editBlock(block){
+  const type=block.dataset.type;
+  const newName=prompt(`${type} blok nomini kiriting:`, block.firstChild.textContent);
+  if(newName){ block.firstChild.textContent=newName; saveState(); }
+}
+function getDefaultParams(type){
+  const p={ step:{time:1,initial:0,final:1}, sine:{amplitude:1,frequency:1,phase:0},
+            constant:{value:1}, gain:{gain:1}, sum:{signs:'++'}, integrator:{initial:0} };
+  return p[type]||{};
+}
+function showBlockParams(block){
+  const paramsDiv=document.getElementById('blockParams'); const type=block.dataset.type;
+  const blockData=blocks.find(b=>b.id===block.dataset.id); const params=blockData?.parameters||{};
+  let html=`<h4>${type} parametrlari</h4>`;
+  if(type==='step'){
+    html+=`
+    <div class="row"><label>Vaqt:</label><input type="number" value="${params.time||1}" onchange="updateParam('${block.dataset.id}','time',this.value)"></div>
+    <div class="row"><label>Boshlang'ich:</label><input type="number" value="${params.initial||0}" onchange="updateParam('${block.dataset.id}','initial',this.value)"></div>
+    <div class="row"><label>Yakuniy:</label><input type="number" value="${params.final||1}" onchange="updateParam('${block.dataset.id}','final',this.value)"></div>`;
+  } else if(type==='sine'){
+    html+=`
+    <div class="row"><label>Amplituda:</label><input type="number" value="${params.amplitude||1}" onchange="updateParam('${block.dataset.id}','amplitude',this.value)"></div>
+    <div class="row"><label>Chastota:</label><input type="number" value="${params.frequency||1}" onchange="updateParam('${block.dataset.id}','frequency',this.value)"></div>
+    <div class="row"><label>Faza:</label><input type="number" value="${params.phase||0}" onchange="updateParam('${block.dataset.id}','phase',this.value)"></div>`;
+  } else if(type==='gain'){
+    html+=`<div class="row"><label>Koeffitsient:</label><input type="number" value="${params.gain||1}" onchange="updateParam('${block.dataset.id}','gain',this.value)"></div>`;
+  } else if(type==='constant'){
+    html+=`<div class="row"><label>Qiymat:</label><input type="number" value="${params.value||1}" onchange="updateParam('${block.dataset.id}','value',this.value)"></div>`;
+  } else if(type==='integrator'){
+    html+=`<div class="row"><label>Boshlang'ich holat:</label><input type="number" value="${params.initial||0}" onchange="updateParam('${block.dataset.id}','initial',this.value)"></div>`;
+  } else {
+    html+='<div class="muted">Parametrlar mavjud emas</div>';
+  }
+  paramsDiv.innerHTML=html;
+}
+function updateParam(blockId, param, value){
+  const b=blocks.find(bb=>bb.id===blockId); if(b){ b.parameters[param]=parseFloat(value)||value; saveState(); }
+}
+document.getElementById('clearModel').addEventListener('click',()=>{
+  modelCanvas.innerHTML='<div class="muted" style="text-align:center;margin-top:100px">Blokni bu yerga torting yoki sichqoncha bilan bosing</div>';
+  blocks=[]; connections=[]; selectedBlock=null; blockCounter=0;
+  document.getElementById('blockParams').innerHTML='<div class="muted">Blokni tanlang...</div>'; saveState();
+});
+document.getElementById('connectMode').addEventListener('click',(e)=>{
+  connectMode=!connectMode; e.target.textContent=connectMode?'Ulanish rejimi (ON)':'Ulanish rejimi'; e.target.dataset.mode=connectMode;
+});
+document.getElementById('saveModel').addEventListener('click',()=>{
+  const modelData={blocks, connections, timestamp:new Date().toISOString()};
+  downloadText(JSON.stringify(modelData,null,2),'simulink_model.json','application/json');
+});
+document.getElementById('downloadModelPng').addEventListener('click', async ()=>{
+  const node=modelCanvas;
+  const canvas=await html2canvas(node,{backgroundColor:'#ffffff',scale:2});
+  downloadFromDataUrl(canvas.toDataURL('image/png'),'model_canvas.png');
+});
+
+/* ========= 6) Simulyatsiya (animatsiya + eksport) ========= */
+const simTime=document.getElementById('simTime');
+const stepSize=document.getElementById('stepSize');
+const valSimTime=document.getElementById('valSimTime');
+const valStepSize=document.getElementById('valStepSize');
+const canvasSim=document.getElementById('canvasSim');
+const ctxSim=canvasSim.getContext('2d');
+
+let simRunning=false, simPaused=false;
+let simData=[], simIdx=0, simTimer=null;
+
+/* ——— Scope chizish ——— */
+function drawSimAxes(){
+  ctxSim.clearRect(0,0,canvasSim.width,canvasSim.height);
+  ctxSim.strokeStyle='#f1f5f9'; ctxSim.lineWidth=1;
+  for(let i=0;i<=canvasSim.width;i+=50){ ctxSim.beginPath(); ctxSim.moveTo(i,0); ctxSim.lineTo(i,canvasSim.height); ctxSim.stroke(); }
+  for(let i=0;i<=canvasSim.height;i+=50){ ctxSim.beginPath(); ctxSim.moveTo(0,i); ctxSim.lineTo(canvasSim.width,i); ctxSim.stroke(); }
+  const centerY=canvasSim.height/2;
+  ctxSim.strokeStyle='#64748b'; ctxSim.lineWidth=2;
+  ctxSim.beginPath(); ctxSim.moveTo(0,centerY); ctxSim.lineTo(canvasSim.width,centerY); ctxSim.stroke();
+}
+function drawSimProgress(){
+  drawSimAxes();
+  if(simData.length===0) return;
+  const centerY=canvasSim.height/2, scaleX=canvasSim.width/parseFloat(simTime.value), scaleY=100;
+  ctxSim.strokeStyle='#6366f1'; ctxSim.lineWidth=3; ctxSim.beginPath();
+  for(let i=0;i<=simIdx && i<simData.length;i++){
+    const p=simData[i]; const x=p.time*scaleX; const y=centerY - p.value*scaleY;
+    (i===0)? ctxSim.moveTo(x,y) : ctxSim.lineTo(x,y);
+  }
+  ctxSim.stroke();
+}
+
+/* ——— Demo modeldan “ta’sir” signali hosil qilish ——— */
+function inputSignal(t){
+  // Agar modelda step/sine/constant mavjud bo‘lsa, ulardan biri ustunlik qiladi:
+  const hasSine = blocks.some(b=>b.type==='sine');
+  const hasConst= blocks.some(b=>b.type==='constant');
+  const stepBlk = blocks.find(b=>b.type==='step');
+  if(hasSine){
+    const b=blocks.find(b=>b.type==='sine')?.parameters || {amplitude:1,frequency:1,phase:0};
+    return (b.amplitude||1)*Math.sin(2*Math.PI*(b.frequency||1)*t + (b.phase||0));
+  }
+  if(stepBlk){
+    const p=stepBlk.parameters||{time:1,initial:0,final:1};
+    return t>=(+p.time||1) ? (+p.final||1) : (+p.initial||0);
+  }
+  if(hasConst){
+    const c=blocks.find(b=>b.type==='constant')?.parameters || {value:1};
+    return +c.value||1;
+  }
+  // default: t>=1 bo'lsa 1 bo'lsin
+  return t>=1 ? 1 : 0;
+}
+
+/* ——— Oddiy 1-tartibli tizimni yechish (demo) ——— */
+function simulateToArray(T, dt){
+  const arr=[]; let y = (blocks.find(b=>b.type==='integrator')?.parameters?.initial) || 0;
+  const tau=2, K= (blocks.find(b=>b.type==='gain')?.parameters?.gain) || 1; // gain blokdan koeff.
+  for(let t=0;t<=T+1e-9;t+=dt){
+    const u=inputSignal(t);            // kirish
+    const dydt=(K*u - y)/tau;          // y'+(1/tau)y=(K/tau)u
+    y += dydt*dt;
+    arr.push({time:+t.toFixed(5), value:+y.toFixed(6), u:+u.toFixed(6)});
+  }
+  return arr;
+}
+
+/* ——— Simulyatsiyani animatsion ko‘rinishda bajarish ——— */
+function runSimulation(){
+  if(simRunning) return;
+  const T=parseFloat(simTime.value), dt=parseFloat(stepSize.value);
+  simData = simulateToArray(T, dt);
+  simIdx=0; simPaused=false; simRunning=true; drawSimAxes();
+
+  // animatsiya “real vaqtga yaqin”: vizual kadr tezligi
+  const frameMS = 20; // ~50 FPS
+  simTimer = setInterval(()=>{
+    if(simPaused){ return; }
+    simIdx += 1; // har kadrda bitta nuqta
+    if(simIdx >= simData.length){ stopSimulationTimer(); simRunning=false; }
+    drawSimProgress();
+  }, frameMS);
+}
+function stopSimulationTimer(){
+  if(simTimer){ clearInterval(simTimer); simTimer=null; }
+}
+document.getElementById('runSim').addEventListener('click', runSimulation);
+document.getElementById('pauseSim').addEventListener('click', ()=>{ simPaused=!simPaused; });
+document.getElementById('resetSim').addEventListener('click', ()=>{
+  stopSimulationTimer(); simData=[]; simIdx=0; simRunning=false; simPaused=false; drawSimAxes();
+});
+simTime.addEventListener('input',()=>{ valSimTime.textContent=simTime.value+'s'; saveState(); });
+stepSize.addEventListener('input',()=>{ valStepSize.textContent=stepSize.value; saveState(); });
+
+/* ——— Eksport: PNG / CSV ——— */
+document.getElementById('dlSimPng').addEventListener('click', ()=>{
+  const url=canvasSim.toDataURL('image/png'); downloadFromDataUrl(url,'simulation_scope.png');
+});
+document.getElementById('dlSimCsv').addEventListener('click', ()=>{
+  if(simData.length===0){ alert('Avval simulyatsiyani ishga tushiring.'); return; }
+  const header='time,value,input\n';
+  const rows=simData.map(p=>`${p.time},${p.value},${p.u??''}`).join('\n');
+  downloadText(header+rows,'simulation_data.csv','text/csv');
+});
+
+/* ——— WEBM video yozib olish ——— */
+let mediaRecorder=null, recordedChunks=[];
+const recBtn=document.getElementById('recToggle');
+recBtn.addEventListener('click', ()=>{
+  if(!mediaRecorder || mediaRecorder.state==='inactive'){
+    // start recording
+    const stream = canvasSim.captureStream(30); // 30 FPS
+    try{
+      mediaRecorder = new MediaRecorder(stream, {mimeType:'video/webm;codecs=vp9'});
+    }catch(e){
+      mediaRecorder = new MediaRecorder(stream); // fallback
+    }
+    recordedChunks=[];
+    mediaRecorder.ondataavailable = (ev)=>{ if(ev.data.size>0) recordedChunks.push(ev.data); };
+    mediaRecorder.onstop = ()=>{
+      const blob=new Blob(recordedChunks,{type:'video/webm'});
+      const url=URL.createObjectURL(blob);
+      downloadFromDataUrl(url,'simulation_recording.webm');
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start(100); // millisekund
+    recBtn.textContent='■ Yozishni to‘xtatish (WEBM)';
+    // Agar sim boshlanmagan bo‘lsa, avtomatik boshlaymiz:
+    if(!simRunning){ runSimulation(); }
+  }else{
+    // stop recording
+    mediaRecorder.stop();
+    recBtn.textContent='● Simulatsiyani WEBM yozib olish';
+  }
+});
+
+/* ========= 7) Holatni saqlash ========= */
+function getState(){
+  return {
+    soft: currentSoft,
+    activeTab: document.querySelector('.tab.active')?.dataset.tab || 'blocks',
+    simTime: simTime.value, stepSize: stepSize.value, solver: document.getElementById('solver').value,
+    blocks, connections, blockCounter
+  };
+}
+function saveState(){
+  try{ localStorage.setItem('kmt_simulink_state', JSON.stringify(getState())); }catch(e){}
+}
+function restoreState(){
+  try{
+    const s=localStorage.getItem('kmt_simulink_state'); if(!s) return;
+    const st=JSON.parse(s);
+    if(st.soft) setSoftware(st.soft);
+    if(st.activeTab){ document.querySelector(`.tab[data-tab="${st.activeTab}"]`)?.click(); }
+    if(st.simTime) simTime.value=st.simTime;
+    if(st.stepSize) stepSize.value=st.stepSize;
+    if(st.solver) document.getElementById('solver').value=st.solver;
+
+    // bloklarni qayta tiklash
+    if(st.blocks){ blocks=st.blocks; blockCounter=st.blockCounter||0;
+      blocks.forEach(bd=>{
+        const el=document.createElement('div');
+        el.className=`block ${getBlockClass(bd.type)}`;
+        el.textContent=bd.type; el.style.position='absolute';
+        el.style.left=bd.x+'px'; el.style.top=bd.y+'px';
+        el.style.cursor='pointer'; el.dataset.id=bd.id; el.dataset.type=bd.type;
+        const ip=document.createElement('div'); ip.className='port input';
+        const op=document.createElement('div'); op.className='port output';
+        el.appendChild(ip); el.appendChild(op);
+        el.addEventListener('click',()=>selectBlock(el));
+        el.addEventListener('dblclick',()=>editBlock(el));
+        if(modelCanvas.querySelector('.muted')) modelCanvas.innerHTML='';
+        modelCanvas.appendChild(el);
+      });
+    }
+    valSimTime.textContent=simTime.value+'s';
+    valStepSize.textContent=stepSize.value;
+  }catch(e){ setSoftware('Simulink'); }
+}
+function getBlockClass(type){
+  const classes={ step:'input', sine:'input', constant:'input', ramp:'input',
+                  scope:'output', display:'output', toworkspace:'output',
+                  gain:'math', sum:'math', product:'math', integrator:'math',
+                  transferfcn:'continuous', statespace:'continuous', pid:'continuous' };
+  return classes[type]||'math';
+}
+['input','change','click'].forEach(evt=>{
+  document.body.addEventListener(evt,(e)=>{
+    if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName)) saveState();
+  },true);
+});
+
+/* ========= 8) Dastlabki ishga tushirish ========= */
+window.addEventListener('load', ()=>{
+  restoreState();
+  if(!currentSoft) setSoftware('Simulink');
+  drawSimAxes();
+});
+</script>
+
+</body>
+</html>
