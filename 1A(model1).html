@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SIR — Parametrli immitatsion (simulatsion) model</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#111827;background:linear-gradient(135deg,#6366f1 0%,#7c3aed 100%)}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .header{background:#fff;border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 6px 0;font-size:30px}
+  .header p{margin:0;color:#64748b}
+  .card{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-bottom:16px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label{font-size:14px;color:#334155}
+  input[type=number],select{padding:8px;border:1px solid #cbd5e1;border-radius:10px}
+  input[type=range]{width:220px}
+  .btn{background:#6366f1;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+  .btn.secondary{background:#475569}
+  .btn.ghost{background:#f1f5f9;color:#0f172a}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706;color:#111827}
+  .btn:hover{filter:brightness(1.05)}
+  .muted{color:#64748b;font-size:13px}
+  .split{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+  @media (max-width:1100px){.split{grid-template-columns:1fr}}
+  canvas{width:100%;height:420px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+  .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+  pre{margin:0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-left:4px solid #a78bfa;padding-left:10px}
+  .badge{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+  .pill{display:inline-block;background:#f3f4f6;color:#111827;border-radius:999px;padding:2px 10px;font-size:12px;margin-left:6px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🧩 SIR — Parametrli immitatsion (simulatsion) model</h1>
+    <p>Vaqt bo‘yicha S, I, R grafigi • $S$–$I$ fazoviy portret • Euler/RK2/RK4 • PNG/CSV/JSON yuklab olish</p>
+  </div>
+
+  <div class="card">
+    <h2>📋 Model tavsifi</h2>
+    <p class="muted" style="margin-top:-6px">
+      Klassik SIR modeli: 
+      $$\begin{aligned}
+      S' &= -\beta \frac{S I}{N},\\
+      I' &= \beta \frac{S I}{N} - \gamma I,\\
+      R' &= \gamma I,
+      \end{aligned}$$
+      bu yerda $N=S+I+R$ — umumiy populyatsiya, $\beta$ — yuqtirish tezligi, $\gamma$ — sog‘ayish tezligi.
+      <span class="pill">R<sub>0</sub> = β/γ</span>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🎛️ Parametrlar va yechish</h2>
+    <div class="row" style="margin-bottom:8px">
+      <label>$N$ <input type="number" id="N" value="1000" step="1" min="1" style="width:100px"></label>
+      <label>$S_0$ <input type="number" id="S0" value="999" step="1" min="0" style="width:90px"></label>
+      <label>$I_0$ <input type="number" id="I0" value="1" step="1" min="0" style="width:90px"></label>
+      <label>$R_0$ <input type="number" id="R0" value="0" step="1" min="0" style="width:90px"></label>
+      <label>$\beta$ <input type="number" id="beta" value="0.3" step="0.01" min="0" style="width:90px"></label>
+      <label>$\gamma$ <input type="number" id="gamma" value="0.1" step="0.01" min="0" style="width:90px"></label>
+    </div>
+
+    <div class="row" style="margin-bottom:8px">
+      <label>$t_{max}$ <input type="number" id="tmax" value="160" step="1" min="1" style="width:90px"></label>
+      <label>$h$ <input type="number" id="h" value="0.1" step="0.01" min="0.001" style="width:90px"></label>
+      <label>Usul:
+        <select id="method">
+          <option value="euler">Euler</option>
+          <option value="rk2">RK2</option>
+          <option value="rk4" selected>RK4</option>
+        </select>
+      </label>
+      <label>Preset:
+        <select id="preset">
+          <option value="none" selected>—</option>
+          <option value="fast">Tez tarqalish (β↑, γ↓)</option>
+          <option value="slow">Sekin tarqalish (β↓, γ↑)</option>
+          <option value="measures">Choralar bilan (β bosqichma-bosqich ↓)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-bottom:8px">
+      <button class="btn" id="run">Chizish</button>
+      <button class="btn ghost" id="clear">Tozalash</button>
+      <button class="btn secondary" id="pngTime">PNG (vaqt grafigi)</button>
+      <button class="btn secondary" id="pngPhase">PNG (fazoviy portret)</button>
+      <button class="btn success" id="csvBtn">CSV yuklab olish</button>
+      <button class="btn warn" id="saveModel">Modelni .json yuklab olish</button>
+      <label class="btn ghost" style="cursor:pointer">
+        .json ochish <input id="loadModel" type="file" accept=".json" style="display:none">
+      </label>
+    </div>
+
+    <div class="muted">Eslatma: preset tanlasangiz parametrlar avtomatik moslanadi (asosiy ssenariylar uchun).</div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Natijalar</h2>
+    <div class="split">
+      <div>
+        <h3>Vaqt bo‘yicha S(t), I(t), R(t)</h3>
+        <canvas id="timePlot" width="900" height="420"></canvas>
+      </div>
+      <div>
+        <h3>Fazoviy portret (S — I)</h3>
+        <canvas id="phasePlot" width="900" height="420"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧠 Qisqa talqin</h2>
+    <ul style="margin:0 0 6px 18px">
+      <li><span class="badge">Boshlanish</span> $I(0)$ kichik bo‘lsa ham, agar $R_0=\\beta/\\gamma &gt; 1$ bo‘lsa, infeksiya tez o‘sishi mumkin.</li>
+      <li><span class="badge">Cho‘qqi</span> $I(t)$ maksimal nuqtasi $\;S(t)=\\frac{\\gamma}{\\beta}N$ yaqinida paydo bo‘ladi (soddalashtirilgan talqin).</li>
+      <li><span class="badge">Chora</span> $\;\\beta$ ni kamaytirish (masofa, niqob, karantin) $R_0$ ni 1 dan kichik tomonga tortadi — $I(t)$ pasayadi.</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+/* ---------- Helpers ---------- */
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function savePNG(canvas, filename){
+  const a=document.createElement('a'); a.download=filename; a.href=canvas.toDataURL('image/png'); a.click();
+}
+function saveStateLS(key, obj){ try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(e){} }
+function loadStateLS(key, fb){ try{ return JSON.parse(localStorage.getItem(key))||fb; }catch(e){return fb;} }
+
+/* ---------- DOM ---------- */
+const NEl = document.getElementById('N');
+const S0El= document.getElementById('S0');
+const I0El= document.getElementById('I0');
+const R0El= document.getElementById('R0');
+const betaEl = document.getElementById('beta');
+const gammaEl= document.getElementById('gamma');
+const tmaxEl = document.getElementById('tmax');
+const hEl = document.getElementById('h');
+const methodEl = document.getElementById('method');
+const presetEl = document.getElementById('preset');
+
+const timeCanvas = document.getElementById('timePlot');
+const tctx = timeCanvas.getContext('2d');
+const phaseCanvas = document.getElementById('phasePlot');
+const pctx = phaseCanvas.getContext('2d');
+
+/* ---------- Plot helpers ---------- */
+function clearPlot(ctx, canvas){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // grid
+  ctx.strokeStyle = '#eef2f7'; ctx.lineWidth = 1;
+  for(let i=0;i<=canvas.width;i+=50){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+  for(let i=0;i<=canvas.height;i+=50){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
+  // border
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(40,20,canvas.width-60,canvas.height-60);
+}
+
+function computeLims(series){
+  // series: array of arrays [{name, data:[{t, S,I,R}]}]
+  let xmin=Infinity,xmax=-Infinity,ymin=Infinity,ymax=-Infinity;
+  series.forEach(s=>{
+    s.data.forEach(d=>{
+      xmin = Math.min(xmin, d.x);
+      xmax = Math.max(xmax, d.x);
+      ymin = Math.min(ymin, d.y);
+      ymax = Math.max(ymax, d.y);
+    });
+  });
+  if(ymin===ymax){ ymin-=1; ymax+=1; }
+  const padY=(ymax-ymin)*0.08; const padX=(xmax-xmin)*0.05;
+  return {x1:xmin, x2:xmax, y1:ymin-padY, y2:ymax+padY};
+}
+function worldToCanvas(x,y, lim, canvas){
+  const {x1,x2,y1,y2} = lim;
+  const W = canvas.width-60, H = canvas.height-60;
+  const ox=40, oy=20;
+  const u = ox + (x-x1)/(x2-x1)*W;
+  const v = oy + (y2-y)/(y2-y1)*H;
+  return [u,v];
+}
+function drawLines(ctx, canvas, series, colors){
+  const lim = computeLims(series);
+  // ticks
+  ctx.fillStyle = '#475569'; ctx.font = '12px Segoe UI';
+  for(let k=0;k<=10;k++){
+    const x = lim.x1 + (lim.x2-lim.x1)*k/10;
+    const [u,v] = worldToCanvas(x, lim.y1, lim, canvas);
+    ctx.fillText(x.toFixed(0), u-6, canvas.height-18);
+  }
+  for(let k=0;k<=6;k++){
+    const y = lim.y1 + (lim.y2-lim.y1)*k/6;
+    const [u,v] = worldToCanvas(lim.x1, y, lim, canvas);
+    ctx.fillText(y.toFixed(0), 6, v+4);
+  }
+  // lines
+  series.forEach((s, idx)=>{
+    ctx.strokeStyle = colors[idx%colors.length];
+    ctx.lineWidth = 2.2; ctx.beginPath();
+    s.data.forEach((d, j)=>{
+      const [u,v] = worldToCanvas(d.x, d.y, lim, canvas);
+      if(j===0) ctx.moveTo(u,v); else ctx.lineTo(u,v);
+    });
+    ctx.stroke();
+  });
+  // legend
+  const names = series.map(s=>s.name);
+  ctx.fillStyle='#111827';
+  ctx.font='13px Segoe UI';
+  let lx=52, ly=30;
+  names.forEach((n,i)=>{
+    ctx.fillStyle=colors[i%colors.length]; ctx.fillRect(lx,ly-10,18,6);
+    ctx.fillStyle='#111827'; ctx.fillText(' '+n,lx+22,ly-4);
+    ly+=18;
+  });
+}
+
+/* ---------- Presets ---------- */
+function applyPreset(){
+  const p = presetEl.value;
+  if(p==='fast'){ betaEl.value = 0.45; gammaEl.value=0.08; }
+  else if(p==='slow'){ betaEl.value = 0.15; gammaEl.value=0.2; }
+  else if(p==='measures'){ betaEl.value = 0.35; gammaEl.value=0.1; } // boshlang'ich, keyin simda kamaytiramiz
+}
+
+/* ---------- Dynamics ---------- */
+function sirDeriv(t, state, prm){
+  let {S,I,R} = state;
+  const {beta,gamma,N, measures} = prm;
+  // choralar bilan ssenariy: t>40 da beta sekin-asta kamayadi
+  let bet = beta;
+  if(measures && t>40) bet = Math.max(0.5*beta, beta*(0.98**(t-40)));
+  const dS = - bet * S * I / N;
+  const dI = bet * S * I / N - gamma * I;
+  const dR = gamma * I;
+  return {dS, dI, dR};
+}
+function stepRK(state, t, h, prm, method){
+  const f = (tt,st)=>sirDeriv(tt, st, prm);
+
+  if(method==='euler'){
+    const k = f(t,state);
+    return { S: state.S + h*k.dS, I: state.I + h*k.dI, R: state.R + h*k.dR };
+  }else if(method==='rk2'){
+    const k1 = f(t,state);
+    const mid = { S: state.S + h*k1.dS/2, I: state.I + h*k1.dI/2, R: state.R + h*k1.dR/2 };
+    const k2 = f(t + h/2, mid);
+    return { S: state.S + h*k2.dS, I: state.I + h*k2.dI, R: state.R + h*k2.dR };
+  }else{
+    const k1 = f(t,state);
+    const s2 = { S: state.S + h*k1.dS/2, I: state.I + h*k1.dI/2, R: state.R + h*k1.dR/2 };
+    const k2 = f(t + h/2, s2);
+    const s3 = { S: state.S + h*k2.dS/2, I: state.I + h*k2.dI/2, R: state.R + h*k2.dR/2 };
+    const k3 = f(t + h/2, s3);
+    const s4 = { S: state.S + h*k3.dS, I: state.I + h*k3.dI, R: state.R + h*k3.dR };
+    const k4 = f(t + h, s4);
+    return {
+      S: state.S + h*(k1.dS + 2*k2.dS + 2*k3.dS + k4.dS)/6,
+      I: state.I + h*(k1.dI + 2*k2.dI + 2*k3.dI + k4.dI)/6,
+      R: state.R + h*(k1.dR + 2*k2.dR + 2*k3.dR + k4.dR)/6
+    };
+  }
+}
+
+function simulate(){
+  const N = +NEl.value;
+  let S = +S0El.value, I = +I0El.value, R = +R0El.value;
+  const beta = +betaEl.value, gamma = +gammaEl.value;
+  const T = +tmaxEl.value, h = Math.max(0.001, +hEl.value);
+  const method = methodEl.value;
+  const measures = (presetEl.value==='measures');
+
+  const prm = {N,beta,gamma,measures};
+  const steps = Math.floor(T/h);
+  const Sser=[], Iser=[], Rser=[], SIser=[];
+  let t=0;
+  for(let i=0;i<=steps;i++){
+    Sser.push({x:t, y:S});
+    Iser.push({x:t, y:I});
+    Rser.push({x:t, y:R});
+    SIser.push({x:S, y:I});
+    // step
+    const nxt = stepRK({S,I,R}, t, h, prm, method);
+    S = Math.max(0, nxt.S); I = Math.max(0, nxt.I); R = Math.max(0, nxt.R);
+    // normalize small drift to keep S+I+R≈N
+    const sum = S+I+R;
+    if(sum>0){ const sc = N/sum; S*=sc; I*=sc; R*=sc; }
+    t += h;
+  }
+  return {Sser,Iser,Rser,SIser};
+}
+
+/* ---------- Drawing ---------- */
+function drawTime(){
+  clearPlot(tctx, timeCanvas);
+  const {Sser,Iser,Rser} = simulate();
+  drawLines(tctx, timeCanvas,
+    [{name:'S(t)', data:Sser},{name:'I(t)',data:Iser},{name:'R(t)',data:Rser}],
+    ['#22c55e','#ef4444','#0ea5e9']
+  );
+}
+function drawPhase(){
+  clearPlot(pctx, phaseCanvas);
+  const {SIser} = simulate();
+  const series = [{name:'S–I', data:SIser}];
+  drawLines(pctx, phaseCanvas, series, ['#8b5cf6']);
+}
+
+/* ---------- CSV / JSON ---------- */
+function exportCSV(){
+  const {Sser,Iser,Rser} = simulate();
+  const T = Sser.length;
+  let csv = 't,S,I,R\n';
+  for(let i=0;i<T;i++){
+    const t = Sser[i].x, S = Sser[i].y, I = Iser[i].y, R = Rser[i].y;
+    csv += `${t},${S},${I},${R}\n`;
+  }
+  downloadText(csv, 'sir_data.csv','text/csv');
+}
+function saveModelJSON(){
+  const model = {
+    N:+NEl.value, S0:+S0El.value, I0:+I0El.value, R0:+R0El.value,
+    beta:+betaEl.value, gamma:+gammaEl.value,
+    tmax:+tmaxEl.value, h:+hEl.value, method:methodEl.value,
+    preset:presetEl.value
+  };
+  downloadText(JSON.stringify(model,null,2),'sir_model.json','application/json');
+}
+function loadModelJSON(file){
+  const fr = new FileReader();
+  fr.onload = e=>{
+    try{
+      const m = JSON.parse(e.target.result);
+      if(m.N) NEl.value = m.N;
+      if(m.S0!=null) S0El.value = m.S0;
+      if(m.I0!=null) I0El.value = m.I0;
+      if(m.R0!=null) R0El.value = m.R0;
+      if(m.beta!=null) betaEl.value = m.beta;
+      if(m.gamma!=null) gammaEl.value = m.gamma;
+      if(m.tmax) tmaxEl.value = m.tmax;
+      if(m.h) hEl.value = m.h;
+      if(m.method) methodEl.value = m.method;
+      if(m.preset) presetEl.value = m.preset;
+      drawTime(); drawPhase(); saveState();
+    }catch(err){ alert('JSON o‘qishda xatolik: '+err.message); }
+  };
+  fr.readAsText(file);
+}
+
+/* ---------- State ---------- */
+function saveState(){
+  const s = {
+    N:NEl.value,S0:S0El.value,I0:I0El.value,R0:R0El.value,
+    beta:betaEl.value,gamma:gammaEl.value,tmax:tmaxEl.value,h:hEl.value,
+    method:methodEl.value,preset:presetEl.value
+  };
+  saveStateLS('sir_state', s);
+}
+function restoreState(){
+  const s = loadStateLS('sir_state', null);
+  if(!s) return;
+  NEl.value=s.N; S0El.value=s.S0; I0El.value=s.I0; R0El.value=s.R0;
+  betaEl.value=s.beta; gammaEl.value=s.gamma; tmaxEl.value=s.tmax; hEl.value=s.h;
+  methodEl.value=s.method; presetEl.value=s.preset;
+}
+
+/* ---------- Events ---------- */
+document.getElementById('run').addEventListener('click', ()=>{applyPreset(); drawTime(); drawPhase(); saveState();});
+document.getElementById('clear').addEventListener('click', ()=>{ clearPlot(tctx,timeCanvas); clearPlot(pctx,phaseCanvas); });
+document.getElementById('pngTime').addEventListener('click', ()=> savePNG(timeCanvas,'sir_time.png'));
+document.getElementById('pngPhase').addEventListener('click', ()=> savePNG(phaseCanvas,'sir_phase.png'));
+document.getElementById('csvBtn').addEventListener('click', exportCSV);
+document.getElementById('saveModel').addEventListener('click', saveModelJSON);
+document.getElementById('loadModel').addEventListener('change', (e)=>{ if(e.target.files?.[0]) loadModelJSON(e.target.files[0]); });
+
+['input','change','click'].forEach(evt=>{
+  document.body.addEventListener(evt,(e)=>{
+    if(['INPUT','SELECT','BUTTON'].includes(e.target.tagName)) saveState();
+  }, true);
+});
+
+/* ---------- Init ---------- */
+window.addEventListener('load', ()=>{
+  restoreState();
+  clearPlot(tctx,timeCanvas);
+  clearPlot(pctx,phaseCanvas);
+  drawTime(); drawPhase();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Logistik o‘sish — Interaktiv immitatsion model </title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#0f172a;background:linear-gradient(135deg,#22c1c3 0%,#6a11cb 100%)}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .header{background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 6px 0;font-size:28px}
+  .muted{color:#64748b;font-size:13px}
+  .card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  label{font-size:14px;color:#334155}
+  input[type=number],select{padding:8px;border:1px solid #cbd5e1;border-radius:10px}
+  input[type=range]{width:220px}
+  .btn{background:#6366f1;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+  .btn.secondary{background:#475569}
+  .btn.ghost{background:#f1f5f9;color:#0f172a}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706;color:#111827}
+  .btn:hover{filter:brightness(1.05)}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:1100px){.split{grid-template-columns:1fr}}
+  canvas{width:100%;height:420px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+  .gridwrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .pill{display:inline-block;background:#eef2ff;color:#3730a3;border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+  .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+  pre{margin:0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;border-left:4px solid #a78bfa;padding-left:10px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>🧩 Populyatsiya — Logistik o‘sish modeli </h1>
+    <p class="muted">ODE + agentli ko‘rinish + histogram. PNG/CSV/JSON yuklab olish, Euler/RK2/RK4, shovqin & diffuziya.</p>
+  </div>
+
+  <div class="card">
+    <h2>📋 Model tavsifi</h2>
+    <p class="muted" style="margin-top:-6px">
+      Logistik model:
+      $$\frac{dy}{dt}=r\,y\Bigl(1-\frac{y}{K}\Bigr)$$
+      bu yerda $r$ — o‘sish sur’ati, $K$ — sig‘im (carrying capacity). <span class="pill">Yechim: $y(t)=\frac{K}{1+A e^{-rt}}$ (analitik), bu yerda $A=\frac{K-y_0}{y_0}$</span>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🎛️ Parametrlar & boshqaruv</h2>
+    <div class="row" style="margin-bottom:8px">
+      <label>$r$ <input type="number" id="r" value="0.5" step="0.01" min="0" style="width:90px"></label>
+      <label>$K$ <input type="number" id="K" value="400" step="10" min="50" style="width:90px"></label>
+      <label>$y_0$ <input type="number" id="y0" value="30" step="1" min="1" style="width:90px"></label>
+      <label>$t_{max}$ <input type="number" id="tmax" value="40" step="1" min="1" style="width:90px"></label>
+      <label>$h$ <input type="number" id="h" value="0.05" step="0.01" min="0.005" style="width:90px"></label>
+      <label>Usul:
+        <select id="method">
+          <option value="euler">Euler</option>
+          <option value="rk2">RK2</option>
+          <option value="rk4" selected>RK4</option>
+        </select>
+      </label>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <label>Shovqin (σ)
+        <input type="range" id="noise" min="0" max="0.2" step="0.01" value="0">
+        <span id="noiseVal">0.00</span>
+      </label>
+      <label>Diffuziya (0–1)
+        <input type="range" id="diff" min="0" max="1" step="0.05" value="0.3">
+        <span id="diffVal">0.30</span>
+      </label>
+      <label>Histogram bin
+        <input type="number" id="bins" value="10" step="1" min="3" max="40" style="width:90px">
+      </label>
+    </div>
+    <div class="row" style="margin-bottom:8px">
+      <button class="btn" id="startBtn">Boshlash</button>
+      <button class="btn ghost" id="pauseBtn">Pauza</button>
+      <button class="btn secondary" id="resetBtn">Qayta</button>
+      <button class="btn success" id="csvBtn">CSV</button>
+      <button class="btn warn" id="saveBtn">JSON saqlash</button>
+      <label class="btn ghost" style="cursor:pointer">JSON ochish
+        <input id="loadFile" type="file" accept=".json" style="display:none">
+      </label>
+      <button class="btn ghost" id="pngTime">PNG (vaqt)</button>
+      <button class="btn ghost" id="pngGrid">PNG (grid)</button>
+      <button class="btn ghost" id="pngHist">PNG (hist)</button>
+    </div>
+    <div class="muted">Diffuziya — agentlar ustunlar bo‘ylab “surtish” darajasi; shovqin — modelga kichik tasodifiylik qo‘shadi.</div>
+  </div>
+
+  <div class="card">
+    <h2>📈 Natijalar</h2>
+    <div class="split">
+      <div>
+        <h3>Vaqt bo‘yicha $y(t)$</h3>
+        <canvas id="timePlot" width="900" height="420"></canvas>
+      </div>
+      <div>
+        <h3>Agentli ko‘rinish (K sig‘im) va histogram</h3>
+        <div class="gridwrap">
+          <canvas id="gridCanvas" width="900" height="420" aria-label="Grid"></canvas>
+          <canvas id="histCanvas" width="900" height="420" aria-label="Histogram"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🍁 Maple kodi</h2>
+    <div class="codewrap">
+<pre>de := diff(y(t),t) = 0.5*y(t)*(1 - y(t)/100):
+sol := dsolve({de, y(0)=10}, y(t), numeric):
+plots[odeplot](sol, [t, y(t)], 0..30);</pre>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== Helpers ===== */
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function savePNG(canvas, filename){
+  const a=document.createElement('a'); a.download=filename; a.href=canvas.toDataURL('image/png'); a.click();
+}
+function clamp(x,a,b){ return Math.max(a, Math.min(b,x)); }
+function randn(){ // Box-Muller
+  let u=0,v=0; while(u===0)u=Math.random(); while(v===0)v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+/* ===== DOM ===== */
+const rEl = document.getElementById('r');
+const KEl = document.getElementById('K');
+const y0El= document.getElementById('y0');
+const tmaxEl=document.getElementById('tmax');
+const hEl= document.getElementById('h');
+const methodEl=document.getElementById('method');
+const noiseEl=document.getElementById('noise'); const noiseVal=document.getElementById('noiseVal');
+const diffEl=document.getElementById('diff'); const diffVal=document.getElementById('diffVal');
+const binsEl=document.getElementById('bins');
+
+const timeCanvas=document.getElementById('timePlot'); const tctx=timeCanvas.getContext('2d');
+const gridCanvas=document.getElementById('gridCanvas'); const gctx=gridCanvas.getContext('2d');
+const histCanvas=document.getElementById('histCanvas'); const hctx=histCanvas.getContext('2d');
+
+document.getElementById('pngTime').onclick=()=>savePNG(timeCanvas,'logistic_time.png');
+document.getElementById('pngGrid').onclick=()=>savePNG(gridCanvas,'logistic_grid.png');
+document.getElementById('pngHist').onclick=()=>savePNG(histCanvas,'logistic_hist.png');
+
+/* ===== Simulation state ===== */
+let playing=false, t=0, y=0, series=[];
+let gridCols=20, gridRows=20;  // 400 cells max by default
+function resizeGridToK(K){
+  // Approx square near K
+  const n = Math.round(Math.sqrt(K));
+  gridCols = clamp(n, 5, 60);
+  gridRows = Math.ceil(K/gridCols);
+  if(gridCols*gridRows < K) gridRows++;
+}
+function logisticStep(y, dt, r, K, method, sigma){
+  const f = (yy)=> r*yy*(1-yy/K);
+  if(method==='euler'){
+    return y + dt*( f(y) + sigma*randn() );
+  } else if(method==='rk2'){
+    const k1 = f(y);
+    const k2 = f(y + dt*k1/2);
+    return y + dt*(k2 + sigma*randn());
+  } else {
+    const k1 = f(y);
+    const k2 = f(y + dt*k1/2);
+    const k3 = f(y + dt*k2/2);
+    const k4 = f(y + dt*k3);
+    return y + dt*((k1+2*k2+2*k3+k4)/6 + sigma*randn());
+  }
+}
+
+/* ===== Plot helpers ===== */
+function clearPlot(ctx, canvas){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle='#eef2f7'; ctx.lineWidth=1;
+  for(let i=0;i<=canvas.width;i+=50){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+  for(let i=0;i<=canvas.height;i+=50){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
+  ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1.5; ctx.strokeRect(40,20,canvas.width-60,canvas.height-60);
+}
+function worldToCanvas(x,y,lim,canvas){
+  const W=canvas.width-60, H=canvas.height-60, ox=40, oy=20;
+  const u = ox + (x-lim.x1)/(lim.x2-lim.x1)*W;
+  const v = oy + (lim.y2-y)/(lim.y2-lim.y1)*H;
+  return [u,v];
+}
+function drawTimePlot(){
+  clearPlot(tctx, timeCanvas);
+  const lim = {
+    x1:0, x2:+tmaxEl.value,
+    y1:0, y2:Math.max(+KEl.value*1.05, 10)
+  };
+  // axes ticks
+  tctx.fillStyle='#475569'; tctx.font='12px Segoe UI';
+  for(let k=0;k<=10;k++){
+    const xv = lim.x1 + (lim.x2-lim.x1)*k/10;
+    const [ux,uy] = worldToCanvas(xv, lim.y1, lim, timeCanvas);
+    tctx.fillText(xv.toFixed(0), ux-6, timeCanvas.height-18);
+  }
+  for(let k=0;k<=6;k++){
+    const yv = lim.y1 + (lim.y2-lim.y1)*k/6;
+    const [ux,uy] = worldToCanvas(lim.x1, yv, lim, timeCanvas);
+    tctx.fillText(yv.toFixed(0), 6, uy+4);
+  }
+  // line
+  tctx.strokeStyle='#0ea5e9'; tctx.lineWidth=2.2; tctx.beginPath();
+  series.forEach((p,i)=>{
+    const [u,v]=worldToCanvas(p.t, p.y, lim, timeCanvas);
+    if(i===0) tctx.moveTo(u,v); else tctx.lineTo(u,v);
+  });
+  tctx.stroke();
+}
+
+/* ===== Grid & Histogram ===== */
+function drawGrid(currentY){
+  clearPlot(gctx, gridCanvas);
+  const K=+KEl.value;
+  resizeGridToK(K);
+  const cols=gridCols, rows=gridRows;
+  const w=(gridCanvas.width-60)/cols, h=(gridCanvas.height-60)/rows;
+  const ox=40, oy=20;
+  const occ = Math.round(clamp(currentY,0,K));
+  // Prepare occupancy vector across columns (for histogram later)
+  const diff = +diffEl.value;
+  let colLoad = new Array(cols).fill(0);
+  // Fill cells column by column with some "diffusion"
+  let filled = 0;
+  while(filled<occ){
+    // choose column biased by diffusion to equalize
+    let c = Math.floor(Math.random()*cols);
+    if(Math.random()<diff){
+      // choose least loaded column more often
+      let min = Math.min(...colLoad);
+      const candidates = [];
+      colLoad.forEach((v,i)=>{ if(v===min) candidates.push(i); });
+      c = candidates[Math.floor(Math.random()*candidates.length)];
+    }
+    if(colLoad[c] < rows){ colLoad[c]++; filled++; }
+  }
+  // Draw cells
+  gctx.lineWidth=1;
+  for(let c=0;c<cols;c++){
+    for(let r=0;r<rows;r++){
+      const x=ox+c*w, y=oy+r*h;
+      gctx.fillStyle = (r < rows-colLoad[c]) ? '#ffffff' : '#10b981';
+      gctx.strokeStyle='#e5e7eb';
+      gctx.fillRect(x,y,w-1,h-1);
+      gctx.strokeRect(x,y,w-1,h-1);
+    }
+  }
+  return colLoad; // for histogram
+}
+
+function drawHistogram(colLoad){
+  clearPlot(hctx, histCanvas);
+  const bins = clamp(+binsEl.value,3,40);
+  const cols = colLoad.length;
+  // Aggregate columns into bins
+  const per = Math.ceil(cols/bins);
+  const agg = [];
+  for(let i=0;i<bins;i++){
+    let s=0;
+    for(let j=i*per;j<(i+1)*per && j<cols;j++) s+=colLoad[j];
+    agg.push(s);
+  }
+  const maxVal = Math.max(1, ...agg);
+  // Draw bars
+  const ox=40, oy=20, W=histCanvas.width-60, H=histCanvas.height-60;
+  const bw = W/bins*0.9;
+  const gap = W/bins*0.1;
+  for(let i=0;i<bins;i++){
+    const val = agg[i];
+    const h = (val/maxVal)*H;
+    const x = ox + i*(bw+gap);
+    const y = oy + (H-h);
+    hctx.fillStyle='#f59e0b';
+    hctx.fillRect(x,y,bw,h);
+  }
+  // axes labels
+  hctx.fillStyle='#111827'; hctx.font='13px Segoe UI';
+  hctx.fillText('Ustun (bin)', ox+4, histCanvas.height-10);
+  hctx.fillText('Band hujayra soni', 6, oy+14);
+}
+
+/* ===== Run loop ===== */
+let animId=null;
+function step(){
+  const r = +rEl.value, K=+KEl.value, dt=+hEl.value;
+  const sigma = +noiseEl.value;
+  y = clamp( logisticStep(y, dt, r, K, methodEl.value, sigma), 0, K );
+  t = t + dt;
+  series.push({t,y});
+  if(t > +tmaxEl.value){ playing=false; }
+
+  drawTimePlot();
+  const colLoad = drawGrid(y);
+  drawHistogram(colLoad);
+
+  if(playing){ animId = requestAnimationFrame(step); }
+}
+
+/* ===== UI events ===== */
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  if(!playing){ playing=true; animId=requestAnimationFrame(step); }
+});
+document.getElementById('pauseBtn').addEventListener('click', ()=>{
+  playing=false; if(animId) cancelAnimationFrame(animId);
+});
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  playing=false; if(animId) cancelAnimationFrame(animId);
+  t=0; y=+y0El.value; series=[{t:0,y:y}];
+  drawTimePlot();
+  const colLoad = drawGrid(y);
+  drawHistogram(colLoad);
+});
+document.getElementById('csvBtn').addEventListener('click', ()=>{
+  let csv='t,y\n'; series.forEach(p=> csv+=`${p.t},${p.y}\n`); downloadText(csv,'logistic.csv','text/csv');
+});
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const obj={r:+rEl.value,K:+KEl.value,y0:+y0El.value,tmax:+tmaxEl.value,h:+hEl.value,method:methodEl.value,noise:+noiseEl.value,diff:+diffEl.value,bins:+binsEl.value};
+  downloadText(JSON.stringify(obj,null,2),'logistic_model.json','application/json');
+});
+document.getElementById('loadFile').addEventListener('change',(e)=>{
+  const f=e.target.files?.[0]; if(!f) return;
+  const fr=new FileReader(); fr.onload=ev=>{
+    try{
+      const m=JSON.parse(ev.target.result);
+      if(m.r!=null) rEl.value=m.r; if(m.K!=null) KEl.value=m.K;
+      if(m.y0!=null) y0El.value=m.y0; if(m.tmax!=null) tmaxEl.value=m.tmax;
+      if(m.h!=null) hEl.value=m.h; if(m.method) methodEl.value=m.method;
+      if(m.noise!=null){ noiseEl.value=m.noise; noiseVal.textContent=Number(m.noise).toFixed(2); }
+      if(m.diff!=null){ diffEl.value=m.diff; diffVal.textContent=Number(m.diff).toFixed(2); }
+      if(m.bins!=null) binsEl.value=m.bins;
+      // reset & render
+      t=0; y=+y0El.value; series=[{t:0,y:y}];
+      drawTimePlot(); const colLoad=drawGrid(y); drawHistogram(colLoad);
+    }catch(err){ alert('JSON xatolik: '+err.message); }
+  };
+  fr.readAsText(f);
+});
+noiseEl.addEventListener('input',()=>{ noiseVal.textContent=Number(noiseEl.value).toFixed(2); });
+diffEl.addEventListener('input',()=>{ diffVal.textContent=Number(diffEl.value).toFixed(2); });
+
+/* ===== Init ===== */
+window.addEventListener('load', ()=>{
+  // grid size based on K
+  resizeGridToK(+KEl.value);
+  t=0; y=+y0El.value; series=[{t:0,y:y}];
+  drawTimePlot(); const colLoad=drawGrid(y); drawHistogram(colLoad);
+});
+</script>
+</body>
+</html>

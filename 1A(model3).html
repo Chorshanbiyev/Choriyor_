@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Erkin tushish simulyatori: Havo qarshiligi va parashyut modeli</title>
+
+<!-- MathJax (formulalar) -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#eef2ff; --bg2:#f8fafc; --ink:#0f172a; --muted:#6b7280;
+    --pri:#4f46e5; --pri2:#7c3aed; --ok:#16a34a; --warn:#d97706; --bad:#ef4444;
+    --card:#ffffff; --grid:#eef2f7; --frame:#e5e7eb; --accent:#06b6d4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Roboto,'San Francisco',Arial,sans-serif;color:var(--ink);
+       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);line-height:1.6}
+  .container{max-width:1400px;margin:0 auto;padding:20px}
+  
+  .header{background:var(--card);border-radius:20px;padding:30px;box-shadow:0 12px 32px rgba(0,0,0,.15);
+          text-align:center;margin-bottom:20px;border:1px solid rgba(255,255,255,.3)}
+  .header h1{margin:0 0 12px 0;font-size:32px;font-weight:700;color:#1e293b}
+  .header p{margin:0;color:var(--muted);font-size:16px}
+  .header .subtitle{margin-top:8px;color:var(--accent);font-weight:500}
+
+  .grid2{display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  @media (max-width:1200px){.grid2{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}}
+  
+  .card{background:var(--card);border-radius:16px;padding:24px;box-shadow:0 8px 28px rgba(0,0,0,.1);
+        margin-bottom:16px;border:1px solid rgba(255,255,255,.2)}
+  .card h2{margin:0 0 16px 0;font-size:22px;font-weight:600;color:#1e293b}
+  .card h3{margin:0 0 12px 0;font-size:18px;font-weight:600;color:#334155}
+  
+  .learning-objectives{background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);
+                      border-left:4px solid var(--accent);border-radius:12px;padding:20px}
+  .physics-model{background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);
+                 border-left:4px solid var(--warn);border-radius:12px;padding:20px}
+  
+  .muted{color:var(--muted)}
+  .highlight{background:linear-gradient(120deg,#a7f3d0 0%,#6ee7b7 100%);padding:2px 6px;
+            border-radius:6px;font-weight:500}
+  .formula-box{background:#1e293b;color:#e2e8f0;padding:16px;border-radius:12px;
+               border-left:4px solid var(--accent);margin:12px 0;font-family:monospace}
+  
+  .parameter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:16px 0}
+  .param-card{background:var(--bg1);border:2px solid transparent;border-radius:12px;padding:16px;
+              transition:all 0.3s ease}
+  .param-card:hover{border-color:var(--pri);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .param-card .param-label{font-weight:600;color:#374151;margin-bottom:8px;display:block}
+  .param-card .param-desc{color:var(--muted);font-size:14px;margin-bottom:12px}
+  .param-card .param-range{font-size:12px;color:var(--muted)}
+  
+  input[type=range]{width:100%;height:8px;border-radius:8px;background:#e5e7eb;
+                   outline:none;-webkit-appearance:none;margin:8px 0}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:20px;height:20px;
+                                          border-radius:50%;background:var(--pri);cursor:pointer}
+  input[type=range]::-moz-range-thumb{width:20px;height:20px;border-radius:50%;
+                                     background:var(--pri);cursor:pointer;border:none}
+  
+  input[type=number]{width:100px;padding:8px;border:2px solid var(--frame);border-radius:8px;
+                    font-size:14px;transition:border-color 0.3s}
+  input[type=number]:focus{border-color:var(--pri);outline:none}
+  
+  select{padding:8px 12px;border:2px solid var(--frame);border-radius:8px;font-size:14px;
+         background:white;transition:border-color 0.3s}
+  select:focus{border-color:var(--pri);outline:none}
+  
+  .btn{background:var(--pri);border:0;color:#fff;padding:10px 16px;border-radius:10px;
+       cursor:pointer;font-weight:500;transition:all 0.3s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#4338ca;transform:translateY(-1px)}
+  .btn.secondary{background:#64748b}
+  .btn.success{background:var(--ok)}
+  .btn.warning{background:var(--warn)}
+  .btn.danger{background:var(--bad)}
+  .btn.outline{background:transparent;border:2px solid var(--pri);color:var(--pri)}
+  .btn.outline:hover{background:var(--pri);color:white}
+  
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+  
+  canvas{width:100%;height:400px;background:#fff;border:2px solid var(--frame);
+         border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+  
+  .tabs{display:flex;gap:4px;border-bottom:3px solid var(--frame);margin-bottom:20px;background:var(--bg2);
+        border-radius:12px 12px 0 0;padding:8px 8px 0 8px}
+  .tab{padding:12px 18px;cursor:pointer;border-radius:8px 8px 0 0;font-weight:500;
+       transition:all 0.3s;position:relative}
+  .tab:hover{background:rgba(79,70,229,.1)}
+  .tab.active{background:var(--pri);color:white;border-bottom:3px solid var(--pri)}
+  .tab-content{display:none;animation:fadeIn 0.3s ease}
+  .tab-content.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+  .kpi-card{background:linear-gradient(135deg,var(--bg2) 0%,#f1f5f9 100%);
+            border:1px solid var(--frame);border-radius:12px;padding:16px;text-align:center;
+            transition:transform 0.3s}
+  .kpi-card:hover{transform:scale(1.02)}
+  .kpi-value{font-size:24px;font-weight:700;color:var(--pri);display:block}
+  .kpi-label{color:var(--muted);font-size:14px;margin-top:4px}
+  
+  .info-box{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);
+            border-radius:12px;padding:16px;margin:12px 0}
+  .warning-box{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  .success-box{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  
+  .step-card{background:var(--card);border-left:4px solid var(--pri);border-radius:8px;
+             padding:16px;margin:8px 0;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .step-number{background:var(--pri);color:white;border-radius:50%;width:24px;height:24px;
+               display:inline-flex;align-items:center;justify-content:center;font-weight:600;margin-right:8px}
+  
+  pre{margin:0;white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:12px;
+      padding:20px;border-left:4px solid #22d3ee;font-size:14px;overflow-x:auto}
+  
+  .tooltip{position:relative;cursor:help}
+  .tooltip:hover::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;
+                       transform:translateX(-50%);background:#1f2937;color:white;padding:8px 12px;
+                       border-radius:6px;font-size:12px;white-space:nowrap;z-index:1000}
+  
+  .progress-bar{background:#e5e7eb;height:6px;border-radius:3px;overflow:hidden;margin:8px 0}
+  .progress-fill{background:var(--pri);height:100%;border-radius:3px;transition:width 0.3s}
+  
+  @media (max-width:768px){
+    .container{padding:12px}
+    .header{padding:20px}
+    .header h1{font-size:24px}
+    .parameter-grid{grid-template-columns:1fr}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)}
+    canvas{height:300px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SARLAVHA -->
+  <div class="header">
+    <h1>🪂 Erkin Tushish Simulyatori</h1>
+    <p>Havo qarshiligi va parashyut ochilishining tezlik va balandlikka ta'sirini o'rganish</p>
+    <div class="subtitle">Interaktiv fizika simulyatsiyasi • Raqamli modellashtirish • Grafik tahlil</div>
+  </div>
+
+  <!-- 1-BOSQICH: DARS MAQSADLARI -->
+  <div class="card learning-objectives">
+    <h2>🎯 Dars Maqsadlari</h2>
+    <div class="grid3">
+      <div class="step-card">
+        <span class="step-number">1</span>
+        <strong>Terminal tezlik tushunchasi:</strong> Havo qarshiligi tufayli tezlikning ma'lum qiymatda barqarorlashishini tushunish
+      </div>
+      <div class="step-card">
+        <span class="step-number">2</span>
+        <strong>Parashyut ta'siri:</strong> Parashyut ochilganda qarshilik koeffitsientining o'zgarishi va uning oqibatlarini tahlil qilish
+      </div>
+      <div class="step-card">
+        <span class="step-number">3</span>
+        <strong>Matematik modellashtirish:</strong> Differensial tenglamalar yordamida real jarayonni simulyatsiya qilish
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-BOSQICH: FIZIK MODEL -->
+  <div class="card physics-model">
+    <h2>⚡ Fizik Model va Tenglamalar</h2>
+    
+    <div class="info-box">
+      <strong>💡 Asosiy g'oya:</strong> Erkin tushayotgan jismga ikkita kuch ta'sir qiladi:
+      <br>• <span class="highlight">Gravitatsiya kuchi</span> (pastga yo'nalgan): $F_g = mg$
+      <br>• <span class="highlight">Havo qarshiligi</span> (yuqoriga yo'nalgan): $F_d = c(t) \cdot v|v|$
+    </div>
+
+    <div class="formula-box">
+      <strong>Harakat tenglamalari:</strong><br>
+      $\frac{dv}{dt} = g - \frac{c(t)}{m} \cdot v|v|$ &nbsp;&nbsp; (tezlik o'zgarishi)<br><br>
+      $\frac{dy}{dt} = v$ &nbsp;&nbsp; (balandlik o'zgarishi)
+    </div>
+
+    <div class="grid2">
+      <div>
+        <h3>🪂 Parashyut Modeli</h3>
+        <p>Parashyut ochilganda qarshilik koeffitsienti keskin ortadi:</p>
+        <div class="formula-box">
+          $c(t) = \begin{cases} 
+          c_1 & \text{agar } t < t_{\text{ochilish}} \\
+          c_2 & \text{agar } t \geq t_{\text{ochilish}}
+          \end{cases}$
+        </div>
+        <p class="muted">Bu yerda $c_2 \gg c_1$ (parashyut ochilganda qarshilik keskin ortadi)</p>
+      </div>
+      <div>
+        <h3>🎯 Terminal Tezlik</h3>
+        <p>Kuchlar muvozanatda bo'lganda:</p>
+        <div class="formula-box">
+          $mg = cv_{\infty}|v_{\infty}|$<br><br>
+          $v_{\infty} = \sqrt{\frac{mg}{c}}$
+        </div>
+        <div class="success-box">
+          <strong>Natija:</strong> Parashyut ochilishi bilan terminal tezlik keskin kamayadi!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-6 BOSQICH: INTERAKTIV SIMULYATOR -->
+  <div class="card">
+    <h2>🖥️ Interaktiv Simulyator</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="sim">📊 Simulyatsiya</div>
+      <div class="tab" data-tab="params">⚙️ Parametrlar Tushuntirishi</div>
+      <div class="tab" data-tab="steps">📋 Qadam-ba-qadam</div>
+      <div class="tab" data-tab="maple">🍁 Maple Kodi</div>
+      <div class="tab" data-tab="tasks">📝 Topshiriqlar</div>
+    </div>
+
+    <!-- SIMULYATSIYA TABI -->
+    <div class="tab-content active" id="tab-sim">
+      <div class="grid2">
+        <div>
+          <h3>🎛️ Parametrlarni sozlash</h3>
+          
+          <div class="parameter-grid">
+            <div class="param-card">
+              <label class="param-label">👤 Massa (m)</label>
+              <div class="param-desc">Parashyutchining massasi. Og'irroq jism tezroq tushadi.</div>
+              <input id="m" type="range" min="50" max="120" step="1" value="80">
+              <span id="vm" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">🌍 Gravitatsiya (g)</label>
+              <div class="param-desc">Erkin tushish tezlanishi. Yer yuzasida ≈ 9.81 m/s²</div>
+              <input id="g" type="range" min="9.5" max="10.5" step="0.05" value="9.81">
+              <span id="vg" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">💨 Havo qarshiligi 1 (c₁)</label>
+              <div class="param-desc">Parashyut ochilgunga qadar qarshilik koeffitsienti</div>
+              <input id="c1" type="range" min="0.05" max="1.0" step="0.01" value="0.25">
+              <span id="vc1" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">🪂 Havo qarshiligi 2 (c₂)</label>
+              <div class="param-desc">Parashyut ochilgandan keyin qarshilik koeffitsienti</div>
+              <input id="c2" type="range" min="8" max="35" step="0.5" value="18">
+              <span id="vc2" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">⏰ Ochilish vaqti (t_open)</label>
+              <div class="param-desc">Parashyut qachon ochiladi (sekundlarda)</div>
+              <input id="topen" type="range" min="3" max="15" step="0.2" value="8">
+              <span id="vto" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">📏 Balandlik (h₀)</label>
+              <div class="param-desc">Boshlang'ich balandlik (metrda)</div>
+              <input id="h0" type="range" min="200" max="4000" step="100" value="1500">
+              <span id="vh0" class="param-range"></span>
+            </div>
+          </div>
+
+          <div class="parameter-grid" style="grid-template-columns:repeat(3,1fr)">
+            <div class="param-card">
+              <label class="param-label">🔄 Silliqlik (k)</label>
+              <div class="param-desc">O'tish qanchalik silliq bo'ladi</div>
+              <input id="k" type="range" min="1" max="10" step="0.5" value="4">
+              <span id="vk" class="param-range"></span>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">⏱️ Simulyatsiya vaqti</label>
+              <input id="tmax" type="number" value="60" min="20" max="120" step="5">
+              <div class="param-range">sekund</div>
+            </div>
+            
+            <div class="param-card">
+              <label class="param-label">🔄 O'tish turi</label>
+              <select id="ctype">
+                <option value="smooth">Silliq (sigmoid)</option>
+                <option value="piece">Keskin (parcha-parcha)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn" id="run">🚀 Simulyatsiyani ishga tushirish</button>
+            <button class="btn outline" id="reset">🔄 Qayta tiklash</button>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn secondary" id="pngV">📸 v(t) grafikni saqlash</button>
+            <button class="btn secondary" id="pngY">📸 y(t) grafikni saqlash</button>
+            <button class="btn secondary" id="csvV">📊 v(t) ma'lumotlar</button>
+            <button class="btn secondary" id="csvY">📊 y(t) ma'lumotlar</button>
+          </div>
+
+          <!-- KPI KARTALAR -->
+          <h3>📈 Natijalar</h3>
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_v1">--</span>
+              <div class="kpi-label">Terminal tezlik (ochilgunga qadar)</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_v2">--</span>
+              <div class="kpi-label">Terminal tezlik (ochilgandan keyin)</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_t95">--</span>
+              <div class="kpi-label">95% terminal tezlikka yetish vaqti</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_tland">--</span>
+              <div class="kpi-label">Yerga yetish vaqti</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_vland">--</span>
+              <div class="kpi-label">Yerga kelgandagi tezlik</div>
+            </div>
+            <div class="kpi-card">
+              <span class="kpi-value" id="k_safety">--</span>
+              <div class="kpi-label">Xavfsizlik darajasi</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>📊 Grafiklar</h3>
+          <div class="info-box">
+            <strong>Grafik tushuntirishi:</strong><br>
+            • <span style="color:#2563eb">🔵 Ko'k chiziq</span> - Tezlik o'zgarishi v(t)<br>
+            • <span style="color:#f59e0b">🟠 Sariq chiziq</span> - Terminal tezlik (ochilgunga qadar)<br>
+            • <span style="color:#22c55e">🟢 Yashil chiziq</span> - Terminal tezlik (ochilgandan keyin)<br>
+            • <span style="color:#ef4444">🔴 Qizil nuqta</span> - Parashyut ochilish payi
+          </div>
+          
+          <h4>Tezlik vaqtga bog'liqligi - v(t)</h4>
+          <canvas id="cvV" width="900" height="400"></canvas>
+          
+          <h4>Balandlik vaqtga bog'liqligi - y(t)</h4>
+          <canvas id="cvY" width="900" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARAMETRLAR TUSHUNTIRISHI TABI -->
+    <div class="tab-content" id="tab-params">
+      <h3>⚙️ Har bir parametrning ma'nosi va ta'siri</h3>
+      
+      <div class="grid2">
+        <div>
+          <div class="step-card">
+            <span class="step-number">m</span>
+            <strong>Massa (kg):</strong> Parashyutchining massasi. Massa ortishi bilan terminal tezlik ham ortadi, chunki $v_∞ = \sqrt{mg/c}$ formulasida massa surdi ostida turadi.
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">g</span>
+            <strong>Gravitatsiya tezlanishi (m/s²):</strong> Yerning tortish kuchi. Odatda 9.81 m/s² qilib olinadi, lekin balandlik va geografik joylashuvga qarab ozgina farq qilishi mumkin.
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">c₁</span>
+            <strong>Qarshilik koeffitsienti 1:</strong> Parashyut ochilgunga qadar havoning qarshilik darajasi. Kichik qiymat - kam qarshilik, yuqori tezlik.
+          </div>
+        </div>
+        
+        <div>
+          <div class="step-card">
+            <span class="step-number">c₂</span>
+            <strong>Qarshilik koeffitsienti 2:</strong> Parashyut ochilgandan keyin qarshilik keskin ortadi. Odatda c₁ dan 20-100 marta katta bo'ladi.
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">t</span>
+            <strong>Ochilish vaqti:</strong> Parashyut qachon ochiladi. Erta ochilsa - ko'proq vaqt sekin tushadi. Kech ochilsa - tezroq yetib keladi.
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">h₀</span>
+            <strong>Boshlang'ich balandlik:</strong> Qanchalik baland joydan sakrash boshlansa, shunchalik ko'p vaqt bo'ladi.
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <strong>⚠️ E'tibor bering:</strong> Real parashyut sakrashida parashyut odatda 500-1500 metr balandlikda ochiladi. 
+        Juda past balandlikda ochilsa, parashyutchi xavf ostida qoladi!
+      </div>
+    </div>
+
+    <!-- QADAM-BA-QADAM TABI -->
+    <div class="tab-content" id="tab-steps">
+      <h3>📋 Simulyatsiya qadamlari</h3>
+      
+      <div class="grid2">
+        <div>
+          <div class="step-card">
+            <span class="step-number">1</span>
+            <strong>Matematik model:</strong> Harakat tenglamalarini tuzamiz: $v' = g - \frac{c(t)}{m}v|v|$ va $y' = v$
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">2</span>
+            <strong>Boshlang'ich shartlar:</strong> $t=0$ da $v=0$ (tinch holat), $y=h_0$ (berilgan balandlik)
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">3</span>
+            <strong>Raqamli yechim:</strong> Runge-Kutta 4-tartibli usuli bilan vaqt bo'yicha integrallash
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">4</span>
+            <strong>Parashyut ta'siri:</strong> $t = t_{ochilish}$ paytida $c_1 \to c_2$ ga silliq yoki keskin o'tish
+          </div>
+        </div>
+        
+        <div>
+          <div class="step-card">
+            <span class="step-number">5</span>
+            <strong>Terminal tezlik hisoblash:</strong> $v_∞ = \sqrt{mg/c}$ formulasi bilan ikkita qiymat topamiz
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">6</span>
+            <strong>Grafik chizish:</strong> Tezlik va balandlik grafiklarini vaqt bo'yicha ko'rsatamiz
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">7</span>
+            <strong>Tahlil:</strong> Yerga yetish vaqti, oxirgi tezlik va xavfsizlik darajasini hisoblaymiz
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">8</span>
+            <strong>Xulosalar:</strong> Turli parametrlar qanday ta'sir qilishini taqqoslaymiz
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>💡 Pedagogik maslahat:</strong> Avval bir parametrni o'zgartiring va natijani kuzating. 
+        Keyin bir nechta parametrni birga o'zgartirib, ularning o'zaro ta'sirini o'rganing.
+      </div>
+    </div>
+
+    <!-- MAPLE KODI TABI -->
+    <div class="tab-content" id="tab-maple">
+      <div class="grid2">
+        <div>
+          <h3>🍁 Maple dasturlash tili uchun kod</h3>
+          <div class="info-box">
+            Bu kodni Maple dasturida ishlatib, xuddi shu simulyatsiyani o'zingiz ham yarata olasiz. 
+            Kod sizning joriy parametrlaringizga moslashtirilgan.
+          </div>
+          
+          <pre id="mapleCode">Kod yuklanmoqda...</pre>
+          <button class="btn" id="copyMaple">📋 Kodni nusxalash</button>
+        </div>
+        
+        <div>
+          <h3>🤔 Nega Maple?</h3>
+          <div class="step-card">
+            <span class="step-number">🔬</span>
+            <strong>Ilmiy hisoblash:</strong> Differensial tenglamalarni tez va aniq yechadi
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">📊</span>
+            <strong>Vizualizatsiya:</strong> Professional grafiklar va animatsiyalar yaratadi
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">🎓</span>
+            <strong>Ta'lim:</strong> Talabalar matematik modellarni chuqurroq o'rganishlari mumkin
+          </div>
+          
+          <div class="success-box">
+            <strong>✅ Afzallik:</strong> Simulyatorni sinab ko'rgandan keyin, Maple da chuqurroq tadqiqot olib borish mumkin!
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPSHIRIQLAR TABI -->
+    <div class="tab-content" id="tab-tasks">
+      <h3>📝 Amaliy topshiriqlar va nazоrat savollari</h3>
+      
+      <div class="grid2">
+        <div>
+          <h4>🔬 Tadqiqot topshiriqlari</h4>
+          
+          <div class="step-card">
+            <span class="step-number">1</span>
+            <strong>Ochilish vaqtini taqqoslang:</strong> $t_{ochilish}$ ni 5s, 8s, 12s qilib o'zgartiring. 
+            Qaysi holda eng xavfsiz (sekin) qo'nish bo'ladi?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">2</span>
+            <strong>Massa ta'sirini tekshiring:</strong> 60kg va 100kg massalar uchun terminal tezliklarni solishtiring. 
+            Qaysi biri tezroq tushadi?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">3</span>
+            <strong>Parashyut samaradorligi:</strong> $c_2$ ni 15 dan 30 gacha oshiring. 
+            Qanday o'zgarishlarni kuzatasiz?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">4</span>
+            <strong>Xavfsizlik tahlili:</strong> Qaysi parametrlar kombinatsiyasi eng xavfsiz qo'nishni ta'minlaydi? 
+            (yerga kelgandagi tezlik 5 m/s dan kam bo'lsin)
+          </div>
+        </div>
+        
+        <div>
+          <h4>❓ Nazоrat savollari</h4>
+          
+          <div class="step-card">
+            <span class="step-number">❓</span>
+            <strong>Fizik tushuncha:</strong> Nima uchun erkin tushish paytida tezlik barqarorlashadi? 
+            Qaysi kuchlar muvozanatda bo'ladi?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">❓</span>
+            <strong>Matematik model:</strong> Agar havo qarshiligi bo'lmasa, harakat tenglamasi qanday ko'rinishda bo'ladi? 
+            Bu holda terminal tezlik mavjudmi?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">❓</span>
+            <strong>Amaliy masala:</strong> Real parashyutchilar odatda qanday balandlikdan sakraydi va qachon parashyut ochadilar? 
+            Bizning modelimiz reallikka qanchalik yaqin?
+          </div>
+          
+          <div class="step-card">
+            <span class="step-number">❓</span>
+            <strong>Matematik tahlil:</strong> $v_∞ = \sqrt{mg/c}$ formulasida qaysi parametr eng kuchli ta'sir ko'rsatadi? 
+            Nega?
+          </div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <strong>🎯 Maqsad:</strong> Bu topshiriqlarni bajarib, siz real dunyodagi murakkab jarayonlarni matematik model yordamida 
+        qanday tahlil qilish mumkinligini o'rganasiz. Bu ko'nikma muhandislik va fanlarda juda muhim!
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULYATOR LOGIKASI ===== -->
+<script>
+// ========== UTILITY FUNCTIONS ==========
+function $(id) { return document.getElementById(id); }
+
+function updateLabels() {
+  const params = [
+    {id: 'm', output: 'vm', suffix: ' kg'},
+    {id: 'g', output: 'vg', suffix: ' m/s²'},
+    {id: 'c1', output: 'vc1', suffix: ''},
+    {id: 'c2', output: 'vc2', suffix: ''},
+    {id: 'topen', output: 'vto', suffix: ' s'},
+    {id: 'k', output: 'vk', suffix: ''},
+    {id: 'h0', output: 'vh0', suffix: ' m'}
+  ];
+  
+  params.forEach(({id, output, suffix}) => {
+    const element = $(id);
+    const outputElement = $(output);
+    if (element && outputElement) {
+      outputElement.textContent = parseFloat(element.value).toFixed(2) + suffix;
+    }
+  });
+}
+
+function downloadFile(content, filename, mimeType = 'text/plain') {
+  const blob = new Blob([content], {type: mimeType + ';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadCanvasAsPNG(canvas, filename) {
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ========== PHYSICS MODEL ==========
+function getDragCoefficient(t, params) {
+  if (params.ctype === 'piece') {
+    return t < params.topen ? params.c1 : params.c2;
+  } else {
+    // Smooth transition using sigmoid function
+    return params.c1 + (params.c2 - params.c1) / (1 + Math.exp(-params.k * (t - params.topen)));
+  }
+}
+
+function velocityDerivative(t, v, params) {
+  const c = getDragCoefficient(t, params);
+  return params.g - (c / params.m) * v * Math.abs(v);
+}
+
+function rk4Step(f, t, y, h, params) {
+  const k1 = f(t, y, params);
+  const k2 = f(t + h/2, y + h*k1/2, params);
+  const k3 = f(t + h/2, y + h*k2/2, params);
+  const k4 = f(t + h, y + h*k3, params);
+  return y + h * (k1 + 2*k2 + 2*k3 + k4) / 6;
+}
+
+// ========== SIMULATION ==========
+function runSimulation() {
+  const params = {
+    m: parseFloat($('m').value),
+    g: parseFloat($('g').value),
+    c1: parseFloat($('c1').value),
+    c2: parseFloat($('c2').value),
+    topen: parseFloat($('topen').value),
+    k: parseFloat($('k').value),
+    tmax: parseFloat($('tmax').value),
+    h0: parseFloat($('h0').value),
+    ctype: $('ctype').value
+  };
+
+  const dt = 0.01; // Time step
+  const maxSteps = Math.floor(params.tmax / dt);
+  
+  let t = 0;
+  let v = 0; // Initial velocity
+  let y = params.h0; // Initial height
+  
+  const velocityData = [];
+  const heightData = [];
+  
+  velocityData.push([t, v]);
+  heightData.push([t, y]);
+  
+  let landed = false;
+  let landingTime = null;
+  let landingVelocity = null;
+  
+  for (let i = 0; i < maxSteps && !landed; i++) {
+    const vNew = rk4Step(velocityDerivative, t, v, dt, params);
+    const yNew = y + dt * v; // y' = v
+    
+    t += dt;
+    v = vNew;
+    y = yNew;
+    
+    velocityData.push([t, v]);
+    heightData.push([t, y]);
+    
+    // Check for landing
+    if (y <= 0 && !landed) {
+      // Linear interpolation to find exact landing time
+      const prevY = heightData[heightData.length - 2][1];
+      const prevT = heightData[heightData.length - 2][0];
+      const prevV = velocityData[velocityData.length - 2][1];
+      
+      const ratio = prevY / (prevY - y);
+      landingTime = prevT + ratio * dt;
+      landingVelocity = prevV + ratio * (v - prevV);
+      landed = true;
+    }
+  }
+  
+  return {
+    velocityData,
+    heightData,
+    params,
+    landingTime,
+    landingVelocity
+  };
+}
+
+// ========== PLOTTING ==========
+function clearCanvas(ctx, canvas) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw grid
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= canvas.width; x += 50) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= canvas.height; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+  
+  // Draw border
+  ctx.strokeStyle = '#e2e8f0';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
+}
+
+function getDataBounds(data) {
+  if (data.length === 0) return {minX: 0, maxX: 1, minY: 0, maxY: 1};
+  
+  const xValues = data.map(d => d[0]);
+  const yValues = data.map(d => d[1]);
+  
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  let minY = Math.min(...yValues);
+  let maxY = Math.max(...yValues);
+  
+  // Add padding
+  const yRange = maxY - minY;
+  if (yRange === 0) {
+    minY -= 1;
+    maxY += 1;
+  } else {
+    const padding = yRange * 0.1;
+    minY -= padding;
+    maxY += padding;
+  }
+  
+  return {minX, maxX, minY, maxY};
+}
+
+function dataToCanvas(x, y, bounds, canvas) {
+  const margin = 40;
+  const plotWidth = canvas.width - 2 * margin;
+  const plotHeight = canvas.height - 2 * margin;
+  
+  const canvasX = margin + (x - bounds.minX) / (bounds.maxX - bounds.minX) * plotWidth;
+  const canvasY = margin + (bounds.maxY - y) / (bounds.maxY - bounds.minY) * plotHeight;
+  
+  return [canvasX, canvasY];
+}
+
+function plotData(ctx, canvas, data, color = '#2563eb', lineWidth = 3) {
+  if (data.length < 2) return null;
+  
+  const bounds = getDataBounds(data);
+  
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.beginPath();
+  
+  const [startX, startY] = dataToCanvas(data[0][0], data[0][1], bounds, canvas);
+  ctx.moveTo(startX, startY);
+  
+  for (let i = 1; i < data.length; i++) {
+    const [x, y] = dataToCanvas(data[i][0], data[i][1], bounds, canvas);
+    ctx.lineTo(x, y);
+  }
+  
+  ctx.stroke();
+  
+  return bounds;
+}
+
+function drawTerminalLines(ctx, canvas, bounds, v1, v2, tOpen) {
+  ctx.setLineDash([8, 4]);
+  ctx.lineWidth = 2;
+  
+  // Terminal velocity before parachute opens
+  ctx.strokeStyle = '#f59e0b';
+  ctx.beginPath();
+  const [x1, y1] = dataToCanvas(bounds.minX, v1, bounds, canvas);
+  const [x2, y2] = dataToCanvas(bounds.maxX, v1, bounds, canvas);
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  
+  // Terminal velocity after parachute opens
+  ctx.strokeStyle = '#22c55e';
+  ctx.beginPath();
+  const [x3, y3] = dataToCanvas(bounds.minX, v2, bounds, canvas);
+  const [x4, y4] = dataToCanvas(bounds.maxX, v2, bounds, canvas);
+  ctx.moveTo(x3, y3);
+  ctx.lineTo(x4, y4);
+  ctx.stroke();
+  
+  // Parachute opening time
+  ctx.strokeStyle = '#ef4444';
+  ctx.setLineDash([4, 2]);
+  ctx.beginPath();
+  const [openX1, openY1] = dataToCanvas(tOpen, bounds.minY, bounds, canvas);
+  const [openX2, openY2] = dataToCanvas(tOpen, bounds.maxY, bounds, canvas);
+  ctx.moveTo(openX1, openY1);
+  ctx.lineTo(openX2, openY2);
+  ctx.stroke();
+  
+  ctx.setLineDash([]);
+}
+
+// ========== KPI CALCULATIONS ==========
+function calculateKPIs(result) {
+  const {velocityData, params, landingTime, landingVelocity} = result;
+  
+  // Terminal velocities
+  const v1 = Math.sqrt(params.m * params.g / params.c1);
+  const v2 = Math.sqrt(params.m * params.g / params.c2);
+  
+  // Time to reach 95% of terminal velocity after parachute opens
+  let t95 = null;
+  const threshold = 0.95 * v2;
+  
+  for (let i = 0; i < velocityData.length; i++) {
+    const [t, v] = velocityData[i];
+    if (t >= params.topen && Math.abs(v) >= threshold) {
+      t95 = t;
+      break;
+    }
+  }
+  
+  // Safety assessment
+  let safety = "Xavfli";
+  if (landingVelocity !== null) {
+    if (Math.abs(landingVelocity) < 5) safety = "Xavfsiz";
+    else if (Math.abs(landingVelocity) < 8) safety = "Qoniqarli";
+    else if (Math.abs(landingVelocity) < 12) safety = "Ehtiyotkorlik";
+  }
+  
+  return {v1, v2, t95, landingTime, landingVelocity, safety};
+}
+
+function updateKPIDisplay(kpis) {
+  $('k_v1').textContent = kpis.v1.toFixed(2);
+  $('k_v2').textContent = kpis.v2.toFixed(2);
+  $('k_t95').textContent = kpis.t95 ? kpis.t95.toFixed(2) + ' s' : 'N/A';
+  $('k_tland').textContent = kpis.landingTime ? kpis.landingTime.toFixed(2) + ' s' : 'N/A';
+  $('k_vland').textContent = kpis.landingVelocity ? Math.abs(kpis.landingVelocity).toFixed(2) + ' m/s' : 'N/A';
+  $('k_safety').textContent = kpis.safety;
+  
+  // Color code safety
+  const safetyElement = $('k_safety');
+  safetyElement.style.color = 
+    kpis.safety === 'Xavfsiz' ? '#22c55e' :
+    kpis.safety === 'Qoniqarli' ? '#f59e0b' :
+    kpis.safety === 'Ehtiyotkorlik' ? '#ef4444' : '#dc2626';
+}
+
+// ========== MAPLE CODE GENERATION ==========
+function generateMapleCode(params) {
+  return `restart: with(plots):
+
+# Parametrlar
+m := ${params.m}:  # massa (kg)
+g := ${params.g}:  # gravitatsiya tezlanishi (m/s²)
+c1 := ${params.c1}: # qarshilik koeffitsienti (ochilgunga qadar)
+c2 := ${params.c2}: # qarshilik koeffitsienti (ochilgandan keyin)
+t_open := ${params.topen}: # parashyut ochilish vaqti (s)
+h0 := ${params.h0}:  # boshlang'ich balandlik (m)
+
+# Silliq o'tish funksiyasi (sigmoid)
+c_func := t -> c1 + (c2-c1)/(1+exp(-${params.k}*(t-t_open))):
+
+# Differensial tenglamalar
+de := {
+  diff(v(t),t) = g - (c_func(t)/m)*v(t)*abs(v(t)),
+  diff(y(t),t) = v(t)
+}:
+
+# Boshlang'ich shartlar
+ic := { v(0) = 0, y(0) = h0 }:
+
+# Tenglamalarni yechish
+sol := dsolve(de union ic, numeric, output=listprocedure):
+
+# Terminal tezliklarni hisoblash
+v_terminal_1 := sqrt(m*g/c1):
+v_terminal_2 := sqrt(m*g/c2):
+
+printf("Terminal tezlik (ochilgunga qadar): %.2f m/s\\n", v_terminal_1);
+printf("Terminal tezlik (ochilgandan keyin): %.2f m/s\\n", v_terminal_2);
+
+# Tezlik grafigi
+velocity_plot := odeplot(sol, [t, v(t)], 0..${params.tmax}, 
+                        color=blue, thickness=3,
+                        title="Tezlik vaqtga bog'liqligi"):
+
+# Balandlik grafigi  
+height_plot := odeplot(sol, [t, y(t)], 0..${params.tmax},
+                      color=purple, thickness=3, 
+                      title="Balandlik vaqtga bog'liqligi"):
+
+# Grafiklarni ko'rsatish
+display(velocity_plot);
+display(height_plot);
+
+# Terminal tezliklarni chiziq sifatida qo'shish
+terminal_lines := plot([v_terminal_1, v_terminal_2], t=0..${params.tmax},
+                      color=[orange, green], linestyle=dash,
+                      legend=["v∞ (oldin)", "v∞ (keyin)"]):
+
+display([velocity_plot, terminal_lines]);`;
+}
+
+// ========== MAIN EXECUTION ==========
+let lastResult = null;
+
+function runMain() {
+  updateLabels();
+  const result = runSimulation();
+  lastResult = result;
+  
+  const velocityCanvas = $('cvV');
+  const heightCanvas = $('cvY');
+  const velocityCtx = velocityCanvas.getContext('2d');
+  const heightCtx = heightCanvas.getContext('2d');
+  
+  // Clear and plot velocity
+  clearCanvas(velocityCtx, velocityCanvas);
+  const velocityBounds = plotData(velocityCtx, velocityCanvas, result.velocityData, '#2563eb');
+  
+  if (velocityBounds) {
+    const v1 = Math.sqrt(result.params.m * result.params.g / result.params.c1);
+    const v2 = Math.sqrt(result.params.m * result.params.g / result.params.c2);
+    drawTerminalLines(velocityCtx, velocityCanvas, velocityBounds, v1, v2, result.params.topen);
+  }
+  
+  // Clear and plot height
+  clearCanvas(heightCtx, heightCanvas);
+  plotData(heightCtx, heightCanvas, result.heightData, '#7c3aed');
+  
+  // Update KPIs
+  const kpis = calculateKPIs(result);
+  updateKPIDisplay(kpis);
+  
+  // Update Maple code
+  $('mapleCode').textContent = generateMapleCode(result.params);
+}
+
+function resetParameters() {
+  $('m').value = 80;
+  $('g').value = 9.81;
+  $('c1').value = 0.25;
+  $('c2').value = 18;
+  $('topen').value = 8;
+  $('k').value = 4;
+  $('h0').value = 1500;
+  $('tmax').value = 60;
+  $('ctype').value = 'smooth';
+  runMain();
+}
+
+// ========== EVENT LISTENERS ==========
+$('run').addEventListener('click', runMain);
+$('reset').addEventListener('click', resetParameters);
+
+$('pngV').addEventListener('click', () => {
+  downloadCanvasAsPNG($('cvV'), 'velocity_graph.png');
+});
+
+$('pngY').addEventListener('click', () => {
+  downloadCanvasAsPNG($('cvY'), 'height_graph.png');
+});
+
+$('csvV').addEventListener('click', () => {
+  if (lastResult) {
+    const csv = 'Vaqt(s),Tezlik(m/s)\n' + 
+                lastResult.velocityData.map(row => row.join(',')).join('\n');
+    downloadFile(csv, 'velocity_data.csv', 'text/csv');
+  }
+});
+
+$('csvY').addEventListener('click', () => {
+  if (lastResult) {
+    const csv = 'Vaqt(s),Balandlik(m)\n' + 
+                lastResult.heightData.map(row => row.join(',')).join('\n');
+    downloadFile(csv, 'height_data.csv', 'text/csv');
+  }
+});
+
+$('copyMaple').addEventListener('click', () => {
+  const code = $('mapleCode').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    $('copyMaple').textContent = '✅ Nusxalandi!';
+    setTimeout(() => {
+      $('copyMaple').textContent = '📋 Kodni nusxalash';
+    }, 2000);
+  });
+});
+
+// Add input listeners for real-time updates
+['m', 'g', 'c1', 'c2', 'topen', 'k', 'h0'].forEach(id => {
+  $(id).addEventListener('input', updateLabels);
+});
+
+// ========== TAB FUNCTIONALITY ==========
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    // Remove active class from all tabs and contents
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    // Add active class to clicked tab and corresponding content
+    tab.classList.add('active');
+    $('tab-' + tab.dataset.tab).classList.add('active');
+  });
+});
+
+// ========== INITIALIZATION ==========
+updateLabels();
+runMain();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>A1 — Mapleda differensial tenglamalarni yechish (Interaktiv + Onlayn laboratoriya)</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<!-- math.js -->
+<script src="https://cdn.jsdelivr.net/npm/mathjs@11.11.0/lib/browser/math.min.js"></script>
+
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;line-height:1.55;color:#1f2937;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .header{background:#fff;border-radius:16px;padding:28px;margin-bottom:22px;box-shadow:0 8px 28px rgba(0,0,0,.15);text-align:center}
+  .header h1{margin:0 0 6px 0;font-size:32px;color:#1f2937}
+  .header p{margin:0;color:#64748b}
+  .card{background:#fff;border-radius:16px;padding:22px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-bottom:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{background:#0ea5e9;border:none;color:#fff;padding:8px 14px;border-radius:999px;cursor:pointer;font-size:14px}
+  .btn.secondary{background:#334155}
+  .btn.ghost{background:#f1f5f9;color:#0f172a}
+  .btn.success{background:#059669}
+  .btn.warn{background:#d97706}
+  .btn:hover{filter:brightness(1.05)}
+  .muted{color:#64748b;font-size:13px}
+  .split{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}
+  @media (max-width:1100px){.split{grid-template-columns:1fr}}
+  canvas{width:100%;height:420px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px}
+  .tabs{display:flex;flex-wrap:wrap;border-bottom:2px solid #e5e7eb;margin-bottom:12px}
+  .tab{padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+  .tab.active{border-bottom-color:#0ea5e9;color:#0ea5e9}
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+  .panel{background:#f8fafc;border-radius:12px;padding:12px;border:1px solid #e5e7eb}
+  .panel h3{margin:0 0 8px 0;font-size:16px;color:#0f172a}
+  .codewrap{background:#0b1020;color:#e6edf3;border-radius:12px;padding:14px}
+  pre{margin:0;white-space:pre-wrap;overflow:auto;font-family:ui-monospace,Menlo,Consolas,"Courier New",monospace;font-size:13px;border-left:4px solid #22d3ee;padding-left:10px}
+  .info-table{width:100%;border-collapse:collapse}
+  .info-table th,.info-table td{padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left}
+  .info-table th{background:#38bdf8;color:#fff}
+  input[type=range]{width:220px}
+  input[type=number],select,textarea{padding:8px;border:1px solid #cbd5e1;border-radius:8px}
+  textarea{width:100%;min-height:90px}
+  .ok{color:#059669;font-weight:600}
+  .bad{color:#dc2626;font-weight:600}
+  .iframe-box{position:relative;padding-top:56.25%;background:#e2e8f0;border-radius:12px;overflow:hidden}
+  .iframe-box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .badge{display:inline-block;background:#e2e8f0;color:#0f172a;border-radius:999px;padding:2px 8px;font-size:12px;margin-left:6px}
+  .software-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+  .soft{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:12px;padding:12px;text-align:center;cursor:pointer;border:2px solid transparent}
+  .soft.active{border-color:#22d3ee;box-shadow:0 0 0 3px rgba(34,211,238,.25) inset}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>A1 — Mapleda differensial tenglamalarni yechish</h1>
+    <p>Real modellar • Interaktiv sliderlar • Euler/RK • Grafik/CSV yuklab olish • Talaba yechimini tekshirish • <b>Onlayn laboratoriya</b></p>
+  </div>
+
+  <!-- Ma'lumotlar -->
+  <div class="card">
+    <h2>📋 Amaliy ma’lumot</h2>
+    <table class="info-table">
+      <tr><th>Kod</th><td>A1</td></tr>
+      <tr><th>Mavzu</th><td>Mapleda differensial tenglamalarni yechish</td></tr>
+      <tr><th>Nima uchun mos?</th><td>Grafik yechimlar, real muammo modellashtirish</td></tr>
+      <tr><th>Vosita</th><td>Maple (Learn), MATLAB/Desmos/GeoGebra (qo‘shimcha vizual)</td></tr>
+    </table>
+  </div>
+
+  <!-- Interaktiv modul -->
+  <div class="card">
+    <h2>🎛️ Model tanlang va yeching</h2>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="sim">Simulyatsiya</div>
+      <div class="tab" data-tab="steps">Qadam-baqadam</div>
+      <div class="tab" data-tab="student">Talaba tekshiruvchisi</div>
+      <div class="tab" data-tab="maple">Maple kodi</div>
+      <div class="tab" data-tab="labs">Onlayn laboratoriya</div>
+    </div>
+
+    <!-- SIM -->
+    <div class="tab-content active" id="tab-sim">
+      <div class="split">
+        <div class="panel">
+          <h3>Model & parametrlar</h3>
+          <div class="row" style="margin-top:6px">
+            <label><input type="radio" name="model" value="cooling" checked> Newton sovishi <span class="badge">$y'=-k(y-T_a)$</span></label>
+            <label><input type="radio" name="model" value="logistic"> Logistik o‘sish <span class="badge">$y'=ry(1-y/K)$</span></label>
+            <label><input type="radio" name="model" value="rc"> RC zanjir <span class="badge">$q'+\frac1{RC}q=\frac{V}{R}$</span></label>
+            <label><input type="radio" name="model" value="tank"> Hovuz to‘lishi <span class="badge">$V'=a-bV$</span></label>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <label>$t_{max}$ <input type="number" id="tmax" value="20" step="1" style="width:90px"></label>
+            <label>$h$ <input type="number" id="h" value="0.05" step="0.01" min="0.001" style="width:90px"></label>
+            <label>$y(0)$ <input type="number" id="y0" value="100" step="0.1" style="width:90px"></label>
+          </div>
+
+          <div id="paramBox" class="row" style="margin-top:6px"></div>
+
+          <div class="row" style="margin-top:8px">
+            <label>Usul:
+              <select id="solver">
+                <option value="euler">Euler</option>
+                <option value="rk2">RK2</option>
+                <option value="rk4" selected>RK4</option>
+              </select>
+            </label>
+            <button class="btn" id="run">Chizish</button>
+            <button class="btn ghost" id="clear">Tozalash</button>
+            <button class="btn secondary" id="savePng">PNG yuklash</button>
+            <button class="btn secondary" id="saveCsv">CSV yuklash</button>
+          </div>
+
+          <div class="muted" style="margin-top:8px">
+            Grafik: ko‘k — yechim; kulrang — kataklar. Parametr va usulni almashtirib taqqoslang.
+          </div>
+        </div>
+
+        <div class="panel">
+          <canvas id="plot" width="900" height="420"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEPS -->
+    <div class="tab-content" id="tab-steps">
+      <div class="split">
+        <div class="panel">
+          <h3>Qadam-baqadam tushuntirish</h3>
+          <div id="stepsBox" style="font-size:15px; line-height:1.7"></div>
+        </div>
+        <div class="panel">
+          <h3>Model haqida qisqa izoh</h3>
+          <div id="aboutBox" class="muted"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENT -->
+    <div class="tab-content" id="tab-student">
+      <div class="split">
+        <div class="panel">
+          <h3>Analitik yechimni kiriting</h3>
+          <div class="muted" style="margin-bottom:8px">
+            Newton sovishi uchun: <code>Ta + (y0 - Ta)*exp(-k*t)</code>.  
+            O‘zgaruvchilar: <code>t, y0, k, Ta, r, K, R, C, V, a, b</code>.
+          </div>
+          <textarea id="studentExpr" placeholder="y(t) = ... (faqat o‘ng tomonni yozing)"></textarea>
+          <div class="row" style="margin-top:8px">
+            <button class="btn success" id="checkBtn">Tekshirish</button>
+            <button class="btn ghost" id="autoFill">Namunaviy yechim</button>
+          </div>
+          <div id="checkResult" style="margin-top:10px"></div>
+        </div>
+        <div class="panel">
+          <h3>Tekshirish tartibi</h3>
+          <ol style="margin:0; padding-left:18px">
+            <li>Joriy parametrlar olinadi.</li>
+            <li>Yechim 8–10 nuqtada hisoblanadi.</li>
+            <li>$\\hat y(t)$ bilan farqning maksimumi baholanadi.</li>
+            <li>Agar $\\max\_t |y-\\hat y|$ kichik bo‘lsa — <span class="ok">Ajoyib natija!</span>, aks holda <span class="bad">Qayta urinib ko‘ring!</span></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAPLE KODI -->
+    <div class="tab-content" id="tab-maple">
+      <div class="split">
+        <div class="panel">
+          <h3>Maple kodi (copy‑paste)</h3>
+          <div class="codewrap"><pre id="mapleCode"></pre></div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="copyMaple">Maple kodini nusxalash</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Izoh</h3>
+          <div class="muted">Kodlar parametrlaringizga mos ravishda avtomatik yangilanadi. Maple Desktop yoki Maple Learn’da ishlatishingiz mumkin.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONLAYN LABORATORIYA -->
+    <div class="tab-content" id="tab-labs">
+      <div class="split">
+        <div class="panel">
+          <h3>Onlayn xizmatni tanlang</h3>
+          <div class="software-grid" id="softGrid">
+            <div class="soft active" data-soft="Maple">Maple Learn</div>
+            <div class="soft" data-soft="Matlab">MATLAB Online</div>
+            <div class="soft" data-soft="Desmos">Desmos Calculator</div>
+            <div class="soft" data-soft="GeoGebra">GeoGebra Graphing</div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" id="openOnline">Onlayn xizmatni ochish</button>
+            <button class="btn ghost" id="toggleEmbed" aria-expanded="false">Iframe ko‘rsat</button>
+            <span class="muted" id="onlineNote">Tanlangan xizmat yangi oynada ochiladi yoki sahifaga ko‘rsatiladi.</span>
+          </div>
+        </div>
+        <div class="panel" id="embedWrap" style="display:none">
+          <h3>Ichki ko‘rinish (iframe)</h3>
+          <div class="iframe-box" id="iframeBox"></div>
+          <div class="muted" style="margin-top:6px">Eslatma: MATLAB Online’ga kirishda hisob talab qilinadi.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- Qo'shimcha topshiriqlar -->
+  <div class="card">
+    <h2>🧪 Qo‘shimcha topshiriqlar</h2>
+    <ul style="margin:0 0 6px 18px">
+      <li>Newton sovishi: $k$ va $T_a$ ni o‘zgartirib, $y(t)$ning $T_a$ ga yaqinlashishini kuzating.</li>
+      <li>Logistik: $r$ va $K$ ni almashtirib, barqarorlashish tezligini solishtiring.</li>
+      <li>RC: $R,C,V$ ni o‘zgartirib, vaqt konstanta $RC$ ta’sirini ko‘ring.</li>
+      <li>Hovuz: $a/b$ limitini grafikdan tekshiring.</li>
+    </ul>
+    <div class="muted">Barchasi PNG/CSV qilib yuklab olinadi — hisobotga qo‘shing.</div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+/* ====== Canvas/Download helpers ====== */
+const canvas = document.getElementById('plot');
+const ctx = canvas.getContext('2d');
+
+function drawAxes(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.strokeStyle = '#eef2f7'; ctx.lineWidth = 1;
+  for(let i=0;i<=canvas.width;i+=50){ ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+  for(let i=0;i<=canvas.height;i+=50){ ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
+  ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.5;
+  ctx.strokeRect(40,20,canvas.width-60,canvas.height-60);
+}
+function downloadFromCanvasPNG(c, filename){ const a=document.createElement('a'); a.download=filename; a.href=c.toDataURL('image/png'); a.click(); }
+function downloadText(text, filename, mime='text/plain'){
+  const blob = new Blob([text], {type: mime+';charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function saveStateLS(k,o){ try{localStorage.setItem(k,JSON.stringify(o));}catch(e){} }
+function loadStateLS(k,f){ try{return JSON.parse(localStorage.getItem(k))||f;}catch(e){return f;} }
+
+/* ====== Model definitions ====== */
+const ModelInfo = {
+  cooling: {
+    name:"Newton sovishi",
+    ode:(t,y,p)=> -p.k*(y-p.Ta),
+    params:[
+      {key:'k',label:'k (so‘nish)',min:0.05,max:1,step:0.05,value:0.3},
+      {key:'Ta',label:'T_a (atrof)',min:0,max:40,step:1,value:20}
+    ],
+    about:"Issiq jism atrof muhit temperaturasiga eksponental yaqinlashadi.",
+    stepsHtml:`
+      <ol>
+        <li>Model: $y'=-k(y-T_a)$</li>
+        <li>Ajratish: $\\dfrac{dy}{y-T_a}=-k\\,dt$</li>
+        <li>Integratsiya: $\\ln|y-T_a|=-kt+C$</li>
+        <li>Yechim: $y(t)=T_a+(y_0-T_a)e^{-kt}$</li>
+      </ol>`,
+    maple:(p)=>`restart: with(plots):
+de := diff(y(t),t) = -${p.k}*(y(t)-${p.Ta}):
+sol := dsolve({de, y(0)=y0}, y(t));
+plot(rhs(sol), t=0..${TMAX()}, color=red, thickness=2);`
+  },
+  logistic: {
+    name:"Logistik o‘sish",
+    ode:(t,y,p)=> p.r*y*(1-y/p.K),
+    params:[
+      {key:'r',label:'r (o‘sish)',min:0.1,max:2,step:0.1,value:0.5},
+      {key:'K',label:'K (sig‘im)',min:20,max:300,step:10,value:100}
+    ],
+    about:"Aholi sig‘im $K$ atrofida barqarorlashadi.",
+    stepsHtml:`
+      <ol>
+        <li>Model: $y'=ry(1-y/K)$</li>
+        <li>Ajratish va qator fraksiyalar</li>
+        <li>$y(t)=\\dfrac{K}{1+A e^{-rt}},\\; A=\\dfrac{K-y_0}{y_0}$</li>
+      </ol>`,
+    maple:(p)=>`restart: with(plots):
+de := diff(y(t),t) = ${p.r}*y(t)*(1 - y(t)/${p.K}):
+sol := dsolve({de, y(0)=y0}, y(t));
+plot(rhs(sol), t=0..${TMAX()}, color=blue, thickness=2);`
+  },
+  rc: {
+    name:"RC zanjir",
+    ode:(t,y,p)=> (p.V/p.R) - (1/(p.R*p.C))*y,
+    params:[
+      {key:'R',label:'R',min:0.5,max:10,step:0.5,value:5},
+      {key:'C',label:'C',min:0.05,max:2,step:0.05,value:1},
+      {key:'V',label:'V',min:0,max:10,step:0.5,value:5}
+    ],
+    about:"Zaryad $q(t)$ eksponental o‘zgaradi.",
+    stepsHtml:`
+      <ol>
+        <li>$q' + \\frac{1}{RC}q = \\frac{V}{R}$</li>
+        <li>$q(t)=VC+(q_0-VC)e^{-t/(RC)}$</li>
+      </ol>`,
+    maple:(p)=>`restart: with(plots):
+de := diff(q(t),t) + (1/(${p.R}*${p.C}))*q(t) = ${p.V}/${p.R}:
+sol := dsolve({de, q(0)=q0}, q(t));
+plot(rhs(sol), t=0..${TMAX()}, color=green, thickness=2);`
+  },
+  tank: {
+    name:"Hovuz to‘lishi",
+    ode:(t,y,p)=> p.a - p.b*y,
+    params:[
+      {key:'a',label:'a (kirish)',min:1,max:10,step:0.5,value:5},
+      {key:'b',label:'b (chiqish)',min:0.05,max:1,step:0.05,value:0.2}
+    ],
+    about:"Limit $V(\\infty)=a/b$.",
+    stepsHtml:`
+      <ol>
+        <li>$V' = a - bV$</li>
+        <li>$V(t)=\\frac{a}{b}+(V_0-\\frac{a}{b})e^{-bt}$</li>
+      </ol>`,
+    maple:(p)=>`restart: with(plots):
+de := diff(V(t),t) = ${p.a} - ${p.b}*V(t):
+sol := dsolve({de, V(0)=V0}, V(t));
+plot(rhs(sol), t=0..${TMAX()}, color=purple, thickness=2);`
+  }
+};
+
+const tmaxEl=document.getElementById('tmax');
+const hEl=document.getElementById('h');
+const y0El=document.getElementById('y0');
+const solverEl=document.getElementById('solver');
+const paramBox=document.getElementById('paramBox');
+
+function currentModelKey(){ return document.querySelector('input[name="model"]:checked').value; }
+function TMAX(){ return parseFloat(tmaxEl.value)||20; }
+
+function renderParamSliders(){
+  paramBox.innerHTML="";
+  const cfg=ModelInfo[currentModelKey()];
+  const saved=loadStateLS('a3_state',{});
+  cfg.params.forEach(p=>{
+    const val=(saved?.params?.[p.key] ?? p.value);
+    const wrap=document.createElement('div');
+    wrap.className='row';
+    wrap.innerHTML=`
+      <label>${p.label}</label>
+      <input type="range" id="p_${p.key}" min="${p.min}" max="${p.max}" step="${p.step}" value="${val}">
+      <span id="pv_${p.key}">${val}</span>`;
+    paramBox.appendChild(wrap);
+  });
+}
+function readParams(){
+  const cfg=ModelInfo[currentModelKey()];
+  const P={}; cfg.params.forEach(p=>{ P[p.key]=parseFloat(document.getElementById('p_'+p.key).value); });
+  return P;
+}
+function hookParamEvents(){
+  const cfg=ModelInfo[currentModelKey()];
+  cfg.params.forEach(p=>{
+    const el=document.getElementById('p_'+p.key);
+    const v=document.getElementById('pv_'+p.key);
+    el.addEventListener('input',()=>{ v.textContent=el.value; updateSteps(); saveAllState(); });
+  });
+}
+
+/* ====== Solvers ====== */
+function stepOnce(f,t,y,h,P,m){
+  if(m==='euler') return y+h*f(t,y,P);
+  if(m==='rk2'){ const k1=f(t,y,P),k2=f(t+h/2,y+h*k1/2,P); return y+h*k2; }
+  const k1=f(t,y,P),k2=f(t+h/2,y+h*k1/2,P),k3=f(t+h/2,y+h*k2/2,P),k4=f(t+h,y+h*k3,P);
+  return y+h*(k1+2*k2+2*k3+k4)/6;
+}
+function simulate(){
+  const cfg=ModelInfo[currentModelKey()], f=cfg.ode, P=readParams();
+  const tmax=parseFloat(tmaxEl.value), h=Math.max(0.001,parseFloat(hEl.value)), y0=parseFloat(y0El.value), method=solverEl.value;
+  const N=Math.floor(tmax/h), data=[]; let t=0,y=y0; data.push([t,y]);
+  for(let i=0;i<N;i++){ y=stepOnce(f,t,y,h,P,method); t+=h; data.push([t,y]); }
+  return {data,P};
+}
+
+/* ====== Plot ====== */
+function worldToCanvas(x,y,bb){ const{ x1,x2,y1,y2 }=bb; const W=canvas.width-60,H=canvas.height-60; const ox=40,oy=20; const u=ox+(x-x1)/(x2-x1)*W; const v=oy+(y2-y)/(y2-y1)*H; return [u,v]; }
+function autolims(d){ const xs=d.map(z=>z[0]), ys=d.map(z=>z[1]); const x1=Math.min(...xs),x2=Math.max(...xs); let y1=Math.min(...ys),y2=Math.max(...ys); if(y1===y2){y1-=1;y2+=1;} const padY=(y2-y1)*0.1; return {x1,x2,y1:y1-padY,y2:y2+padY}; }
+function plotData(data){
+  drawAxes(); if(data.length<2) return; const lim=autolims(data);
+  ctx.fillStyle='#475569'; ctx.font='12px Segoe UI';
+  for(let k=0;k<=10;k++){ const x=lim.x1+(lim.x2-lim.x1)*k/10; const [u]=worldToCanvas(x,lim.y1,lim); ctx.fillText(x.toFixed(1),u-8,canvas.height-18); }
+  for(let k=0;k<=6;k++){ const y=lim.y1+(lim.y2-lim.y1)*k/6; const [,v]=worldToCanvas(lim.x1,y,lim); ctx.fillText(y.toFixed(1),6,v+4); }
+  ctx.strokeStyle='#2563eb'; ctx.lineWidth=2.2; ctx.beginPath(); let [u0,v0]=worldToCanvas(data[0][0],data[0][1],lim); ctx.moveTo(u0,v0);
+  for(let i=1;i<data.length;i++){ const [u,v]=worldToCanvas(data[i][0],data[i][1],lim); ctx.lineTo(u,v); } ctx.stroke();
+}
+
+/* ====== Steps/Maple fill ====== */
+const stepsBox=document.getElementById('stepsBox');
+const aboutBox=document.getElementById('aboutBox');
+const mapleCodePre=document.getElementById('mapleCode');
+
+function updateSteps(){
+  const key=currentModelKey(), cfg=ModelInfo[key], P=readParams();
+  stepsBox.innerHTML=cfg.stepsHtml; aboutBox.textContent=cfg.about;
+  const maple=cfg.maple(P).replaceAll('y0',y0El.value).replaceAll('q0',y0El.value).replaceAll('V0',y0El.value);
+  mapleCodePre.textContent=maple; MathJax.typesetPromise?.();
+}
+
+/* ====== Student checker ====== */
+const studentExprEl=document.getElementById('studentExpr');
+document.getElementById('autoFill').addEventListener('click',()=>{
+  const k=currentModelKey(); const P=readParams();
+  const expr = k==='cooling' ? `Ta + (y0 - Ta)*exp(-k*t)` :
+               k==='logistic'? `K / (1 + ((K - y0)/y0)*exp(-r*t))` :
+               k==='rc'      ? `V*C + (y0 - V*C)*exp(-t/(R*C))` :
+                               `a/b + (y0 - a/b)*exp(-b*t)`;
+  studentExprEl.value=expr;
+});
+document.getElementById('checkBtn').addEventListener('click',()=>{
+  const {data,P}=simulate(); const expr=(studentExprEl.value||'').trim();
+  if(!expr){ document.getElementById('checkResult').innerHTML=`<span class="bad">Iltimos, ifodani kiriting.</span>`; return; }
+  const scope={ t:0, y0:parseFloat(y0El.value), k:P.k, Ta:P.Ta, r:P.r, K:P.K, R:P.R, C:P.C, V:P.V, a:P.a, b:P.b, pi:Math.PI, e:Math.E };
+  let maxErr=0; for(let i=0;i<10;i++){ const idx=Math.min(data.length-1,Math.floor(i*(data.length-1)/9)); const t=data[idx][0],y=data[idx][1]; scope.t=t;
+    let yhat; try{ yhat=math.evaluate(expr,scope); }catch(e){ document.getElementById('checkResult').innerHTML=`<span class="bad">Ifodada xato: ${e.message}</span>`; return; }
+    maxErr=Math.max(maxErr,Math.abs(y-yhat)); }
+  const tol=0.02*Math.max(1,Math.abs(data[data.length-1][1]));
+  document.getElementById('checkResult').innerHTML = (maxErr<tol)
+    ? `<span class="ok">✅ Ajoyib natija!</span> (max xato ≈ ${maxErr.toExponential(2)})`
+    : `<span class="bad">❌ Qayta urinib ko‘ring!</span> (max xato ≈ ${maxErr.toExponential(2)})`;
+});
+
+/* ====== Tabs ====== */
+const tabs=document.querySelectorAll('.tab'), tabContents=document.querySelectorAll('.tab-content');
+tabs.forEach(tab=>tab.addEventListener('click',()=>{
+  const t=tab.dataset.tab; tabs.forEach(x=>x.classList.remove('active')); tab.classList.add('active');
+  tabContents.forEach(c=>c.classList.remove('active')); document.getElementById('tab-'+t).classList.add('active'); saveAllState();
+}));
+
+/* ====== Actions ====== */
+document.getElementById('run').addEventListener('click',()=>{ const {data}=simulate(); plotData(data); updateSteps(); saveAllState(); });
+document.getElementById('clear').addEventListener('click',()=>{ ctx.clearRect(0,0,canvas.width,canvas.height); drawAxes(); });
+document.getElementById('savePng').addEventListener('click',()=>downloadFromCanvasPNG(canvas,'ode_plot.png'));
+document.getElementById('saveCsv').addEventListener('click',()=>{ const {data}=simulate(); const csv='t,y\n'+data.map(d=>d[0]+','+d[1]).join('\n'); downloadText(csv,'ode_data.csv','text/csv'); });
+document.getElementById('copyMaple').addEventListener('click',()=>navigator.clipboard.writeText(mapleCodePre.textContent||''));
+
+/* ====== Online Lab (Maple, MATLAB, Desmos, GeoGebra) ====== */
+const ONLINE_URL = {
+  Maple:    "https://www.maplesoft.com/products/MapleLearn/",
+  Matlab:   "https://matlab.mathworks.com/",
+  Desmos:   "https://www.desmos.com/calculator",
+  GeoGebra: "https://www.geogebra.org/graphing"
+};
+const softGrid=document.getElementById('softGrid');
+let currentSoft='Maple', embedVisible=false;
+
+softGrid.addEventListener('click',(e)=>{
+  const item=e.target.closest('.soft'); if(!item) return;
+  currentSoft=item.dataset.soft;
+  [...softGrid.querySelectorAll('.soft')].forEach(s=>s.classList.toggle('active', s.dataset.soft===currentSoft));
+  saveAllState();
+});
+
+document.getElementById('openOnline').addEventListener('click',()=>{
+  const url=ONLINE_URL[currentSoft]; if(url) window.open(url,'_blank','noopener,noreferrer');
+});
+
+const toggleBtn=document.getElementById('toggleEmbed');
+const embedWrap=document.getElementById('embedWrap');
+const iframeBox=document.getElementById('iframeBox');
+
+toggleBtn.addEventListener('click',()=>{
+  embedVisible=!embedVisible;
+  if(embedVisible){
+    iframeBox.innerHTML=`<iframe src="${ONLINE_URL[currentSoft]}" title="${currentSoft}"></iframe>`;
+    embedWrap.style.display='block'; toggleBtn.textContent="Iframe berkit"; toggleBtn.setAttribute('aria-expanded','true');
+  }else{
+    embedWrap.style.display='none'; iframeBox.innerHTML=""; toggleBtn.textContent="Iframe ko‘rsat"; toggleBtn.setAttribute('aria-expanded','false');
+  }
+  saveAllState();
+});
+
+/* ====== State ====== */
+function saveAllState(){
+  const cfg=ModelInfo[currentModelKey()], P=readParams();
+  const state={
+    model:currentModelKey(), tmax:tmaxEl.value, h:hEl.value, y0:y0El.value, solver:solverEl.value,
+    params:P, tab:document.querySelector('.tab.active')?.dataset.tab||'sim',
+    studentExpr:document.getElementById('studentExpr').value||'',
+    onlineSoft:currentSoft, onlineEmbed:embedVisible
+  };
+  saveStateLS('a3_state',state);
+}
+function restoreAllState(){
+  const s=loadStateLS('a3_state',null); if(!s) return;
+  const r=document.querySelector(`input[name="model"][value="${s.model}"]`); if(r) r.checked=true;
+  tmaxEl.value=s.tmax??20; hEl.value=s.h??0.05; y0El.value=s.y0??100; solverEl.value=s.solver??'rk4';
+  renderParamSliders(); if(s.params){ Object.entries(s.params).forEach(([k,v])=>{ const el=document.getElementById('p_'+k), lbl=document.getElementById('pv_'+k); if(el){ el.value=v; if(lbl) lbl.textContent=v; } }); }
+  if(s.tab){ document.querySelector(`.tab[data-tab="${s.tab}"]`)?.click(); }
+  if(s.studentExpr) document.getElementById('studentExpr').value=s.studentExpr;
+  if(s.onlineSoft){ currentSoft=s.onlineSoft; [...softGrid.querySelectorAll('.soft')].forEach(x=>x.classList.toggle('active', x.dataset.soft===currentSoft)); }
+  embedVisible=!!s.onlineEmbed; if(embedVisible){ embedWrap.style.display='block'; iframeBox.innerHTML=`<iframe src="${ONLINE_URL[currentSoft]}" title="${currentSoft}"></iframe>`; toggleBtn.textContent="Iframe berkit"; toggleBtn.setAttribute('aria-expanded','true'); }
+}
+
+/* ====== Init ====== */
+function initUI(){ renderParamSliders(); hookParamEvents(); drawAxes(); updateSteps(); }
+document.querySelectorAll('input[name="model"]').forEach(r=>r.addEventListener('change',()=>{ renderParamSliders(); hookParamEvents(); updateSteps(); saveAllState(); }));
+window.addEventListener('load',()=>{ initUI(); restoreAllState(); const {data}=simulate(); plotData(data); });
+</script>
+
+</body>
+</html>
