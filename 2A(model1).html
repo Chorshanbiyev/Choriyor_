@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mapleda animatsiya yaratish. Matematik funksiyalar dinamikasi</title>
+
+<!-- MathJax (formulalar) -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#f0f9ff; --bg2:#f8fafc; --ink:#0c1a2e; --muted:#64748b;
+    --pri:#3b82f6; --pri2:#8b5cf6; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    --card:#ffffff; --grid:#e2e8f0; --frame:#cbd5e1; --accent:#06b6d4;
+    --maple:#d97706; --anim:#8b5cf6; --func:#059669; --graph:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:var(--ink);
+       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);line-height:1.6;font-size:15px}
+  .container{max-width:1500px;margin:0 auto;padding:20px}
+  
+  .header{background:var(--card);border-radius:20px;padding:35px;box-shadow:0 20px 40px rgba(0,0,0,.15);
+          text-align:center;margin-bottom:24px;border:1px solid rgba(255,255,255,.4);
+          background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%)}
+  .header h1{margin:0 0 16px 0;font-size:36px;font-weight:800;
+             background:linear-gradient(135deg,#3b82f6,#8b5cf6);-webkit-background-clip:text;
+             -webkit-text-fill-color:transparent;background-clip:text}
+  .header p{margin:0 0 8px 0;color:var(--muted);font-size:18px}
+  .header .subtitle{color:var(--maple);font-weight:600;font-size:16px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+  @media (max-width:1200px){.grid2{grid-template-columns:1fr}}
+  
+  .card{background:var(--card);border-radius:18px;padding:28px;box-shadow:0 12px 32px rgba(0,0,0,.12);
+        margin-bottom:20px;border:1px solid rgba(255,255,255,.3);
+        transition:transform 0.3s ease, box-shadow 0.3s ease}
+  .card:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(0,0,0,.18)}
+  .card h2{margin:0 0 20px 0;font-size:24px;font-weight:700;color:#1e293b}
+  .card h3{margin:0 0 16px 0;font-size:20px;font-weight:600;color:#334155}
+  .card h4{margin:0 0 12px 0;font-size:18px;font-weight:600;color:#475569}
+  
+  .intro-card{background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);
+              border-left:6px solid var(--pri);padding:24px;border-radius:16px;margin:20px 0}
+  .maple-card{background:linear-gradient(135deg,#fef3c7 0%,#fde68a 100%);
+              border-left:6px solid var(--maple);padding:24px;border-radius:16px;margin:20px 0}
+  .anim-card{background:linear-gradient(135deg,#f3e8ff 0%,#e9d5ff 100%);
+             border-left:6px solid var(--anim);padding:24px;border-radius:16px;margin:20px 0}
+  
+  .feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:20px 0}
+  .feature-card{background:rgba(255,255,255,.95);border:2px solid transparent;border-radius:14px;
+                padding:20px;transition:all 0.4s ease;position:relative;overflow:hidden}
+  .feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+                        background:linear-gradient(90deg,var(--pri),var(--anim));opacity:0;transition:opacity 0.3s}
+  .feature-card:hover{border-color:var(--pri);transform:translateY(-6px);box-shadow:0 12px 28px rgba(0,0,0,.15)}
+  .feature-card:hover::before{opacity:1}
+  .feature-icon{font-size:32px;margin-bottom:12px;display:block}
+  .feature-title{font-weight:700;color:#1e293b;margin-bottom:8px;font-size:16px}
+  .feature-desc{color:var(--muted);font-size:14px;line-height:1.5}
+  
+  .control-panel{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+                 border:2px solid var(--frame);border-radius:16px;padding:24px;margin:20px 0}
+  .control-group{margin-bottom:20px}
+  .control-label{font-weight:600;color:#374151;margin-bottom:8px;display:block;font-size:15px}
+  .control-desc{color:var(--muted);font-size:13px;margin-bottom:12px;line-height:1.4}
+  
+  input[type=range]{width:100%;height:10px;border-radius:8px;background:#e5e7eb;
+                   outline:none;-webkit-appearance:none;margin:10px 0;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{appearance:none;width:24px;height:24px;
+                                          border-radius:50%;background:var(--pri);cursor:pointer;
+                                          box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform 0.2s}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.1)}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;
+                                     background:var(--pri);cursor:pointer;border:none;
+                                     box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  
+  input[type=number]{width:120px;padding:10px 12px;border:2px solid var(--frame);border-radius:10px;
+                    font-size:15px;transition:all 0.3s;background:#fff}
+  input[type=number]:focus{border-color:var(--pri);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  
+  select{padding:10px 14px;border:2px solid var(--frame);border-radius:10px;font-size:15px;
+         background:#fff;transition:all 0.3s;cursor:pointer}
+  select:focus{border-color:var(--pri);outline:none;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+  
+  .btn{background:var(--pri);border:0;color:#fff;padding:12px 20px;border-radius:12px;
+       cursor:pointer;font-weight:600;transition:all 0.3s;display:inline-flex;align-items:center;
+       gap:8px;font-size:15px;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+  .btn:hover{background:#2563eb;transform:translateY(-2px);box-shadow:0 8px 20px rgba(59,130,246,.4)}
+  .btn.maple{background:var(--maple);box-shadow:0 4px 12px rgba(217,119,6,.3)}
+  .btn.maple:hover{background:#ea580c;box-shadow:0 8px 20px rgba(217,119,6,.4)}
+  .btn.anim{background:var(--anim);box-shadow:0 4px 12px rgba(139,92,246,.3)}
+  .btn.anim:hover{background:#7c3aed;box-shadow:0 8px 20px rgba(139,92,246,.4)}
+  .btn.success{background:var(--ok);box-shadow:0 4px 12px rgba(16,185,129,.3)}
+  .btn.danger{background:var(--bad);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+  .btn.outline{background:transparent;border:2px solid var(--pri);color:var(--pri);box-shadow:none}
+  .btn.outline:hover{background:var(--pri);color:white}
+  
+  .btn-group{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+  
+  canvas{width:100%;height:450px;background:#fff;border:3px solid var(--frame);
+         border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+  
+  .tabs{display:flex;gap:6px;border-bottom:4px solid var(--frame);margin-bottom:24px;
+        background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+        border-radius:16px 16px 0 0;padding:12px 12px 0 12px}
+  .tab{padding:14px 22px;cursor:pointer;border-radius:12px 12px 0 0;font-weight:600;
+       transition:all 0.3s;position:relative;font-size:15px}
+  .tab:hover{background:rgba(59,130,246,.1);transform:translateY(-2px)}
+  .tab.active{background:var(--pri);color:white;box-shadow:0 4px 12px rgba(59,130,246,.3)}
+  .tab-content{display:none;animation:slideIn 0.4s ease}
+  .tab-content.active{display:block}
+  @keyframes slideIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  
+  .demo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin:24px 0}
+  .demo-card{background:var(--card);border:2px solid var(--frame);border-radius:16px;
+             padding:24px;box-shadow:0 8px 20px rgba(0,0,0,.1);transition:all 0.3s}
+  .demo-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.15)}
+  .demo-title{font-size:18px;font-weight:700;color:#1e293b;margin-bottom:12px}
+  .demo-formula{background:#0f172a;color:#e2e8f0;padding:16px;border-radius:12px;
+                border-left:4px solid var(--accent);margin:12px 0;font-family:'Courier New',monospace;
+                font-size:14px;overflow-x:auto}
+  
+  .info-box{background:rgba(59,130,246,.08);border:2px solid rgba(59,130,246,.2);
+            border-radius:12px;padding:20px;margin:16px 0;position:relative}
+  .info-box::before{content:'💡';position:absolute;top:16px;left:16px;font-size:20px}
+  .info-box .content{margin-left:32px}
+  
+  .warning-box{background:rgba(245,158,11,.08);border:2px solid rgba(245,158,11,.3);
+               border-radius:12px;padding:20px;margin:16px 0;position:relative}
+  .warning-box::before{content:'⚠️';position:absolute;top:16px;left:16px;font-size:20px}
+  .warning-box .content{margin-left:32px}
+  
+  .success-box{background:rgba(16,185,129,.08);border:2px solid rgba(16,185,129,.2);
+               border-radius:12px;padding:20px;margin:16px 0;position:relative}
+  .success-box::before{content:'✅';position:absolute;top:16px;left:16px;font-size:20px}
+  .success-box .content{margin-left:32px}
+  
+  .step-list{list-style:none;padding:0;margin:20px 0}
+  .step-item{background:var(--card);border-left:4px solid var(--pri);border-radius:12px;
+             padding:18px;margin:12px 0;box-shadow:0 4px 12px rgba(0,0,0,.08);
+             display:flex;align-items:flex-start;gap:16px}
+  .step-number{background:var(--pri);color:white;border-radius:50%;width:32px;height:32px;
+               display:flex;align-items:center;justify-content:center;font-weight:700;
+               flex-shrink:0;box-shadow:0 4px 8px rgba(59,130,246,.3)}
+  .step-content{flex:1}
+  .step-title{font-weight:700;color:#1e293b;margin-bottom:6px;font-size:16px}
+  .step-desc{color:var(--muted);line-height:1.5;font-size:14px}
+  
+  .code-block{background:#0f172a;color:#e2e8f0;border-radius:16px;padding:24px;
+              border-left:6px solid #22d3ee;margin:20px 0;font-family:'Courier New',monospace;
+              font-size:14px;overflow-x:auto;line-height:1.6;position:relative}
+  .code-block::before{content:'🍁 Maple Code';position:absolute;top:8px;right:16px;
+                      background:rgba(34,211,238,.2);padding:4px 12px;border-radius:20px;
+                      font-size:12px;font-weight:600}
+  
+  .function-showcase{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+                     gap:16px;margin:24px 0}
+  .func-card{background:linear-gradient(135deg,#ffffff 0%,#f8fafc 100%);
+             border:2px solid var(--frame);border-radius:14px;padding:20px;
+             transition:all 0.3s ease;cursor:pointer}
+  .func-card:hover{border-color:var(--func);transform:translateY(-4px);
+                   box-shadow:0 12px 24px rgba(0,0,0,.12)}
+  .func-card.active{border-color:var(--func);background:linear-gradient(135deg,#ecfdf5 0%,#d1fae5 100%)}
+  .func-name{font-size:20px;font-weight:700;color:var(--func);margin-bottom:8px}
+  .func-formula{font-family:'Courier New',monospace;background:#f1f5f9;padding:12px;
+                border-radius:8px;margin:8px 0;font-size:13px;color:#374151}
+  .func-desc{color:var(--muted);font-size:14px;line-height:1.4}
+  
+  .animation-controls{background:linear-gradient(135deg,#fdf4ff 0%,#fae8ff 100%);
+                      border:2px solid rgba(139,92,246,.2);border-radius:16px;padding:24px;margin:20px 0}
+  .control-row{display:flex;align-items:center;gap:16px;margin:12px 0;flex-wrap:wrap}
+  .control-value{background:var(--pri);color:white;padding:6px 12px;border-radius:8px;
+                 font-weight:600;min-width:80px;text-align:center;font-size:14px}
+  
+  .progress-bar{background:#e5e7eb;height:8px;border-radius:8px;overflow:hidden;margin:12px 0}
+  .progress-fill{background:linear-gradient(90deg,var(--pri),var(--anim));height:100%;
+                 border-radius:8px;transition:width 0.5s ease}
+  
+  @media (max-width:768px){
+    .container{padding:16px}
+    .header{padding:24px}
+    .header h1{font-size:28px}
+    .grid2{grid-template-columns:1fr}
+    .feature-grid{grid-template-columns:1fr}
+    .demo-grid{grid-template-columns:1fr}
+    .function-showcase{grid-template-columns:1fr}
+    canvas{height:350px}
+    .control-row{flex-direction:column;align-items:stretch}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SARLAVHA -->
+  <div class="header">
+    <h1>🍁 Mapleda animatsiya yaratish</h1>
+    <p>Matematik funksiyalar dinamikasini vizualizatsiya qilish va animatsiya yaratish</p>
+    <div class="subtitle">Interaktiv ta'lim • Maple dasturlash • Grafik animatsiya</div>
+  </div>
+
+  <!-- KIRISH VA MAQSADLAR -->
+  <div class="intro-card">
+    <h2>🎯 Nega Maple va animatsiya?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🎬</span>
+        <div class="feature-title">Ko'rgazmali ta'lim</div>
+        <div class="feature-desc">Statik grafiklardan farqli o'laroq, animatsiya funksiya o'zgarishlarini jonli ko'rsatadi</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🧮</span>
+        <div class="feature-title">Maple imkoniyatlari</div>
+        <div class="feature-desc">Professional matematik dastur - murakkab hisob-kitoblar va chiroyli grafiklar</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Dinamik vizualizatsiya</div>
+        <div class="feature-desc">Parametrlar o'zgarishi bilan funksiya shakli qanday o'zgarishini real vaqtda kuzatish</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎓</span>
+        <div class="feature-title">Chuqur tushunish</div>
+        <div class="feature-desc">Matematikani faqat formula emas, balki vizual tarzda o'rganish</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ASOSIY SIMULATOR -->
+  <div class="card">
+    <h2>🖥️ Interaktiv Funksiya Animatori</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="demo">🎬 Demo Animatsiya</div>
+      <div class="tab" data-tab="functions">📈 Funksiyalar</div>
+      <div class="tab" data-tab="maple">🍁 Maple Kodlari</div>
+      <div class="tab" data-tab="tutorial">📚 Qo'llanma</div>
+      <div class="tab" data-tab="examples">💡 Misollar</div>
+    </div>
+
+    <!-- DEMO ANIMATSIYA TABI -->
+    <div class="tab-content active" id="tab-demo">
+      <div class="grid2">
+        <div>
+          <div class="animation-controls">
+            <h3>🎛️ Animatsiya Boshqaruvi</h3>
+            
+            <div class="control-group">
+              <label class="control-label">Funksiya turi</label>
+              <div class="control-desc">Qaysi funksiyani animatsiya qilmoqchisiz?</div>
+              <select id="funcType">
+                <option value="sine">Sinus to'lqini: sin(ax + bt)</option>
+                <option value="wave">To'lqin: sin(ax) * e^(-bx)</option>
+                <option value="poly">Ko'phadli: ax² + bx + c</option>
+                <option value="exponential">Eksponensial: ae^(bx)</option>
+                <option value="circle">Aylanuvchi aylana</option>
+                <option value="lissajous">Lissajous egrilari</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Parametr A: <span class="control-value" id="valA">1.0</span></label>
+              <div class="control-desc">Amplituda yoki birinchi koeffitsient</div>
+              <input id="paramA" type="range" min="0.1" max="5" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Parametr B: <span class="control-value" id="valB">1.0</span></label>
+              <div class="control-desc">Chastota yoki ikkinchi koeffitsient</div>
+              <input id="paramB" type="range" min="0.1" max="5" step="0.1" value="1">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Animatsiya tezligi: <span class="control-value" id="valSpeed">50</span></label>
+              <div class="control-desc">Qanchalik tez harakat qilsin (ms)</div>
+              <input id="animSpeed" type="range" min="10" max="200" step="10" value="50">
+            </div>
+
+            <div class="control-row">
+              <button class="btn anim" id="startAnim">▶️ Boshlash</button>
+              <button class="btn outline" id="pauseAnim">⏸️ To'xtatish</button>
+              <button class="btn outline" id="resetAnim">🔄 Qayta boshlash</button>
+            </div>
+
+            <div class="info-box">
+              <div class="content">
+                <strong>Kuzatish uchun:</strong> Parametrlarni o'zgartiring va funksiya qanday o'zgarishini koring. 
+                Har bir funksiya turining o'ziga xos xususiyatlari bor!
+              </div>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <div class="content">
+              <strong>Hozirgi funksiya:</strong><br>
+              <span id="currentFormula" style="font-family:monospace;font-size:16px;font-weight:600">f(x) = sin(x)</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>📊 Jonli Grafik</h3>
+          <canvas id="animCanvas" width="800" height="450"></canvas>
+          
+          <div class="btn-group">
+            <button class="btn" id="saveFrame">📸 Kadrni saqlash</button>
+            <button class="btn maple" id="exportGif">🎞️ GIF yaratish</button>
+            <button class="btn success" id="generateMaple">🍁 Maple kodi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUNKSIYALAR TABI -->
+    <div class="tab-content" id="tab-functions">
+      <h3>📈 Animatsiya uchun funksiyalar ro'yxati</h3>
+      
+      <div class="function-showcase">
+        <div class="func-card" data-func="sine">
+          <div class="func-name">🌊 Sinus to'lqini</div>
+          <div class="func-formula">f(x,t) = A·sin(Bx + t)</div>
+          <div class="func-desc">Klassik to'lqin harakati. A - amplituda, B - chastota. Vaqt o'tishi bilan to'lqin suriladi.</div>
+        </div>
+        
+        <div class="func-card" data-func="wave">
+          <div class="func-name">📡 So'nuvchi to'lqin</div>
+          <div class="func-formula">f(x,t) = A·sin(Bx)·e^(-Cx)</div>
+          <div class="func-desc">Fizikada tebranishlar so'nishi. Masofa ortishi bilan amplituda kamayadi.</div>
+        </div>
+        
+        <div class="func-card" data-func="poly">
+          <div class="func-name">📐 Ko'phadli funksiya</div>
+          <div class="func-formula">f(x,t) = (A+sin(t))x² + Bx + C</div>
+          <div class="func-desc">Parabola shakli vaqt o'tishi bilan o'zgaradi. Matematik analiz uchun foydali.</div>
+        </div>
+        
+        <div class="func-card" data-func="exponential">
+          <div class="func-name">📈 Eksponensial o'sish</div>
+          <div class="func-formula">f(x,t) = A·e^(Bx + t)</div>
+          <div class="func-desc">Tabiiy o'sish jarayonlari. Biologiya va iqtisodiyotda keng qo'llaniladi.</div>
+        </div>
+        
+        <div class="func-card" data-func="circle">
+          <div class="func-name">⭕ Aylanuvchi aylana</div>
+          <div class="func-formula">x(t) = A·cos(Bt), y(t) = A·sin(Bt)</div>
+          <div class="func-desc">Parametrik tenglamalar. Mexanikada aylanma harakat tahlili.</div>
+        </div>
+        
+        <div class="func-card" data-func="lissajous">
+          <div class="func-name">🎭 Lissajous egrilari</div>
+          <div class="func-formula">x(t) = A·sin(at), y(t) = B·sin(bt + φ)</div>
+          <div class="func-desc">Ikki tebranish kombinatsiyasi. Chiroyli geometrik shakllar hosil qiladi.</div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="content">
+          <strong>Pedagogik maslahat:</strong> Har bir funksiya turini alohida o'rganing. 
+          Avval oddiy parametrlar bilan boshlang, keyin murakkab kombinatsiyalarni sinab ko'ring.
+        </div>
+      </div>
+    </div>
+
+    <!-- MAPLE KODLARI TABI -->
+    <div class="tab-content" id="tab-maple">
+      <div class="grid2">
+        <div>
+          <h3>🍁 Maple dasturida animatsiya yaratish</h3>
+          
+          <div class="maple-card">
+            <h4>1. Asosiy struktura</h4>
+            <div class="code-block">
+restart: with(plots):
+
+# Animatsiya parametrlari
+frames := 50:
+t_values := [seq(i*2*Pi/frames, i=0..frames-1)]:
+
+# Funksiya ta'rifi
+f := (x,t) -> sin(x + t):
+
+# Animatsiya yaratish
+anim := animate(plot, [f(x,t), x=-2*Pi..2*Pi], 
+                t=t_values, frames=frames):
+
+# Ko'rsatish
+display(anim);
+            </div>
+          </div>
+
+          <div class="maple-card">
+            <h4>2. Murakkab animatsiya</h4>
+            <div class="code-block">
+# Parametrik animatsiya
+anim_param := animate(plot, 
+    [[A*cos(t), A*sin(t), t=0..2*Pi]], 
+    A=1..3, frames=30):
+
+# 3D animatsiya
+anim_3d := animate3d(A*sin(x)*cos(y), 
+    x=-Pi..Pi, y=-Pi..Pi, 
+    A=0.1..2, frames=40):
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <div class="content">
+              <strong>Eslatma:</strong> Maple'da animatsiya yaratish uchun <code>with(plots)</code> kutubxonasini yuklash shart!
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>📋 Hozirgi parametrlar uchun Maple kodi</h3>
+          
+          <div class="success-box">
+            <div class="content">
+              Bu kod joriy sozlamalaringizga mos keladi:
+            </div>
+          </div>
+          
+          <div class="code-block" id="dynamicMapleCode">
+            <!-- JavaScript orqali yaratiladi -->
+          </div>
+          
+          <div class="btn-group">
+            <button class="btn maple" id="copyMapleCode">📋 Kodni nusxalash</button>
+            <button class="btn" id="downloadMaple">💾 Fayl sifatida saqlash</button>
+          </div>
+
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <div class="step-title">Kodni nusxalang</div>
+                <div class="step-desc">Yuqoridagi kodni Maple dasturiga nusxalang</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <div class="step-title">Ishga tushiring</div>
+                <div class="step-desc">Enter tugmasini bosib, animatsiyani ko'ring</div>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <div class="step-title">Eksperiment qiling</div>
+                <div class="step-desc">Parametrlarni o'zgartirib, turli effektlarni sinab ko'ring</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QO'LLANMA TABI -->
+    <div class="tab-content" id="tab-tutorial">
+      <h3>📚 Qadam-ba-qadam qo'llanma</h3>
+
+      <div class="demo-grid">
+        <div class="demo-card">
+          <div class="demo-title">🏁 1-qadam: Boshlash</div>
+          <p>Maple dasturini oching va quyidagi asosiy buyruqlarni kiriting:</p>
+          <div class="demo-formula">
+restart: with(plots):
+with(plottools):
+          </div>
+          <p><strong>Izoh:</strong> Bu buyruqlar barcha kerakli kutubxonalarni yuklaydi.</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-title">📊 2-qadam: Oddiy grafik</div>
+          <p>Avval statik grafik chizing:</p>
+          <div class="demo-formula">
+f := x -> sin(x):
+plot(f(x), x=-2*Pi..2*Pi);
+          </div>
+          <p><strong>Natija:</strong> Oddiy sinus funksiyasi grafigi paydo bo'ladi.</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-title">🎬 3-qadam: Animatsiya</div>
+          <p>Endi vaqtga bog'liq funksiya yarating:</p>
+          <div class="demo-formula">
+g := (x,t) -> sin(x + t):
+animate(plot, [g(x,t), x=-2*Pi..2*Pi], 
+        t=0..2*Pi, frames=30);
+          </div>
+          <p><strong>Natija:</strong> Harakatdagi sinus to'lqini!</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-title">⚙️ 4-qadam: Sozlash</div>
+          <p>Animatsiyani chiroyliroq qiling:</p>
+          <div class="demo-formula">
+animate(plot, [g(x,t), x=-2*Pi..2*Pi,
+       color=blue, thickness=3,
+       title="Sinus to'lqini"], 
+       t=0..2*Pi, frames=50);
+          </div>
+          <p><strong>Qo'shimcha:</strong> Rang, qalinlik va sarlavha qo'shildi.</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-title">🎭 5-qadam: Murakkab animatsiya</div>
+          <p>Bir nechta funksiyani birga animatsiya qiling:</p>
+          <div class="demo-formula">
+f1 := (x,t) -> sin(x + t):
+f2 := (x,t) -> cos(x + t):
+animate(plot, [[f1(x,t), f2(x,t)], 
+       x=-2*Pi..2*Pi], t=0..2*Pi);
+          </div>
+          <p><strong>Natija:</strong> Sinus va kosinus birga harakatda!</p>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-title">💾 6-qadam: Saqlash</div>
+          <p>Animatsiyani fayl sifatida saqlash:</p>
+          <div class="demo-formula">
+anim := animate(...):
+plotsetup(gif, plotoutput="mening_anim.gif"):
+display(anim):
+plotsetup(default):
+          </div>
+          <p><strong>Natija:</strong> GIF fayli yaratildi!</p>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <div class="content">
+          <strong>💡 Pro maslahat:</strong> Animatsiyani yaratishdan oldin statik grafikni tekshiring. 
+          Bu xatolarni toping va parametr diapazonlarini to'g'ri tanlashga yordam beradi.
+        </div>
+      </div>
+    </div>
+
+    <!-- MISOLLAR TABI -->
+    <div class="tab-content" id="tab-examples">
+      <h3>💡 Amaliy misollar va loyihalar</h3>
+
+      <div class="grid2">
+        <div>
+          <h4>🔬 Fizika misollar</h4>
+          
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-number">🌊</div>
+              <div class="step-content">
+                <div class="step-title">To'lqin interferensiyasi</div>
+                <div class="step-desc">
+                  Ikki to'lqin qo'shilganda qanday natija chiqishini ko'rsating:
+                  <code>f(x,t) = sin(x-t) + sin(x+t)</code>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">🔄</div>
+              <div class="step-content">
+                <div class="step-title">Tebranuvchi mayatnik</div>
+                <div class="step-desc">
+                  Mayatnik harakatini modellashtiring:
+                  <code>θ(t) = A·cos(ωt + φ)</code>
+                </div>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">⚡</div>
+              <div class="step-content">
+                <div class="step-title">Elektr toki</div>
+                <div class="step-desc">
+                  O'zgaruvchan tok grafigini animatsiya qiling:
+                  <code>i(t) = I₀·sin(2πft)</code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h4>📊 Matematik misollar</h4>
+          
+          <div class="step-list">
+            <div class="step-item">
+              <div class="step-number">📈</div>
+              <div class="step-content">
+                <div class="step-title">Funksiya transformatsiyalari</div>
+                <div class="step-desc">
+                  f(x) dan f(ax), f(x+b), af(x) ga o'tishni ko'rsating
+                </div>
+              </div>
+            </div>
+            
+            <div class="step-item">
+              <div class="step-number">🎯</div>
+              <div class="step-content">
+                <div class="step-title">Fourier qatorlari</div>
+                <div class="step-desc">
+                  Kvadrat to'lqinni sinus funksiyalar yig'indisi sifatida tasvirlang
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4>🎨 Ijodiy loyihalar</h4>
+          
+          <div class="anim-card">
+            <h4>🌸 Gul shaklidagi egri</h4>
+            <div class="demo-formula">r = a·sin(nθ)</div>
+            <p>Polar koordinatalarda chiroyli shakllar yarating. <code>n</code> ni o'zgartirib, turli gul shakllarini hosil qiling.</p>
+          </div>
+
+          <div class="anim-card">
+            <h4>🌪️ Spiral animatsiya</h4>
+            <div class="demo-formula">
+x = t·cos(at)<br>
+y = t·sin(at)
+            </div>
+            <p>Arximed spirali va uning kengayishini animatsiya qiling.</p>
+          </div>
+
+          <div class="anim-card">
+            <h4>🎵 Musiqa vizualizatsiyasi</h4>
+            <div class="demo-formula">f(x,t) = Σ aₙ·sin(nωt)</div>
+            <p>Turli chastotalar kombinatsiyasini ko'rsatib, musiqa akustikasini tushuntiring.</p>
+          </div>
+
+          <div class="warning-box">
+            <div class="content">
+              <strong>Topshiriq:</strong> Yuqoridagi misollardan birini tanlab, to'liq animatsiya yarating. 
+              Maple kodini yozing va natijani tahlil qiling.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-box">
+        <div class="content">
+          <strong>🏆 Yakuniy loyiha:</strong> O'zingiz tanlagan matematik yoki fizik jarayonni animatsiya qiling. 
+          Bu sizning Maple ko'nikmalaringizni mustahkamlash uchun eng yaxshi usul!
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULATOR LOGIKASI ===== -->
+<script>
+// ========== UTILITY FUNCTIONS ==========
+function $(id) { return document.getElementById(id); }
+
+// ========== ANIMATION STATE ==========
+let animationState = {
+  isRunning: false,
+  currentTime: 0,
+  animationId: null,
+  funcType: 'sine',
+  paramA: 1,
+  paramB: 1,
+  speed: 50
+};
+
+// ========== MATH FUNCTIONS ==========
+const mathFunctions = {
+  sine: (x, t, a, b) => a * Math.sin(b * x + t),
+  wave: (x, t, a, b) => a * Math.sin(b * x) * Math.exp(-0.1 * Math.abs(x)),
+  poly: (x, t, a, b) => (a + 0.5 * Math.sin(t)) * x * x / 10 + b * x / 5,
+  exponential: (x, t, a, b) => a * Math.exp(b * x / 5 + Math.sin(t)),
+  circle: (t, a, b) => ({ x: a * Math.cos(b * t), y: a * Math.sin(b * t) }),
+  lissajous: (t, a, b) => ({ 
+    x: a * Math.sin(t), 
+    y: a * Math.sin(b * t + Math.PI / 4) 
+  })
+};
+
+// ========== CANVAS FUNCTIONS ==========
+function setupCanvas() {
+  const canvas = $('animCanvas');
+  const ctx = canvas.getContext('2d');
+  
+  // Set actual canvas size for crisp rendering
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  
+  return { canvas, ctx, width: rect.width, height: rect.height };
+}
+
+function clearCanvas(ctx, width, height) {
+  // Clear canvas
+  ctx.clearRect(0, 0, width, height);
+  
+  // Draw grid
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  
+  // Vertical lines
+  for (let x = 0; x <= width; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+  
+  // Horizontal lines
+  for (let y = 0; y <= height; y += 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+  
+  // Draw axes
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 2;
+  
+  // X-axis
+  ctx.beginPath();
+  ctx.moveTo(0, height / 2);
+  ctx.lineTo(width, height / 2);
+  ctx.stroke();
+  
+  // Y-axis
+  ctx.beginPath();
+  ctx.moveTo(width / 2, 0);
+  ctx.lineTo(width / 2, height);
+  ctx.stroke();
+  
+  // Border
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(0, 0, width, height);
+}
+
+function drawFunction(ctx, width, height) {
+  const { funcType, paramA, paramB, currentTime } = animationState;
+  
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  
+  if (funcType === 'circle' || funcType === 'lissajous') {
+    // Parametric functions
+    ctx.strokeStyle = '#8b5cf6';
+    ctx.beginPath();
+    
+    for (let i = 0; i <= 100; i++) {
+      const t = (i / 100) * 4 * Math.PI + currentTime;
+      const point = mathFunctions[funcType](t, paramA, paramB);
+      
+      const x = width / 2 + point.x * 50;
+      const y = height / 2 - point.y * 50;
+      
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+    
+    // Draw current point
+    const currentPoint = mathFunctions[funcType](currentTime, paramA, paramB);
+    const currentX = width / 2 + currentPoint.x * 50;
+    const currentY = height / 2 - currentPoint.y * 50;
+    
+    ctx.stroke();
+    
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.arc(currentX, currentY, 8, 0, 2 * Math.PI);
+    ctx.fill();
+    
+  } else {
+    // Regular functions
+    let started = false;
+    
+    for (let pixelX = 0; pixelX < width; pixelX += 2) {
+      const x = (pixelX - width / 2) / 30; // Scale to mathematical coordinates
+      let y;
+      
+      try {
+        y = mathFunctions[funcType](x, currentTime, paramA, paramB);
+        if (Math.abs(y) > 10) continue; // Skip extreme values
+        
+        const pixelY = height / 2 - y * 30; // Convert to pixel coordinates
+        
+        if (!started) {
+          ctx.moveTo(pixelX, pixelY);
+          started = true;
+        } else {
+          ctx.lineTo(pixelX, pixelY);
+        }
+      } catch (e) {
+        // Skip invalid points
+      }
+    }
+    
+    ctx.stroke();
+  }
+}
+
+// ========== ANIMATION CONTROL ==========
+function animateStep() {
+  if (!animationState.isRunning) return;
+  
+  const { canvas, ctx, width, height } = setupCanvas();
+  
+  // Clear and redraw
+  clearCanvas(ctx, width, height);
+  drawFunction(ctx, width, height);
+  
+  // Update time
+  animationState.currentTime += 0.1;
+  
+  // Schedule next frame
+  animationState.animationId = setTimeout(() => {
+    requestAnimationFrame(animateStep);
+  }, animationState.speed);
+}
+
+function startAnimation() {
+  if (animationState.isRunning) return;
+  
+  animationState.isRunning = true;
+  $('startAnim').textContent = '⏸️ To\'xtatish';
+  animateStep();
+}
+
+function pauseAnimation() {
+  animationState.isRunning = false;
+  if (animationState.animationId) {
+    clearTimeout(animationState.animationId);
+  }
+  $('startAnim').textContent = '▶️ Boshlash';
+}
+
+function resetAnimation() {
+  pauseAnimation();
+  animationState.currentTime = 0;
+  
+  // Redraw static frame
+  const { canvas, ctx, width, height } = setupCanvas();
+  clearCanvas(ctx, width, height);
+  drawFunction(ctx, width, height);
+}
+
+// ========== UI FUNCTIONS ==========
+function updateParameterDisplays() {
+  $('valA').textContent = animationState.paramA.toFixed(1);
+  $('valB').textContent = animationState.paramB.toFixed(1);
+  $('valSpeed').textContent = animationState.speed + ' ms';
+  
+  // Update formula display
+  const formulas = {
+    sine: `f(x,t) = ${animationState.paramA}·sin(${animationState.paramB}x + t)`,
+    wave: `f(x,t) = ${animationState.paramA}·sin(${animationState.paramB}x)·e^(-0.1|x|)`,
+    poly: `f(x,t) = (${animationState.paramA} + 0.5·sin(t))x² + ${animationState.paramB}x`,
+    exponential: `f(x,t) = ${animationState.paramA}·e^(${animationState.paramB}x/5 + sin(t))`,
+    circle: `x(t) = ${animationState.paramA}·cos(${animationState.paramB}t), y(t) = ${animationState.paramA}·sin(${animationState.paramB}t)`,
+    lissajous: `x(t) = ${animationState.paramA}·sin(t), y(t) = ${animationState.paramA}·sin(${animationState.paramB}t + π/4)`
+  };
+  
+  $('currentFormula').textContent = formulas[animationState.funcType] || 'f(x) = x';
+}
+
+function generateMapleCode() {
+  const { funcType, paramA, paramB } = animationState;
+  
+  const mapleCodes = {
+    sine: `restart: with(plots):
+
+# Parametrlar
+A := ${paramA}:
+B := ${paramB}:
+
+# Sinus to'lqini funksiyasi
+f := (x,t) -> A*sin(B*x + t):
+
+# Animatsiya yaratish
+anim := animate(plot, [f(x,t), x=-2*Pi..2*Pi, 
+                      color=blue, thickness=3,
+                      title="Sinus to'lqini animatsiyasi"], 
+                t=0..4*Pi, frames=60):
+
+# Ko'rsatish
+display(anim):
+
+# GIF sifatida saqlash (ixtiyoriy)
+# plotsetup(gif, plotoutput="sinus_anim.gif"):
+# display(anim):
+# plotsetup(default):`,
+
+    wave: `restart: with(plots):
+
+# So'nuvchi to'lqin
+A := ${paramA}:
+B := ${paramB}:
+
+f := (x,t) -> A*sin(B*x)*exp(-0.1*abs(x)):
+
+anim := animate(plot, [f(x,t), x=-3*Pi..3*Pi,
+                      color=purple, thickness=3], 
+                t=0..2*Pi, frames=50):
+
+display(anim):`,
+
+    poly: `restart: with(plots):
+
+# Ko'phadli funksiya animatsiyasi
+A := ${paramA}:
+B := ${paramB}:
+
+f := (x,t) -> (A + 0.5*sin(t))*x^2/10 + B*x/5:
+
+anim := animate(plot, [f(x,t), x=-5..5,
+                      color=red, thickness=3], 
+                t=0..2*Pi, frames=40):
+
+display(anim):`,
+
+    exponential: `restart: with(plots):
+
+# Eksponensial funksiya
+A := ${paramA}:
+B := ${paramB}:
+
+f := (x,t) -> A*exp(B*x/5 + sin(t)):
+
+anim := animate(plot, [f(x,t), x=-2..2, y=-10..10,
+                      color=green, thickness=3], 
+                t=0..2*Pi, frames=50):
+
+display(anim):`,
+
+    circle: `restart: with(plots):
+
+# Aylanuvchi aylana
+A := ${paramA}:
+B := ${paramB}:
+
+anim := animate(plot, [[A*cos(B*t), A*sin(B*t), t=0..2*Pi],
+                      color=blue, thickness=3], 
+                A=0.5..3, frames=30):
+
+display(anim):`,
+
+    lissajous: `restart: with(plots):
+
+# Lissajous egrilari
+A := ${paramA}:
+B := ${paramB}:
+
+x_func := t -> A*sin(t):
+y_func := t -> A*sin(B*t + Pi/4):
+
+anim := animate(plot, [[x_func(t), y_func(t), t=0..4*Pi],
+                      color=purple, thickness=3], 
+                B=1..5, frames=40):
+
+display(anim):`
+  };
+  
+  return mapleCodes[funcType] || '# Maple kodi mavjud emas';
+}
+
+// ========== EVENT LISTENERS ==========
+function setupEventListeners() {
+  // Animation controls
+  $('startAnim').addEventListener('click', () => {
+    if (animationState.isRunning) {
+      pauseAnimation();
+    } else {
+      startAnimation();
+    }
+  });
+  
+  $('pauseAnim').addEventListener('click', pauseAnimation);
+  $('resetAnim').addEventListener('click', resetAnimation);
+  
+  // Parameter controls
+  $('funcType').addEventListener('change', (e) => {
+    animationState.funcType = e.target.value;
+    updateParameterDisplays();
+    resetAnimation();
+  });
+  
+  $('paramA').addEventListener('input', (e) => {
+    animationState.paramA = parseFloat(e.target.value);
+    updateParameterDisplays();
+  });
+  
+  $('paramB').addEventListener('input', (e) => {
+    animationState.paramB = parseFloat(e.target.value);
+    updateParameterDisplays();
+  });
+  
+  $('animSpeed').addEventListener('input', (e) => {
+    animationState.speed = parseInt(e.target.value);
+    updateParameterDisplays();
+  });
+  
+  // Export functions
+  $('saveFrame').addEventListener('click', () => {
+    const canvas = $('animCanvas');
+    const link = document.createElement('a');
+    link.download = 'animation_frame.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  });
+  
+  $('generateMaple').addEventListener('click', () => {
+    $('dynamicMapleCode').textContent = generateMapleCode();
+    // Switch to Maple tab
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('[data-tab="maple"]').classList.add('active');
+    $('tab-maple').classList.add('active');
+  });
+  
+  $('copyMapleCode').addEventListener('click', () => {
+    const code = $('dynamicMapleCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      $('copyMapleCode').textContent = '✅ Nusxalandi!';
+      setTimeout(() => {
+        $('copyMapleCode').textContent = '📋 Kodni nusxalash';
+      }, 2000);
+    });
+  });
+  
+  $('downloadMaple').addEventListener('click', () => {
+    const code = generateMapleCode();
+    const blob = new Blob([code], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'maple_animation.mw';
+    link.click();
+    URL.revokeObjectURL(url);
+  });
+  
+  // Function showcase cards
+  document.querySelectorAll('.func-card').forEach(card => {
+    card.addEventListener('click', () => {
+      // Remove active class from all cards
+      document.querySelectorAll('.func-card').forEach(c => c.classList.remove('active'));
+      // Add active class to clicked card
+      card.classList.add('active');
+      
+      // Update function type
+      const funcType = card.dataset.func;
+      if (funcType) {
+        animationState.funcType = funcType;
+        $('funcType').value = funcType;
+        updateParameterDisplays();
+        resetAnimation();
+      }
+    });
+  });
+}
+
+// ========== TAB FUNCTIONALITY ==========
+function setupTabs() {
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active class from all tabs and contents
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      tab.classList.add('active');
+      $('tab-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+}
+
+// ========== INITIALIZATION ==========
+function initialize() {
+  setupEventListeners();
+  setupTabs();
+  updateParameterDisplays();
+  
+  // Initial draw
+  const { canvas, ctx, width, height } = setupCanvas();
+  clearCanvas(ctx, width, height);
+  drawFunction(ctx, width, height);
+  
+  // Generate initial Maple code
+  $('dynamicMapleCode').textContent = generateMapleCode();
+}
+
+// Wait for page to load
+document.addEventListener('DOMContentLoaded', initialize);
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  if (!animationState.isRunning) {
+    const { canvas, ctx, width, height } = setupCanvas();
+    clearCanvas(ctx, width, height);
+    drawFunction(ctx, width, height);
+  }
+});
+</script>
+
+</body>
+</html>

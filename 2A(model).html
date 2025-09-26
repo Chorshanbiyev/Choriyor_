@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>A2 — Mapleda animatsiya va grafik: majburiy so‘nuvchi tebranish (funksiya dinamikasi)</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#eef2ff; --bg2:#f8fafc; --ink:#0f172a; --muted:#6b7280;
+    --pri:#4f46e5; --ok:#16a34a; --warn:#d97706; --bad:#ef4444;
+    --card:#ffffff; --frame:#e5e7eb; --accent:#06b6d4;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:var(--ink);
+       background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);line-height:1.6}
+  .container{max-width:1400px;margin:0 auto;padding:20px}
+  .header{background:var(--card);border-radius:20px;padding:26px;text-align:center;
+          box-shadow:0 12px 32px rgba(0,0,0,.12);margin-bottom:16px}
+  .header h1{margin:0 0 8px;font-size:30px}
+  .header p{margin:0;color:var(--muted)}
+  .tag{color:var(--accent);font-weight:600;margin-top:6px}
+
+  .card{background:var(--card);border-radius:16px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,.1);margin-bottom:16px}
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+  @media (max-width:1100px){.grid2{grid-template-columns:1fr}}
+  .tabs{display:flex;gap:6px;border-bottom:3px solid var(--frame);margin-bottom:10px}
+  .tab{padding:10px 14px;border-radius:10px 10px 0 0;cursor:pointer}
+  .tab.active{background:var(--pri);color:#fff}
+  .tab-content{display:none}.tab-content.active{display:block}
+
+  .param-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+  .param{background:var(--bg1);border:1px solid var(--frame);border-radius:12px;padding:12px}
+  .param label{font-weight:600}
+  input[type=range]{width:100%}
+  input[type=number],select{padding:8px;border:1px solid var(--frame);border-radius:8px}
+  .btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:9px 14px;cursor:pointer}
+  .btn.ghost{background:#e2e8f0;color:#0f172a}
+  .btn.secondary{background:#64748b}
+  .btn.ok{background:var(--ok)} .btn.warn{background:var(--warn)} .btn.bad{background:var(--bad)}
+  .btn-group{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+
+  .info{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:12px;margin:8px 0}
+  .warn{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:12px;margin:8px 0}
+
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:6px}
+  .kpi .box{background:var(--bg2);border:1px solid var(--frame);border-radius:10px;padding:10px;text-align:center}
+  .kpi .val{font-size:22px;font-weight:800;color:var(--pri)}
+
+  canvas.plot{width:100%;height:340px;background:#fff;border:1px solid var(--frame);border-radius:12px}
+  #animCanvas{width:100%;height:360px;background:linear-gradient(#e0ecff,#f8ffff);border:1px solid var(--frame);border-radius:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .lbl{color:var(--muted);font-size:13px}
+  .timebar{width:100%}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>A2 — Mapleda funksiya garfigini chizish va animatsiya yaratish</h1>
+    <p>Model: <b>Majburiy so‘nuvchi tebranish</b> — massali prujina tashqi sinusoidal kuch ostida</p>
+    <div class="tag">Animatsiya • y(t) • Fazaviy portret • Rezonans (|Y(Ω)|) • Maple kodi</div>
+  </div>
+
+  <!-- Pedagogik kirish -->
+  <div class="card">
+    <h2>🎯 Nega shu model?</h2>
+    <div class="info">
+      Talabalar uchun qiyin bo‘ladigan mavzu — <b>rezonans</b> va <b>damping</b> tushunchalarini ko‘zga ko‘rinadigan qilib beramiz:
+      massaning haqiqiy harakati (animatsiya), vaqt grafigi, fazaviy portret va <i>chastotaviy</i> javobni yonma‑yon ko‘rsatamiz.
+    </div>
+    <div class="warn">
+      <b>Model:</b> $m y'' + c y' + k y = F_0 \sin(\Omega t)$.
+      <br>Bu yerda $m$ — massa, $c$ — so‘nish, $k$ — qattiqlik, $F_0$ — tashqi kuch amplitudasi, $\Omega$ — majburiy chastota.
+    </div>
+  </div>
+
+  <!-- Simulyatsiya -->
+  <div class="card">
+    <h2>🎛️ Simulyator</h2>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="sim">Parametrlar & Grafiklar</div>
+      <div class="tab" data-tab="anim">Animatsiya</div>
+      <div class="tab" data-tab="maple">Maple kodi</div>
+      <div class="tab" data-tab="learn">Qadam-baqadam & topshiriqlar</div>
+    </div>
+
+    <!-- SIM -->
+    <div class="tab-content active" id="tab-sim">
+      <div class="grid2">
+        <div>
+          <div class="param-grid">
+            <div class="param">
+              <label>Massa m (kg)</label>
+              <input id="m" type="range" min="0.5" max="5" step="0.1" value="1.5"><div class="lbl" id="vm"></div>
+            </div>
+            <div class="param">
+              <label>Qattiqlik k (N/m)</label>
+              <input id="k" type="range" min="5" max="200" step="1" value="60"><div class="lbl" id="vk"></div>
+            </div>
+            <div class="param">
+              <label>So‘nish c (N·s/m)</label>
+              <input id="c" type="range" min="0" max="20" step="0.2" value="3"><div class="lbl" id="vc"></div>
+            </div>
+            <div class="param">
+              <label>Tashqi kuch $F_0$ (N)</label>
+              <input id="F0" type="range" min="0" max="40" step="1" value="10"><div class="lbl" id="vF0"></div>
+            </div>
+            <div class="param">
+              <label>Majburiy chastota Ω (rad/s)</label>
+              <input id="Omega" type="range" min="0.1" max="30" step="0.1" value="6"><div class="lbl" id="vOm"></div>
+            </div>
+            <div class="param">
+              <label>y(0) (m) &nbsp; / &nbsp; y'(0) (m/s)</label>
+              <div class="row">
+                <input id="y0" type="number" value="0" step="0.1" style="width:90px">
+                <input id="v0" type="number" value="0" step="0.1" style="width:90px">
+              </div>
+            </div>
+            <div class="param">
+              <label>Simulyatsiya vaqti (s)</label>
+              <input id="tmax" type="number" value="40" min="5" max="120" step="5">
+            </div>
+            <div class="param">
+              <label>Grafik turi</label>
+              <select id="whichPlot">
+                <option value="time">y(t)</option>
+                <option value="phase">Fazaviy portret (y vs y')</option>
+                <option value="freq">Chastotaviy javob |Y(Ω)|</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn" id="run">🚀 Chizish</button>
+            <button class="btn ghost" id="reset">🔄 Default</button>
+            <button class="btn secondary" id="pngPlot">📸 PNG</button>
+            <button class="btn secondary" id="csvPlot">📊 CSV</button>
+          </div>
+
+          <div class="kpi">
+            <div class="box"><div class="val" id="k_w0">—</div>Tabiiy ω₀ = √(k/m)</div>
+            <div class="box"><div class="val" id="k_zeta">—</div>So‘nish nisbati ζ = c/(2√(km))</div>
+            <div class="box"><div class="val" id="k_Q">—</div>Q ≈ 1/(2ζ)</div>
+            <div class="box"><div class="val" id="k_res">—</div>Rezonans ≈ ω<sub>r</sub></div>
+          </div>
+        </div>
+
+        <div>
+          <canvas id="plot" class="plot" width="900" height="340"></canvas>
+          <div class="info"><b>Maslahat:</b> Rezonansni ko‘rish uchun Ω ni ω₀ atrofida aylantiring va c ni kichik qiling.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANIMATION -->
+    <div class="tab-content" id="tab-anim">
+      <canvas id="animCanvas" width="1200" height="360" aria-label="Mass-spring animation"></canvas>
+      <div class="row" style="margin-top:8px">
+        <button class="btn ok" id="play">▶️ Play</button>
+        <button class="btn warn" id="pause">⏸ Pause</button>
+        <button class="btn bad" id="resetAnim">⟲ Reset</button>
+        <span class="lbl">Tezlik: <span id="spdLbl">1.00×</span></span>
+        <input id="speed" type="range" min="0.25" max="3" step="0.25" value="1" style="width:220px">
+      </div>
+      <div class="row" style="margin-top:6px">
+        <span class="lbl">Vaqt:</span>
+        <input id="timebar" class="timebar" type="range" min="0" max="40" step="0.01" value="0">
+        <span class="lbl">t=<span id="tNow">0.00</span> s · y=<span id="yNow">—</span> m · y'=<span id="vNow">—</span> m/s</span>
+      </div>
+    </div>
+
+    <!-- MAPLE -->
+    <div class="tab-content" id="tab-maple">
+      <h3>🍁 Maple kodi (joriy parametrlar bo‘yicha)</h3>
+      <pre id="mapleCode">Kod tayyorlanmoqda…</pre>
+      <button class="btn" id="copyMaple">📋 Kodni nusxalash</button>
+    </div>
+
+    <!-- LEARN -->
+    <div class="tab-content" id="tab-learn">
+      <h3>📋 Qadam-baqadam tushuntirish</h3>
+      <div class="info">
+        1) Model: $m y'' + c y' + k y = F_0\sin(\Omega t)$.
+        2) Tabiiy chastota: $\\omega_0=\\sqrt{k/m}$. 3) So‘nish nisbati: $\\zeta = c/(2\\sqrt{km})$.
+        4) Rezonans $\Omega \\approx \\omega_r = \\omega_0\\sqrt{1-2\\zeta^2}$ (kichik $\zeta$ uchun).
+      </div>
+      <h3>🧪 Topshiriqlar</h3>
+      <ol>
+        <li><b>Rezonans:</b> $c$ ni 0–2 oralig‘ida, $\Omega$ ni $\omega_0$ atrofida aylantirib, maksimal amplitudani toping.</li>
+        <li><b>So‘nish ta’siri:</b> $\Omega=\omega_0$ bo‘lganda $c$ ni oshiring. Amplituda va faza qanday o‘zgaradi?</li>
+        <li><b>Erkin tebranish:</b> $F_0=0$, $y(0)=0.2$, $y'(0)=0$ uchun grafigini va $\zeta$ ga bog‘liqligini solishtiring.</li>
+        <li><b>Faza portret:</b> turli $c$ uchun $y$–$y'$ chizig‘ini taqqoslang (spiral, markaz, tugun).</li>
+      </ol>
+      <div class="warn"><b>Pedagogik usul:</b> Avval <i>bitta parametr</i>ni o‘zgartirib kuzating (izolyatsiya printsipi). So‘ngra ikki parametrni birga o‘zgartirib, sabab‑oqibatni muhokama qiling (Socratic qidiruv).</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ===== Helpers ===== */
+const $ = id => document.getElementById(id);
+function fmt(x,d=2){return (x==null?'—':(+x).toFixed(d));}
+function labelSync(){ $('vm').textContent=fmt($('m').value,2)+' kg';
+  $('vk').textContent=fmt($('k').value,2)+' N/m';
+  $('vc').textContent=fmt($('c').value,2)+' N·s/m';
+  $('vF0').textContent=fmt($('F0').value,2)+' N';
+  $('vOm').textContent=fmt($('Omega').value,2)+' rad/s';
+}
+function downloadText(text, name, mime='text/plain'){
+  const blob=new Blob([text],{type:mime+';charset=utf-8'}), url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+}
+function pngFromCanvas(cv,name){const a=document.createElement('a');a.download=name;a.href=cv.toDataURL('image/png');a.click();}
+
+/* ===== ODE model ===== */
+const DT=0.002; // finer for animation
+function stepRK4(state, p, dt){
+  // state = [y, v], y' = v; v' = (F0*sin(Ωt) - c v - k y)/m
+  const f = (t, y, v) => (p.F0*Math.sin(p.Omega*t) - p.c*v - p.k*y)/p.m;
+  let {t,y,v}=state;
+  const k1y=v, k1v=f(t,y,v);
+  const k2y=v+0.5*dt*k1v, k2v=f(t+0.5*dt, y+0.5*dt*k1y, v+0.5*dt*k1v);
+  const k3y=v+0.5*dt*k2v, k3v=f(t+0.5*dt, y+0.5*dt*k2y, v+0.5*dt*k2v);
+  const k4y=v+dt*k3v,   k4v=f(t+dt, y+dt*k3y, v+dt*k3v);
+  y += dt*(k1y+2*k2y+2*k3y+k4y)/6;
+  v += dt*(k1v+2*k2v+2*k3v+k4v)/6;
+  t += dt;
+  return {t,y,v};
+}
+function simulate(p){
+  const tmax=+$('tmax').value;
+  let st={t:0,y:+$('y0').value||0, v:+$('v0').value||0};
+  const Y=[], PH=[], dt=DT;
+  for(let t=0;t<=tmax;t+=dt){
+    Y.push([st.t, st.y]);
+    PH.push([st.y, st.v]);
+    st=stepRK4(st,p,dt);
+  }
+  return {Y,PH,series:st};
+}
+
+/* ===== Plotting ===== */
+const cv=$('plot'), ctx=cv.getContext('2d');
+function clearPlot(){ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#eef2ff'; ctx.lineWidth=1;
+  for(let x=0;x<=cv.width;x+=50){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,cv.height);ctx.stroke();}
+  ctx.strokeStyle='#cbd5e1'; ctx.strokeRect(40,20,cv.width-60,cv.height-60);
+}
+function bounds(data){
+  const xs=data.map(d=>d[0]), ys=data.map(d=>d[1]);
+  const x1=Math.min(...xs),x2=Math.max(...xs); let y1=Math.min(...ys),y2=Math.max(...ys);
+  if(y1===y2){y1-=1;y2+=1} const pad=(y2-y1)*0.1; return {x1,x2,y1:y1-pad,y2:y2+pad};
+}
+function toCanvas(x,y,bb){const W=cv.width-60,H=cv.height-60,ox=40,oy=20;
+  const u=ox+(x-bb.x1)/(bb.x2-bb.x1)*W, v=oy+(bb.y2-y)/(bb.y2-bb.y1)*H; return [u,v];}
+function plotLine(data,color='#2563eb',lw=2){
+  if(data.length<2) return; const bb=bounds(data);
+  ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.beginPath();
+  let [u0,v0]=toCanvas(data[0][0],data[0][1],bb); ctx.moveTo(u0,v0);
+  for(let i=1;i<data.length;i++){const [u,v]=toCanvas(data[i][0],data[i][1],bb); ctx.lineTo(u,v);}
+  ctx.stroke();
+}
+/* Frequency response (steady-state amplitude) */
+function freqResponse(p){
+  const w0=Math.sqrt(p.k/p.m), z=p.c/(2*Math.sqrt(p.k*p.m));
+  // amplitude |H(iΩ)| for y''+2ζω0 y'+ω0^2 y = (F0/m) sinΩt
+  const H = (O)=> 1/Math.sqrt((w0*w0-O*O)**2 + (2*z*w0*O)**2);
+  const scale=p.F0/p.m;
+  const data=[], Omax=Math.max(3*w0, 30);
+  for(let O=0;O<=Omax;O+=0.05){ data.push([O, scale*H(O)]); }
+  return data;
+}
+
+/* ===== KPIs ===== */
+function updateKPIs(p){
+  const w0=Math.sqrt(p.k/p.m), z=p.c/(2*Math.sqrt(p.k*p.m)), Q= 1/(2*z||1e-9);
+  const wr = (z<Math.SQRT1_2)? w0*Math.sqrt(1-2*z*z): NaN;
+  $('k_w0').textContent = fmt(w0,2);
+  $('k_zeta').textContent = fmt(z,3);
+  $('k_Q').textContent = isFinite(Q)?fmt(Q,2):'—';
+  $('k_res').innerHTML = isFinite(wr)? fmt(wr,2): '—';
+}
+
+/* ===== Maple code ===== */
+function makeMaple(p){
+return `restart: with(plots):
+m:=${p.m}: k:=${p.k}: c:=${p.c}: F0:=${p.F0}: Omega:=${p.Omega}:
+y0:=${+$('y0').value||0}: v0:=${+$('v0').value||0}:
+de := m*diff(y(t),t$2) + c*diff(y(t),t) + k*y(t) = F0*sin(Omega*t):
+ic := y(0)=y0, D(y)(0)=v0:
+sol := dsolve({de,ic}, y(t), numeric, output=listprocedure):
+timeplot := odeplot(sol,[t,y(t)], 0..${+$('tmax').value}, color=red, thickness=2):
+phaseplot := odeplot(sol,[y(t),diff(y(t),t)], 0..${+$('tmax').value}, color=blue, thickness=2):
+display(timeplot);  # yoki display(phaseplot);
+`;
+}
+
+/* ===== Main run ===== */
+let last = null;
+function params(){ return {
+  m:+$('m').value, k:+$('k').value, c:+$('c').value, F0:+$('F0').value, Omega:+$('Omega').value
+};}
+function run(){
+  labelSync();
+  const p=params(); updateKPIs(p);
+  clearPlot();
+  const which=$('whichPlot').value;
+  if(which==='time'){
+    const {Y}=simulate(p); plotLine(Y,'#2563eb',2.2); last={p,series:Y};
+  }else if(which==='phase'){
+    const {PH}=simulate(p); plotLine(PH,'#7c3aed',2.2); last={p,series:PH};
+  }else{
+    const FR=freqResponse(p); plotLine(FR,'#059669',2.2); last={p,series:FR, freq:true};
+  }
+  $('mapleCode').textContent = makeMaple(p);
+  // sync anim timeline
+  $('timebar').max = $('tmax').value; $('timebar').value='0'; drawAnim(0,true);
+}
+function resetAll(){
+  $('m').value=1.5; $('k').value=60; $('c').value=3; $('F0').value=10; $('Omega').value=6;
+  $('y0').value=0; $('v0').value=0; $('tmax').value=40; $('whichPlot').value='time';
+  run();
+}
+
+/* ===== Export ===== */
+$('pngPlot').onclick = ()=> pngFromCanvas($('plot'),'a2_plot.png');
+$('csvPlot').onclick = ()=>{
+  if(!last) return;
+  const csv = last.freq ? 'Omega,Amplitude\n' : ($('whichPlot').value==='phase' ? 'y,ydot\n' : 't,y\n');
+  const joined = last.series.map(r=>r.join(',')).join('\n');
+  downloadText(csv+joined,'a2_data.csv','text/csv');
+};
+
+/* ===== Tabs ===== */
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+    if(tab.dataset.tab==='anim') drawAnim(+$('timebar').value,true);
+  });
+});
+
+/* ===== Animatsiya ===== */
+const acv=$('animCanvas'), actx=acv.getContext('2d');
+let aPlaying=false, aSpeed=1, aT=0, lastRAF=0;
+
+function worldToX(y,p){ // displacement y -> x pixel shift
+  // max ±0.5 m -> ±160 px (scale)
+  const scale=320; return acv.width/2 + y*scale;
+}
+function drawRig(){
+  actx.clearRect(0,0,acv.width,acv.height);
+  // wall & rail
+  actx.fillStyle='#e2e8f0'; actx.fillRect(60,60, acv.width-120,6);
+  actx.fillRect(60,300, acv.width-120,6);
+  // ground shadow
+  actx.fillStyle='#d1fae5'; actx.fillRect(0, acv.height-20, acv.width, 20);
+}
+function drawSpring(x){
+  const x0=80, x1=x-30, y=180, n=8, amp=18;
+  actx.strokeStyle='#0ea5e9'; actx.lineWidth=3; actx.beginPath(); actx.moveTo(x0,y);
+  const L=x1-x0, step=L/(n*2);
+  for(let i=1;i<=n*2-1;i++){
+    const xi=x0+i*step, yi=y + (i%2? -amp: amp);
+    actx.lineTo(xi, yi);
+  }
+  actx.lineTo(x1,y); actx.stroke();
+}
+function drawMass(x,y,v,p){
+  // cart
+  actx.fillStyle='#111827'; actx.fillRect(x-30,150,60,60);
+  // face stripe by velocity
+  actx.fillStyle='#fca5a5'; actx.fillRect(x-30,150,60,6);
+  // force marker (external)
+  const F=p.F0*Math.sin(p.Omega*aT);
+  actx.fillStyle='rgba(234,88,12,0.7)'; actx.fillRect(x-30+(F>0?60:-8), 178, Math.min(40,Math.abs(F)), 8);
+}
+function sampleAt(t,p){
+  // integrate quickly from 0 to t for animation (uses RK4)
+  let st={t:0, y:+$('y0').value||0, v:+$('v0').value||0};
+  for(let tt=0; tt<t; tt+=DT){ st=stepRK4(st,p,DT); if(st.t>t) break; }
+  return st;
+}
+function drawAnim(t, freeze=false){
+  const p=params();
+  drawRig();
+  const st=sampleAt(t,p);
+  const x=worldToX(st.y,p);
+  drawSpring(x);
+  drawMass(x, st.y, st.v, p);
+  // HUD
+  actx.fillStyle='rgba(0,0,0,0.55)'; actx.fillRect(10,10,210,66);
+  actx.fillStyle='#e5e7eb'; actx.font='12px Segoe UI';
+  actx.fillText(`t = ${fmt(t,2)} s`,18,28);
+  actx.fillText(`y = ${fmt(st.y,3)} m`,18,46);
+  actx.fillText(`y' = ${fmt(st.v,3)} m/s`,18,64);
+  if(!freeze){
+    $('tNow').textContent=fmt(t,2);
+    $('yNow').textContent=fmt(st.y,3);
+    $('vNow').textContent=fmt(st.v,3);
+  }
+}
+function stepAnim(ts){
+  if(!aPlaying) return;
+  if(!lastRAF) lastRAF=ts;
+  const dt=(ts-lastRAF)/1000; lastRAF=ts;
+  aT += dt*aSpeed;
+  const tmax=+$('tmax').value;
+  if(aT>tmax) aT=tmax;
+  $('timebar').value=aT.toString();
+  drawAnim(aT);
+  requestAnimationFrame(stepAnim);
+}
+$('play').onclick=()=>{ aPlaying=true; lastRAF=0; requestAnimationFrame(stepAnim); };
+$('pause').onclick=()=>{ aPlaying=false; };
+$('resetAnim').onclick=()=>{ aPlaying=false; aT=0; $('timebar').value='0'; drawAnim(0); };
+$('speed').oninput=e=>{ aSpeed=+e.target.value; $('spdLbl').textContent=aSpeed.toFixed(2)+'×'; };
+$('timebar').oninput=e=>{ aT=+e.target.value; drawAnim(aT); };
+
+/* ===== Events ===== */
+['m','k','c','F0','Omega'].forEach(id=>$(id).addEventListener('input',labelSync));
+$('run').onclick=run;
+$('reset').onclick=resetAll;
+$('copyMaple').onclick=()=>navigator.clipboard.writeText($('mapleCode').textContent||'');
+
+/* ===== Init ===== */
+labelSync(); resetAll();
+</script>
+</body>
+</html>
