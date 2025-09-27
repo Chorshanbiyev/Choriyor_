@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Quyosh paneli energiya tizimini optimallashtirish - MATLAB modellashtirish</title>
+
+<!-- MathJax (formulalar) -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#f0f8ff; --bg2:#f8fafc; --ink:#0f172a; --muted:#6b7280;
+    --pri:#3b82f6; --pri2:#8b5cf6; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    --card:#ffffff; --grid:#eef2f7; --frame:#e5e7eb; --accent:#06b6d4;
+    --matlab:#ff6b35; --solar:#fbbf24; --energy:#059669;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:'Segoe UI',Roboto,'San Francisco',Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,#fbbf24 0%,#f59e0b 30%,#3b82f6 100%);
+    line-height:1.6;font-size:15px
+  }
+  .container{max-width:1600px;margin:0 auto;padding:20px}
+
+  .header{
+    background:var(--card);border-radius:20px;padding:35px;
+    box-shadow:0 25px 50px rgba(0,0,0,.18);text-align:center;margin-bottom:24px;
+    border:1px solid rgba(255,255,255,.35)
+  }
+  .header h1{
+    margin:0 0 14px 0;font-size:34px;font-weight:800;
+    background:linear-gradient(135deg,var(--solar),var(--energy));-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text
+  }
+  .header p{margin:0 0 6px 0;color:var(--muted);font-size:17px}
+  .header .subtitle{color:var(--accent);font-weight:600;font-size:15px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+  @media (max-width:1200px){.grid2{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);border-radius:18px;padding:26px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);margin-bottom:20px;border:1px solid rgba(255,255,255,.28)
+  }
+  .card h2{margin:0 0 18px 0;font-size:22px;font-weight:700;color:#1e293b}
+  .card h3{margin:0 0 14px 0;font-size:19px;font-weight:600;color:#334155}
+  .card h4{margin:0 0 10px 0;font-size:17px;font-weight:600;color:#475569}
+
+  .problem-showcase{
+    background:linear-gradient(135deg,#fef3c7 0%,#fed7aa 100%);
+    border:3px solid var(--solar);border-radius:20px;padding:26px;margin:25px 0;position:relative
+  }
+  .problem-title{font-size:20px;font-weight:800;color:#92400e;margin-bottom:14px}
+  .problem-scenario{
+    background:rgba(255,255,255,.95);border-radius:12px;padding:18px;margin:14px 0;border-left:4px solid var(--solar)
+  }
+
+  .info-box{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);
+            border-radius:12px;padding:16px;margin:12px 0}
+  .warning-box{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  .success-box{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+
+  .equation-display{
+    background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+    border:3px solid var(--energy);border-radius:16px;padding:18px;margin:14px 0;text-align:center
+  }
+  .equation-text{font-size:18px;font-weight:700;color:var(--energy)}
+  .equation-hint{color:var(--muted);font-size:14px;margin-top:6px}
+
+  .control-panel{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+                 border:2px solid var(--frame);border-radius:16px;padding:20px;margin:16px 0}
+  .control-group{margin-bottom:16px}
+  .control-label{font-weight:600;color:#374151;margin-bottom:6px;display:block}
+  .control-desc{color:var(--muted);font-size:13px;margin-bottom:8px}
+
+  input[type=range]{width:100%;height:10px;border-radius:8px;background:#e5e7eb;
+                   outline:none;-webkit-appearance:none;margin:8px 0;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{
+    appearance:none;width:22px;height:22px;border-radius:50%;background:var(--solar);
+    cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;background:var(--solar);cursor:pointer;border:none
+  }
+  input[type=number], select{
+    padding:10px 12px;border:2px solid var(--frame);border-radius:10px;font-size:14px;background:#fff
+  }
+  input[type=number]:focus, select:focus{border-color:var(--solar);outline:none;box-shadow:0 0 0 3px rgba(251,191,36,.12)}
+
+  .btn{
+    background:var(--solar);border:0;color:#fff;padding:11px 16px;border-radius:12px;
+    cursor:pointer;font-weight:600;transition:all .25s;display:inline-flex;align-items:center;gap:8px
+  }
+  .btn:hover{background:#f59e0b;transform:translateY(-1px)}
+  .btn.matlab{background:var(--matlab)}
+  .btn.matlab:hover{background:#ea580c}
+  .btn.outline{background:transparent;border:2px solid var(--solar);color:var(--solar)}
+  .btn.outline:hover{background:var(--solar);color:#fff}
+  .btn.success{background:var(--ok)}
+  .btn.danger{background:var(--bad)}
+  .btn.energy{background:var(--energy)}
+  .btn-group{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+
+  canvas{width:100%;height:480px;background:#fff;border:3px solid var(--frame);
+         border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.08)}
+
+  .tabs{
+    display:flex;gap:6px;border-bottom:4px solid var(--frame);margin-bottom:18px;
+    background:var(--bg2);border-radius:16px 16px 0 0;padding:10px 10px 0 10px
+  }
+  .tab{padding:12px 18px;cursor:pointer;border-radius:12px 12px 0 0;font-weight:600;transition:.25s}
+  .tab:hover{background:rgba(251,191,36,.1)}
+  .tab.active{background:var(--solar);color:#fff;box-shadow:0 4px 12px rgba(251,191,36,.25)}
+  .tab-content{display:none;animation:fade .35s ease}
+  .tab-content.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .code-block{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:18px;
+              border-left:6px solid var(--matlab);font-family:'Courier New',monospace;font-size:14px;overflow-x:auto}
+
+  .results-panel{background:linear-gradient(135deg,#ecfdf5 0%,#a7f3d0 100%);
+                 border:2px solid var(--energy);border-radius:16px;padding:16px;margin:16px 0}
+  .result-item{background:rgba(255,255,255,.95);border-radius:10px;padding:12px;margin:8px 0;
+               display:flex;align-items:center;gap:10px}
+  .result-label{font-weight:700;color:#065f46;min-width:140px}
+  .result-value{font-family:'Courier New',monospace;background:#0f172a;color:#e2e8f0;
+                padding:8px 10px;border-radius:8px;flex:1}
+
+  .status-indicator{
+    display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px
+  }
+  .status-optimal{background:var(--ok)}
+  .status-good{background:var(--solar)}
+  .status-poor{background:var(--bad)}
+
+  .weather-widget{
+    background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);
+    border:2px solid var(--pri);border-radius:14px;padding:16px;margin:14px 0
+  }
+
+  .qa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .qa-card{background:var(--card);border:2px solid var(--frame);border-radius:14px;padding:16px}
+  .qa-card h4{margin:0 0 8px 0}
+  .bullet{margin:0 0 0 18px}
+  @media (max-width:768px){canvas{height:380px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SARLAVHA -->
+  <div class="header">
+    <h1>Matlabda mutaxassislikka oid masalalar</h1>
+	<h2>☀️ Quyosh paneli energiya tizimini optimallashtirish</h2>
+    <p>Zamonaviy energiya tizimlari, MATLAB modellashtirish va amaliy optimizatsiya</p>
+    <div class="subtitle">Interaktiv simulyator • Real-vaqt tahlil • Iqtisodiy hisob-kitob</div>
+  </div>
+
+  <!-- AMALIY MASALA TAQDIMOTI -->
+  <div class="problem-showcase">
+    <div class="problem-title">🏠 Uy uchun quyosh paneli tizimini loyihalash</div>
+    <div class="problem-scenario">
+      <h4>📝 Masala qo'yilishi:</h4>
+      <p>
+        Toshkent shahrida yashovchi oila o'z uyiga quyosh paneli tizimini o'rnatmoqchi.
+        Ular kunlik elektr energiyasi iste'moli 25-30 kVt·soat bo'lib, elektr haqini kamaytirish va
+        ekologik toza energiya ishlatishni maqsad qilgan.
+      </p>
+      <div class="info-box">
+        <strong>Hisobga olinadigan omillar:</strong>
+        <ul class="bullet">
+          <li><strong>Quyosh nuri intensivligi:</strong> Toshkentda o'rtacha 5.2 kVt·s/m²/kun</li>
+          <li><strong>Panel samaradorligi:</strong> 15-22% (turli texnologiyalar)</li>
+          <li><strong>Havo sharoiti:</strong> bulutlilik, harorat, shamol tezligi</li>
+          <li><strong>Tizim yo'qotishlari:</strong> inverter, kabellar, chang (10-20%)</li>
+          <li><strong>Iqtisodiy parametrlar:</strong> dastlabki sarmoya, qaytish muddati</li>
+        </ul>
+      </div>
+      <p><strong>Matematik model:</strong></p>
+      <div class="equation-display">
+        <div class="equation-text">P(t) = A × η × I(t) × cos(θ(t)) × (1 - L) × F(T)</div>
+        <div class="equation-hint">
+          <strong>Bu yerda:</strong> A-panel maydoni, η-samaradorlik, I(t)-quyosh intensivligi,
+          θ(t)-burchak, L-yo'qotishlar, F(T)-harorat koeffitsienti
+        </div>
+      </div>
+    </div>
+    <div class="success-box">
+      <strong>Maqsad:</strong> Minimal xarajat bilan maksimal energiya ishlab chiqaradigan
+      optimal tizim konfiguratsiyasini topish va uni bir yil davomida simulyatsiya qilish.
+    </div>
+  </div>
+
+  <!-- ASOSIY SIMULYATOR -->
+  <div class="card">
+    <h2>🎛️ Quyosh paneli simulyatori</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="simulator">☀️ Simulyator</div>
+      <div class="tab" data-tab="analysis">📊 Tahlil va prognoz</div>
+      <div class="tab" data-tab="economics">💰 Iqtisodiy hisob</div>
+      <div class="tab" data-tab="matlab">💻 MATLAB kodlari</div>
+      <div class="tab" data-tab="qa">📝 Topshiriqlar</div>
+    </div>
+
+    <!-- SIMULYATOR TABI -->
+    <div class="tab-content active" id="tab-simulator">
+      <div class="grid2">
+        <div>
+          <!-- Havo sharoiti widget -->
+          <div class="weather-widget">
+            <h4>🌤️ Joriy havo sharoiti (Toshkent)</h4>
+            <div class="grid3">
+              <div>
+                <strong>Quyosh intensivligi:</strong>
+                <div style="font-size:18px;color:var(--solar)">850 W/m²</div>
+              </div>
+              <div>
+                <strong>Bulutlilik:</strong>
+                <div style="font-size:18px;color:var(--pri)">25%</div>
+              </div>
+              <div>
+                <strong>Harorat:</strong>
+                <div style="font-size:18px;color:var(--bad)">28°C</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-panel">
+            <h3>⚙️ Tizim parametrlari</h3>
+
+            <div class="control-group">
+              <label class="control-label">Panel maydoni (8-50 m²): <span id="valArea">20</span> m²</label>
+              <div class="control-desc">Uyingiz tomidagi mavjud joy bo'yicha</div>
+              <input id="paramArea" type="range" min="8" max="50" step="2" value="20">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Panel samaradorligi (15-22%): <span id="valEfficiency">18</span>%</label>
+              <div class="control-desc">Monokristal (22%), Polikristal (17%), Nozik plyonka (15%)</div>
+              <input id="paramEfficiency" type="range" min="15" max="22" step="1" value="18">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Tizim yo'qotishlari (10-25%): <span id="valLosses">15</span>%</label>
+              <div class="control-desc">Inverter, kabellar, chang, soya</div>
+              <input id="paramLosses" type="range" min="10" max="25" step="1" value="15">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Qiyalik burchagi (15-60°): <span id="valTilt">35</span>°</label>
+              <div class="control-desc">Toshkent uchun optimal 30-40°</div>
+              <input id="paramTilt" type="range" min="15" max="60" step="5" value="35">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Fasl tanlang:</label>
+              <select id="seasonSelect">
+                <option value="spring">🌸 Bahor (mart-may)</option>
+                <option value="summer" selected>☀️ Yoz (iyun-avgust)</option>
+                <option value="autumn">🍂 Kuz (sentyabr-noyabr)</option>
+                <option value="winter">❄️ Qish (dekabr-fevral)</option>
+              </select>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn" id="simulateDay">📅 Bir kunlik simulyatsiya</button>
+              <button class="btn energy" id="simulateYear">📊 Yillik prognoz</button>
+              <button class="btn outline" id="optimizeSystem">⚡ Avtomatik optimallashtirish</button>
+            </div>
+
+            <div class="info-box">
+              <strong>Maslahat:</strong> Toshkent uchun optimal panel burchagi 35°, janubga yo'naltirilgan.
+              Yoz oylarida energiya ishlab chiqarish 40-50% yuqori bo'ladi.
+            </div>
+          </div>
+
+          <div class="results-panel">
+            <h4>📋 Joriy natijalar</h4>
+            <div class="result-item">
+              <div class="result-label">Kunlik energiya:</div>
+              <div class="result-value" id="dailyEnergy">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Yillik energiya:</div>
+              <div class="result-value" id="yearlyEnergy">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">CO₂ kamaytirish:</div>
+              <div class="result-value" id="co2Reduction">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Tizim holati:</div>
+              <div class="result-value" id="systemStatus">
+                <span class="status-indicator status-good"></span>Yaxshi ishlayapti
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3>📈 Energiya ishlab chiqarish grafigi</h3>
+          <canvas id="energyCanvas" width="800" height="480"></canvas>
+          
+          <div class="btn-group" style="margin-top:10px">
+            <button class="btn success" id="saveChart">📸 Grafikni saqlash</button>
+            <button class="btn" id="exportData">📊 Ma'lumotlarni eksport</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAHLIL VA PROGNOZ TABI -->
+    <div class="tab-content" id="tab-analysis">
+      <h3>📊 Tizim tahlili va prognoz</h3>
+      
+      <div class="grid3">
+        <div class="card">
+          <h4>📈 Yillik statistika</h4>
+          <canvas id="yearlyChart" width="400" height="300"></canvas>
+          <div class="success-box">
+            <strong>Eng samarali oylar:</strong> may-avgust (7-8 soat quyosh)
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>🌡️ Harorat ta'siri</h4>
+          <canvas id="tempChart" width="400" height="300"></canvas>
+          <div class="warning-box">
+            <strong>Diqqat:</strong> 40°C dan yuqori haroratda samaradorlik 15-20% kamayadi
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>☁️ Bulutlilik ta'siri</h4>
+          <canvas id="cloudChart" width="400" height="300"></canvas>
+          <div class="info-box">
+            <strong>Qisqa muddatli bulutlar:</strong> energiya ishlab chiqarishni 60-80% kamaytiradi
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>📊 Taqqoslash jadvali</h4>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;border:2px solid var(--frame)">
+            <thead style="background:var(--bg2)">
+              <tr>
+                <th style="padding:12px;border:1px solid var(--frame)">Panel turi</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Samaradorlik</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Yillik energiya</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Narxi (m²)</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Qaytish muddati</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Monokristal</td>
+                <td style="padding:12px;border:1px solid var(--frame)">20-22%</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="monoYearly">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">$280-320</td>
+                <td style="padding:12px;border:1px solid var(--frame)">6-7 yil</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Polikristal</td>
+                <td style="padding:12px;border:1px solid var(--frame)">16-18%</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="polyYearly">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">$220-260</td>
+                <td style="padding:12px;border:1px solid var(--frame)">7-8 yil</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Nozik plyonka</td>
+                <td style="padding:12px;border:1px solid var(--frame)">12-15%</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="thinYearly">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">$180-220</td>
+                <td style="padding:12px;border:1px solid var(--frame)">8-9 yil</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- IQTISODIY HISOB TABI -->
+    <div class="tab-content" id="tab-economics">
+      <h3>💰 Iqtisodiy hisob-kitob</h3>
+      
+      <div class="grid2">
+        <div class="card">
+          <h4>💵 Xarajatlar tahlili</h4>
+          <div class="control-group">
+            <label class="control-label">Elektr narxi (so'm/kVt·s): <span id="valElectricPrice">800</span></label>
+            <input id="paramElectricPrice" type="range" min="500" max="1200" step="50" value="800">
+          </div>
+          
+          <canvas id="costChart" width="500" height="300"></canvas>
+          
+          <div class="results-panel">
+            <div class="result-item">
+              <div class="result-label">Dastlabki sarmoya:</div>
+              <div class="result-value" id="initialCost">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Yillik tejamkorlik:</div>
+              <div class="result-value" id="yearlySavings">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Qaytish muddati:</div>
+              <div class="result-value" id="paybackTime">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">20 yillik foyda:</div>
+              <div class="result-value" id="totalProfit">--</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>📊 Investitsiya prognozi</h4>
+          <canvas id="investmentChart" width="500" height="400"></canvas>
+          
+          <div class="success-box">
+            <strong>Xulosa:</strong> O'rtacha 6-8 yilda investitsiya to'liq qaytadi,
+            keyingi 12-15 yil davomida sof foyda keltiradi.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATLAB KODLARI TABI -->
+    <div class="tab-content" id="tab-matlab">
+      <h3>💻 MATLAB kodlari</h3>
+      
+      <div class="card">
+        <h4>🌞 Asosiy simulyatsiya kodi</h4>
+        <div class="code-block" id="mainMatlabCode">
+% Quyosh paneli energiya tizimi simulyatsiyasi
+clear; clc; close all;
+
+% Parametrlar (joriy sozlamalar asosida)
+A = 20;        % Panel maydoni (m²)
+eta = 0.18;    % Samaradorlik
+L = 0.15;      % Tizim yo'qotishlari
+tilt = 35;     % Qiyalik burchagi (daraja)
+
+% Toshkent koordinatalari
+lat = 41.3;    % Kenglik
+lon = 69.3;    % Uzunlik
+
+% Vaqt parametrlari (bir kun, har 15 daqiqada)
+t = 0:0.25:24; % Soatlar
+day = 172;     % Yil kunlari (21-iyun)
+
+% Quyosh holatini hisoblash
+declination = 23.45 * sind(360 * (284 + day) / 365);
+hour_angle = 15 * (t - 12);
+elevation = asind(sind(lat) * sind(declination) + ...
+                 cosd(lat) * cosd(declination) * cosd(hour_angle));
+
+% Faqat musbat elevation burchaklari (quyosh ufqdan yuqori)
+elevation(elevation < 0) = 0;
+
+% Atmosfera massasi va intensivlik
+airmass = 1 ./ (sind(elevation) + 0.50572 * (elevation + 6.07995).^(-1.6364));
+airmass(elevation <= 0) = inf;
+
+% To'g'ridan-to'g'ri normal nurlanish (DNI)
+I_direct = 900 * exp(-0.7 * airmass.^0.678);
+I_direct(elevation <= 0) = 0;
+
+% Diffuz nurlanish (taxminan)
+I_diffuse = 100 * sind(elevation);
+I_diffuse(elevation <= 0) = 0;
+
+% Panel sirtiga tushuvchi nurlanish
+surface_angle = elevation + tilt;
+I_panel = I_direct .* sind(surface_angle) + I_diffuse;
+I_panel(I_panel < 0) = 0;
+
+% Harorat ta'siri (harorat koeffitsienti)
+T_ambient = 25 + 10 * sind(pi * t / 12); % Kun davomida harorat o'zgarishi
+T_panel = T_ambient + I_panel / 100;      % Panel harorati
+temp_coeff = 1 - 0.004 * (T_panel - 25); % -0.4%/°C
+
+% Energiya ishlab chiqarish
+P_output = A * eta * I_panel / 1000 .* (1 - L) .* temp_coeff;
+P_output(P_output < 0) = 0;
+
+% Natijalar
+figure('Position', [100 100 1200 800]);
+
+subplot(2,2,1);
+plot(t, elevation, 'r-', 'LineWidth', 2); grid on;
+xlabel('Vaqt (soat)'); ylabel('Quyosh balandligi (°)');
+title('Quyosh traektoriyasi');
+
+subplot(2,2,2);
+plot(t, I_panel, 'b-', 'LineWidth', 2); grid on;
+xlabel('Vaqt (soat)'); ylabel('Nurlanish (W/m²)');
+title('Panel sirtiga tushuvchi nurlanish');
+
+subplot(2,2,3);
+plot(t, T_panel, 'g-', 'LineWidth', 2); grid on;
+xlabel('Vaqt (soat)'); ylabel('Harorat (°C)');
+title('Panel harorati');
+
+subplot(2,2,4);
+area(t, P_output, 'FaceColor', [1 0.8 0], 'FaceAlpha', 0.7); grid on;
+xlabel('Vaqt (soat)'); ylabel('Quvvat (kW)');
+title('Energiya ishlab chiqarish');
+
+% Kunlik va yillik statistika
+daily_energy = trapz(t, P_output);
+yearly_energy = daily_energy * 365 * 0.85; % Yillik o'rtacha koeffitsient
+
+fprintf('Kunlik energiya: %.2f kWh\n', daily_energy);
+fprintf('Yillik energiya: %.2f kWh\n', yearly_energy);
+fprintf('CO2 kamaytirish: %.2f kg/yil\n', yearly_energy * 0.6);
+
+% Ma'lumotlarni saqlash
+data = [t' elevation' I_panel' T_panel' P_output'];
+csvwrite('solar_data.csv', data);
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn matlab" id="copyMainCode">📋 Kodni nusxalash</button>
+          <button class="btn" id="downloadMainCode">💾 .m fayl yuklab olish</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>⚡ Optimallashtirish kodi</h4>
+        <div class="code-block" id="optimizationCode">
+% Quyosh paneli tizimini optimallashtirish
+function optimal_system = optimize_solar_system()
+    
+% Optimallashtirish parametrlari
+areas = 10:2:50;           % Panel maydoni variantlari
+tilts = 15:5:60;           % Qiyalik burchagi variantlari
+efficiencies = 0.15:0.01:0.22; % Samaradorlik variantlari
+
+% Iqtisodiy parametrlar
+panel_cost_per_m2 = 250;   % $/m²
+installation_cost = 1000;  % $ (umumiy)
+electricity_price = 0.1;   % $/kWh
+
+best_roi = -inf;
+optimal_config = [];
+
+for area = areas
+    for tilt = tilts
+        for efficiency = efficiencies
+            % Energiya hisobi (soddalashtirilgan)
+            yearly_energy = calculate_yearly_energy(area, tilt, efficiency);
+            
+            % Xarajatlar
+            total_cost = area * panel_cost_per_m2 + installation_cost;
+            yearly_savings = yearly_energy * electricity_price;
+            
+            % Qaytish koeffitsienti (ROI) 10 yil uchun
+            roi = (yearly_savings * 10 - total_cost) / total_cost;
+            
+            if roi > best_roi
+                best_roi = roi;
+                optimal_config = [area, tilt, efficiency, yearly_energy, total_cost];
+            end
+        end
+    end
+end
+
+fprintf('Optimal konfiguratsiya:\n');
+fprintf('Panel maydoni: %.0f m²\n', optimal_config(1));
+fprintf('Qiyalik burchagi: %.0f°\n', optimal_config(2));
+fprintf('Samaradorlik: %.1f%%\n', optimal_config(3)*100);
+fprintf('Yillik energiya: %.0f kWh\n', optimal_config(4));
+fprintf('Jami xarajat: $%.0f\n', optimal_config(5));
+fprintf('10 yillik ROI: %.1f%%\n', best_roi*100);
+
+end
+
+function energy = calculate_yearly_energy(area, tilt, efficiency)
+    % Soddalashtirilgan yillik energiya hisobi
+    % Toshkent uchun o'rtacha qiymatlar
+    avg_irradiance = 5.2;  % kWh/m²/kun
+    system_losses = 0.15;  % 15% yo'qotish
+    
+    energy = area * efficiency * avg_irradiance * 365 * (1 - system_losses);
+end
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn matlab" id="copyOptCode">📋 Optimallashtirish kodini nusxalash</button>
+          <button class="btn" id="downloadOptCode">💾 .m fayl yuklab olish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPSHIRIQLAR TABI -->
+    <div class="tab-content" id="tab-qa">
+      <h3>📝 Amaliy topshiriqlar va loyihalar</h3>
+      
+      <div class="qa-grid">
+        <div class="qa-card">
+          <h4>🔬 Laboratoriya ishlari</h4>
+          <ol class="bullet">
+            <li><strong>1-topshiriq:</strong> Turli fasllar uchun energiya ishlab chiqarishni taqqoslang</li>
+            <li><strong>2-topshiriq:</strong> Panel burchagini 15°dan 60°gacha o'zgartirib, optimal qiymatni toping</li>
+            <li><strong>3-topshiriq:</strong> Bulutli va ochiq kun uchun energiya farqini hisoblang</li>
+            <li><strong>4-topshiriq:</strong> 3 xil panel turining iqtisodiy samaradorligini taqqoslang</li>
+          </ol>
+        </div>
+        
+        <div class="qa-card">
+          <h4>💼 Kurs loyihasi</h4>
+          <div class="warning-box">
+            <strong>Vazifa:</strong> O'zbekistonning istalgan shahri uchun to'liq quyosh paneli 
+            tizimini loyihalash va MATLAB'da modellashtirish.
+          </div>
+          <ul class="bullet">
+            <li>Shahar tanlash va klimatik ma'lumotlarni yig'ish</li>
+            <li>Turli konfiguratsiyalarni taqqoslash</li>
+            <li>20 yillik iqtisodiy prognoz tayyorlash</li>
+            <li>Ekologik ta'sirni baholash</li>
+            <li>MATLAB'da avtomatlashtirilgan hisobot yaratish</li>
+          </ul>
+        </div>
+        
+        <div class="qa-card">
+          <h4>🏆 Ilg'or topshiriqlar</h4>
+          <ol class="bullet">
+            <li><strong>Battery integratsiyasi:</strong> Energiya saqlash tizimini qo'shish</li>
+            <li><strong>Grid-tie tizim:</strong> Tarmoqqa energiya sotish modelini qurish</li>
+            <li><strong>Smart monitoring:</strong> Real-vaqt monitoring tizimini loyihalash</li>
+            <li><strong>Shahar miqyosi:</strong> Butun mahalla uchun energiya tizimi</li>
+          </ol>
+        </div>
+        
+        <div class="qa-card">
+          <h4>❓ Nazariy savollar</h4>
+          <ul class="bullet">
+            <li>Nega panel samaradorligi harorat oshishi bilan kamayadi?</li>
+            <li>MPPT (Maximum Power Point Tracking) nima va qanday ishlaydi?</li>
+            <li>Inverter yo'qotishlari qanday kamaytiriladi?</li>
+            <li>Panellar uchun eng yaxshi tozalash usuli qanday?</li>
+            <li>Quyosh panelining 25 yillik kafolati nimani anglatadi?</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="success-box">
+        <strong>Baholash mezonlari:</strong> MATLAB kod sifati (30%), tahlil chuqurligi (25%), 
+        iqtisodiy hisob aniqlik (25%), hisobot taqdimoti (20%)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULYATOR LOGIKASI ===== -->
+<script>
+// ======== UTILITY FUNCTIONS ========
+function $(id) { return document.getElementById(id); }
+
+function downloadFile(content, filename, mimeType = 'text/plain') {
+    const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ======== SIMULATION STATE ========
+let solarState = {
+    area: 20,           // Panel maydoni (m²)
+    efficiency: 18,     // Samaradorlik (%)
+    losses: 15,         // Tizim yo'qotishlari (%)
+    tilt: 35,           // Qiyalik burchagi (°)
+    season: 'summer',   // Fasl
+    electricPrice: 800, // Elektr narxi (so'm/kWh)
+    currentData: []     // Joriy simulyatsiya ma'lumotlari
+};
+
+// ======== SOLAR CALCULATIONS ========
+function calculateSolarPosition(hour, day) {
+    const lat = 41.3; // Toshkent kengligi
+    const declination = 23.45 * Math.sin(Math.PI * (284 + day) / 365 * Math.PI / 180);
+    const hourAngle = 15 * (hour - 12);
+    
+    const elevation = Math.asin(
+        Math.sin(lat * Math.PI / 180) * Math.sin(declination * Math.PI / 180) +
+        Math.cos(lat * Math.PI / 180) * Math.cos(declination * Math.PI / 180) * Math.cos(hourAngle * Math.PI / 180)
+    ) * 180 / Math.PI;
+    
+    return Math.max(0, elevation);
+}
+
+function calculateIrradiance(elevation, weather = 1) {
+    if (elevation <= 0) return 0;
+    
+    // Atmosfera massasi
+    const airmass = 1 / (Math.sin(elevation * Math.PI / 180) + 0.50572 * Math.pow(elevation + 6.07995, -1.6364));
+    
+    // To'g'ridan-to'g'ri nurlanish
+    const directNormal = 900 * Math.exp(-0.7 * Math.pow(airmass, 0.678));
+    
+    // Diffuz nurlanish
+    const diffuse = 100 * Math.sin(elevation * Math.PI / 180);
+    
+    // Panel sirtiga tushuvchi nurlanish
+    const surfaceAngle = elevation + solarState.tilt;
+    const panelIrradiance = directNormal * Math.sin(surfaceAngle * Math.PI / 180) + diffuse;
+    
+    return Math.max(0, panelIrradiance * weather);
+}
+
+function calculateTemperatureEffect(irradiance, hour) {
+    // Kunlik harorat o'zgarishi
+    const ambientTemp = 25 + 10 * Math.sin(Math.PI * hour / 12);
+    const panelTemp = ambientTemp + irradiance / 100;
+    
+    // Harorat koeffitsienti (-0.4%/°C)
+    return 1 - 0.004 * (panelTemp - 25);
+}
+
+function calculatePowerOutput(hour, day, weather = 1) {
+    const elevation = calculateSolarPosition(hour, day);
+    const irradiance = calculateIrradiance(elevation, weather);
+    const tempEffect = calculateTemperatureEffect(irradiance, hour);
+    
+    const power = solarState.area * (solarState.efficiency / 100) * 
+                  (irradiance / 1000) * (1 - solarState.losses / 100) * tempEffect;
+    
+    return Math.max(0, power);
+}
+
+function simulateDay(day = 172) { // 21-iyun default
+    const hours = [];
+    const powers = [];
+    const irradiances = [];
+    
+    // Fasl koeffitsienti
+    const seasonFactors = {
+        spring: 0.8,
+        summer: 1.0,
+        autumn: 0.7,
+        winter: 0.5
+    };
+    
+    const weatherFactor = seasonFactors[solarState.season] || 1.0;
+    
+    for (let h = 0; h <= 24; h += 0.25) {
+        hours.push(h);
+        const power = calculatePowerOutput(h, day, weatherFactor);
+        powers.push(power);
+        
+        const elevation = calculateSolarPosition(h, day);
+        const irr = calculateIrradiance(elevation, weatherFactor);
+        irradiances.push(irr);
+    }
+    
+    solarState.currentData = hours.map((h, i) => ({
+        hour: h,
+        power: powers[i],
+        irradiance: irradiances[i]
+    }));
+    
+    return solarState.currentData;
+}
+
+function calculateMetrics() {
+    if (solarState.currentData.length === 0) return {};
+    
+    const powers = solarState.currentData.map(d => d.power);
+    const dailyEnergy = powers.reduce((sum, p) => sum + p, 0) * 0.25; // kWh
+    
+    // Yillik prognoz
+    const seasonalFactors = { spring: 0.8, summer: 1.0, autumn: 0.7, winter: 0.5 };
+    const avgFactor = Object.values(seasonalFactors).reduce((a, b) => a + b) / 4;
+    const yearlyEnergy = dailyEnergy * 365 * avgFactor;
+    
+    // Iqtisodiy hisob
+    const panelCostPerM2 = 250; // $
+    const installationCost = 1000; // $
+    const totalCostUSD = solarState.area * panelCostPerM2 + installationCost;
+    const totalCostUZS = totalCostUSD * 12000; // Approx exchange rate
+    
+    const yearlySavingsUZS = yearlyEnergy * solarState.electricPrice;
+    const paybackYears = totalCostUZS / yearlySavingsUZS;
+    
+    // CO2 kamaytirish
+    const co2Reduction = yearlyEnergy * 0.6; // kg CO2/kWh
+    
+    return {
+        dailyEnergy,
+        yearlyEnergy,
+        totalCostUZS,
+        yearlySavingsUZS,
+        paybackYears,
+        co2Reduction,
+        maxPower: Math.max(...powers),
+        avgPower: powers.reduce((a, b) => a + b) / powers.length
+    };
+}
+
+// ======== CANVAS DRAWING ========
+function setupCanvas(canvasId) {
+    const canvas = $(canvasId);
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    return { canvas, ctx, w: rect.width, h: rect.height };
+}
+
+function drawGrid(ctx, w, h) {
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    
+    // Vertical grid lines
+    for (let x = 60; x < w - 40; x += (w - 100) / 24 * 4) {
+        ctx.beginPath();
+        ctx.moveTo(x, 40);
+        ctx.lineTo(x, h - 60);
+        ctx.stroke();
+    }
+    
+    // Horizontal grid lines
+    for (let y = 40; y < h - 60; y += (h - 100) / 8) {
+        ctx.beginPath();
+        ctx.moveTo(60, y);
+        ctx.lineTo(w - 40, y);
+        ctx.stroke();
+    }
+}
+
+function drawAxes(ctx, w, h) {
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    
+    // X axis
+    ctx.beginPath();
+    ctx.moveTo(60, h - 60);
+    ctx.lineTo(w - 40, h - 60);
+    ctx.stroke();
+    
+    // Y axis
+    ctx.beginPath();
+    ctx.moveTo(60, 40);
+    ctx.lineTo(60, h - 60);
+    ctx.stroke();
+    
+    // Labels
+    ctx.fillStyle = '#374151';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    
+    // X axis labels (hours)
+    for (let i = 0; i <= 24; i += 4) {
+        const x = 60 + (i / 24) * (w - 100);
+        ctx.fillText(`${i}:00`, x, h - 35);
+    }
+    
+    // Y axis labels (power)
+    ctx.textAlign = 'right';
+    const maxPower = Math.max(...solarState.currentData.map(d => d.power)) || 5;
+    for (let i = 0; i <= 5; i++) {
+        const power = (maxPower / 5) * i;
+        const y = h - 60 - (i / 5) * (h - 100);
+        ctx.fillText(`${power.toFixed(1)} kW`, 55, y + 5);
+    }
+    
+    // Axis titles
+    ctx.textAlign = 'center';
+    ctx.fillText('Vaqt (soat)', w / 2, h - 10);
+    
+    ctx.save();
+    ctx.translate(20, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Quvvat (kW)', 0, 0);
+    ctx.restore();
+}
+
+function drawEnergyChart() {
+    const { ctx, w, h } = setupCanvas('energyCanvas');
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, w, h);
+    
+    // Draw grid and axes
+    drawGrid(ctx, w, h);
+    drawAxes(ctx, w, h);
+    
+    if (solarState.currentData.length === 0) return;
+    
+    // Draw power curve
+    ctx.strokeStyle = '#fbbf24';
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.3)';
+    ctx.lineWidth = 3;
+    
+    const maxPower = Math.max(...solarState.currentData.map(d => d.power)) || 5;
+    
+    ctx.beginPath();
+    ctx.moveTo(60, h - 60);
+    
+    solarState.currentData.forEach(point => {
+        const x = 60 + (point.hour / 24) * (w - 100);
+        const y = h - 60 - (point.power / maxPower) * (h - 100);
+        ctx.lineTo(x, y);
+    });
+    
+    ctx.lineTo(60 + (24 / 24) * (w - 100), h - 60);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw peak power marker
+    const peakIndex = solarState.currentData.findIndex(d => d.power === maxPower);
+    if (peakIndex !== -1) {
+        const peakPoint = solarState.currentData[peakIndex];
+        const x = 60 + (peakPoint.hour / 24) * (w - 100);
+        const y = h - 60 - (peakPoint.power / maxPower) * (h - 100);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Peak', x, y - 12);
+    }
+}
+
+function drawAnalysisCharts() {
+    // Yillik grafik
+    const { ctx: ctx1, w: w1, h: h1 } = setupCanvas('yearlyChart');
+    ctx1.clearRect(0, 0, w1, h1);
+    
+    // Sodda bar chart - oylik energiya
+    const months = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+    const monthlyFactors = [0.4, 0.5, 0.7, 0.8, 0.9, 1.0, 1.0, 0.9, 0.8, 0.6, 0.4, 0.3];
+    
+    const barWidth = (w1 - 80) / 12;
+    const maxEnergy = Math.max(...monthlyFactors) * calculateMetrics().yearlyEnergy / 12;
+    
+    monthlyFactors.forEach((factor, i) => {
+        const energy = factor * calculateMetrics().yearlyEnergy / 12;
+        const barHeight = (energy / maxEnergy) * (h1 - 100);
+        const x = 40 + i * barWidth;
+        const y = h1 - 40 - barHeight;
+        
+        ctx1.fillStyle = `hsl(${45 + factor * 90}, 70%, 60%)`;
+        ctx1.fillRect(x, y, barWidth - 2, barHeight);
+        
+        ctx1.fillStyle = '#374151';
+        ctx1.font = '10px Arial';
+        ctx1.textAlign = 'center';
+        ctx1.fillText(months[i], x + barWidth/2, h1 - 20);
+    });
+}
+
+// ======== UI UPDATES ========
+function updateUI() {
+    // Update parameter displays
+    $('valArea').textContent = solarState.area;
+    $('valEfficiency').textContent = solarState.efficiency;
+    $('valLosses').textContent = solarState.losses;
+    $('valTilt').textContent = solarState.tilt;
+    $('valElectricPrice').textContent = solarState.electricPrice;
+    
+    // Update results
+    const metrics = calculateMetrics();
+    
+    $('dailyEnergy').textContent = `${metrics.dailyEnergy?.toFixed(1) || '--'} kWh`;
+    $('yearlyEnergy').textContent = `${metrics.yearlyEnergy?.toFixed(0) || '--'} kWh`;
+    $('co2Reduction').textContent = `${metrics.co2Reduction?.toFixed(0) || '--'} kg/yil`;
+    
+    // Update economic results
+    if (metrics.totalCostUZS) {
+        $('initialCost').textContent = `${(metrics.totalCostUZS / 1000000).toFixed(1)} mln so'm`;
+        $('yearlySavings').textContent = `${(metrics.yearlySavingsUZS / 1000000).toFixed(1)} mln so'm`;
+        $('paybackTime').textContent = `${metrics.paybackYears?.toFixed(1)} yil`;
+        $('totalProfit').textContent = `${((metrics.yearlySavingsUZS * 20 - metrics.totalCostUZS) / 1000000).toFixed(1)} mln so'm`;
+    }
+    
+    // Update comparison table
+    const efficiencies = [22, 17, 13]; // Mono, poly, thin
+    ['monoYearly', 'polyYearly', 'thinYearly'].forEach((id, i) => {
+        const energy = solarState.area * (efficiencies[i] / 100) * 5.2 * 365 * 0.85;
+        $(id).textContent = `${energy.toFixed(0)} kWh`;
+    });
+}
+
+function generateMatlabCode() {
+    return `% Quyosh paneli tizimi simulyatsiyasi - Joriy parametrlar
+clear; clc; close all;
+
+% Tizim parametrlari
+area = ${solarState.area};           % Panel maydoni (m²)
+efficiency = ${solarState.efficiency / 100};      % Samaradorlik
+losses = ${solarState.losses / 100};         % Tizim yo'qotishlari
+tilt_angle = ${solarState.tilt};         % Qiyalik burchagi (°)
+
+% Toshkent koordinatalari
+latitude = 41.3;
+longitude = 69.3;
+
+% Vaqt parametrlari
+t = 0:0.25:24;                    % Soatlar (15 daqiqa interval)
+day_of_year = 172;                % 21-iyun (yozgi kunsolstitsiya)
+
+% Quyosh holatini hisoblash
+declination = 23.45 * sind(360 * (284 + day_of_year) / 365);
+hour_angle = 15 * (t - 12);
+
+% Quyosh balandligi
+elevation = asind(sind(latitude) * sind(declination) + ...
+                 cosd(latitude) * cosd(declination) * cosd(hour_angle));
+elevation(elevation < 0) = 0;
+
+% Atmosfera massasi
+airmass = 1 ./ (sind(elevation) + 0.50572 * (elevation + 6.07995).^(-1.6364));
+airmass(elevation <= 0) = inf;
+
+% Nurlanish hisobi
+I_direct = 900 * exp(-0.7 * airmass.^0.678);
+I_direct(elevation <= 0) = 0;
+
+I_diffuse = 100 * sind(elevation);
+I_diffuse(elevation <= 0) = 0;
+
+% Panel sirtiga tushuvchi nurlanish
+surface_angle = elevation + tilt_angle;
+I_panel = I_direct .* sind(surface_angle) + I_diffuse;
+I_panel(I_panel < 0) = 0;
+
+% Harorat ta'siri
+T_ambient = 25 + 10 * sind(pi * t / 12);
+T_panel = T_ambient + I_panel / 100;
+temp_coefficient = 1 - 0.004 * (T_panel - 25);
+
+% Energiya ishlab chiqarish
+P_output = area * efficiency * (I_panel / 1000) .* (1 - losses) .* temp_coefficient;
+P_output(P_output < 0) = 0;
+
+% Grafik chizish
+figure('Position', [100 100 1200 600]);
+
+subplot(1,3,1);
+plot(t, elevation, 'r-', 'LineWidth', 2); grid on;
+xlabel('Vaqt (soat)'); ylabel('Quyosh balandligi (°)');
+title('Quyosh traektoriyasi');
+
+subplot(1,3,2);
+plot(t, I_panel, 'b-', 'LineWidth', 2); grid on;
+xlabel('Vaqt (soat)'); ylabel('Nurlanish (W/m²)');
+title('Panel sirtiga nurlanish');
+
+subplot(1,3,3);
+area(t, P_output, 'FaceColor', [1 0.8 0], 'FaceAlpha', 0.7); grid on;
+xlabel('Vaqt (soat)'); ylabel('Quvvat (kW)');
+title('Energiya ishlab chiqarish');
+
+% Natijalar
+daily_energy = trapz(t, P_output);
+yearly_energy = daily_energy * 365 * 0.8; % Yillik o'rtacha
+co2_reduction = yearly_energy * 0.6;
+
+fprintf('\\n=== SIMULYATSIYA NATIJALARI ===\\n');
+fprintf('Kunlik energiya: %.2f kWh\\n', daily_energy);
+fprintf('Yillik energiya: %.2f kWh\\n', yearly_energy);
+fprintf('CO2 kamaytirish: %.2f kg/yil\\n', co2_reduction);
+fprintf('Maksimal quvvat: %.2f kW\\n', max(P_output));
+
+% Ma'lumotlarni eksport qilish
+results = table(t', elevation', I_panel', P_output', ...
+               'VariableNames', {'Vaqt', 'Balandlik', 'Nurlanish', 'Quvvat'});
+writetable(results, 'solar_simulation_results.csv');
+
+% Grafik saqlash
+saveas(gcf, 'solar_energy_analysis.png');
+`;
+}
+
+// ======== EVENT HANDLERS ========
+function bindEvents() {
+    // Parameter controls
+    $('paramArea').addEventListener('input', (e) => {
+        solarState.area = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramEfficiency').addEventListener('input', (e) => {
+        solarState.efficiency = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramLosses').addEventListener('input', (e) => {
+        solarState.losses = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramTilt').addEventListener('input', (e) => {
+        solarState.tilt = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramElectricPrice').addEventListener('input', (e) => {
+        solarState.electricPrice = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('seasonSelect').addEventListener('change', (e) => {
+        solarState.season = e.target.value;
+        updateUI();
+    });
+    
+    // Simulation buttons
+    $('simulateDay').addEventListener('click', () => {
+        simulateDay();
+        drawEnergyChart();
+        updateUI();
+        $('simulateDay').textContent = '✅ Bajarildi';
+        setTimeout(() => {
+            $('simulateDay').textContent = '📅 Bir kunlik simulyatsiya';
+        }, 1500);
+    });
+    
+    $('simulateYear').addEventListener('click', () => {
+        simulateDay(); // Base simulation
+        drawAnalysisCharts();
+        updateUI();
+        $('simulateYear').textContent = '✅ Tayyorlandi';
+        setTimeout(() => {
+            $('simulateYear').textContent = '📊 Yillik prognoz';
+        }, 1500);
+    });
+    
+    $('optimizeSystem').addEventListener('click', () => {
+        // Simple optimization: find best tilt angle
+        let bestTilt = 35;
+        let bestEnergy = 0;
+        
+        for (let tilt = 15; tilt <= 60; tilt += 5) {
+            solarState.tilt = tilt;
+            simulateDay();
+            const energy = calculateMetrics().dailyEnergy;
+            if (energy > bestEnergy) {
+                bestEnergy = energy;
+                bestTilt = tilt;
+            }
+        }
+        
+        solarState.tilt = bestTilt;
+        $('paramTilt').value = bestTilt;
+        simulateDay();
+        drawEnergyChart();
+        updateUI();
+        
+        alert(`Optimal burchak topildi: ${bestTilt}°\nKunlik energiya: ${bestEnergy.toFixed(1)} kWh`);
+    });
+    
+    // Export functions
+    $('saveChart').addEventListener('click', () => {
+        const canvas = $('energyCanvas');
+        const link = document.createElement('a');
+        link.download = 'solar_energy_chart.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+    
+    $('exportData').addEventListener('click', () => {
+        if (solarState.currentData.length === 0) {
+            alert('Avval simulyatsiya bajaring!');
+            return;
+        }
+        
+        let csv = 'Vaqt,Quvvat(kW),Nurlanish(W/m2)\n';
+        solarState.currentData.forEach(point => {
+            csv += `${point.hour.toFixed(2)},${point.power.toFixed(3)},${point.irradiance.toFixed(1)}\n`;
+        });
+        
+        downloadFile(csv, 'solar_data.csv', 'text/csv');
+    });
+    
+    // MATLAB code functions
+    $('copyMainCode').addEventListener('click', () => {
+        const code = generateMatlabCode();
+        navigator.clipboard.writeText(code).then(() => {
+            $('copyMainCode').textContent = '✅ Nusxalandi';
+            setTimeout(() => {
+                $('copyMainCode').textContent = '📋 Kodni nusxalash';
+            }, 1500);
+        });
+    });
+    
+    $('downloadMainCode').addEventListener('click', () => {
+        const code = generateMatlabCode();
+        downloadFile(code, 'solar_simulation.m', 'text/plain');
+    });
+    
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            $('tab-' + tab.dataset.tab).classList.add('active');
+            
+            // Draw charts when analysis tab is opened
+            if (tab.dataset.tab === 'analysis') {
+                setTimeout(drawAnalysisCharts, 100);
+            }
+        });
+    });
+}
+
+// ======== INITIALIZATION ========
+function init() {
+    bindEvents();
+    simulateDay(); // Initial simulation
+    drawEnergyChart();
+    updateUI();
+}
+
+// Start when page loads
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => {
+    drawEnergyChart();
+    drawAnalysisCharts();
+});
+</script>
+
+</body>
+</html>
