@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MATLAB Simulink - Avtomobil tormoz tizimi modellashtirish</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#f0f8ff; --bg2:#f8fafc; --ink:#0f172a; --muted:#6b7280;
+    --pri:#3b82f6; --pri2:#8b5cf6; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    --card:#ffffff; --grid:#eef2f7; --frame:#e5e7eb; --accent:#06b6d4;
+    --simulink:#0076ba; --matlab:#ff6b35; --engine:#059669; --brake:#dc2626;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:'Segoe UI',Roboto,'San Francisco',Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,#0076ba 0%,#3b82f6 30%,#059669 100%);
+    line-height:1.6;font-size:15px
+  }
+  .container{max-width:1600px;margin:0 auto;padding:20px}
+
+  .header{
+    background:var(--card);border-radius:20px;padding:35px;
+    box-shadow:0 25px 50px rgba(0,0,0,.18);text-align:center;margin-bottom:24px;
+    border:1px solid rgba(255,255,255,.35)
+  }
+  .header h1{
+    margin:0 0 14px 0;font-size:34px;font-weight:800;
+    background:linear-gradient(135deg,var(--simulink),var(--engine));-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text
+  }
+  .header p{margin:0 0 6px 0;color:var(--muted);font-size:17px}
+  .header .subtitle{color:var(--accent);font-weight:600;font-size:15px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px}
+  @media (max-width:1200px){.grid2{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);border-radius:18px;padding:26px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);margin-bottom:20px;border:1px solid rgba(255,255,255,.28)
+  }
+  .card h2{margin:0 0 18px 0;font-size:22px;font-weight:700;color:#1e293b}
+  .card h3{margin:0 0 14px 0;font-size:19px;font-weight:600;color:#334155}
+  .card h4{margin:0 0 10px 0;font-size:17px;font-weight:600;color:#475569}
+
+  .problem-showcase{
+    background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%);
+    border:3px solid var(--simulink);border-radius:20px;padding:26px;margin:25px 0;position:relative
+  }
+  .problem-title{font-size:20px;font-weight:800;color:#1e40af;margin-bottom:14px}
+  .problem-scenario{
+    background:rgba(255,255,255,.95);border-radius:12px;padding:18px;margin:14px 0;border-left:4px solid var(--simulink)
+  }
+
+  .info-box{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);
+            border-radius:12px;padding:16px;margin:12px 0}
+  .warning-box{background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  .success-box{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+
+  .equation-display{
+    background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+    border:3px solid var(--engine);border-radius:16px;padding:18px;margin:14px 0;text-align:center
+  }
+  .equation-text{font-size:18px;font-weight:700;color:var(--engine)}
+  .equation-hint{color:var(--muted);font-size:14px;margin-top:6px}
+
+  .simulink-model{
+    background:linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%);
+    border:3px solid var(--simulink);border-radius:20px;padding:20px;margin:20px 0;position:relative
+  }
+  .model-canvas{
+    width:100%;height:400px;background:#ffffff;border:2px solid var(--frame);
+    border-radius:12px;position:relative;overflow:hidden
+  }
+
+  .block{
+    position:absolute;border:2px solid #333;border-radius:8px;
+    background:#fff;padding:8px;font-size:12px;font-weight:600;
+    cursor:pointer;transition:all .25s;text-align:center;min-width:80px
+  }
+  .block:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+  .block.input{background:#e3f2fd;border-color:var(--pri)}
+  .block.math{background:#fff3e0;border-color:var(--warn)}
+  .block.output{background:#e8f5e8;border-color:var(--ok)}
+  .block.system{background:#fce4ec;border-color:var(--bad)}
+
+  .wire{
+    position:absolute;height:2px;background:#333;z-index:1
+  }
+  .wire::after{
+    content:'';position:absolute;right:-6px;top:-4px;
+    width:0;height:0;border-left:8px solid #333;
+    border-top:5px solid transparent;border-bottom:5px solid transparent
+  }
+
+  .control-panel{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+                 border:2px solid var(--frame);border-radius:16px;padding:20px;margin:16px 0}
+  .control-group{margin-bottom:16px}
+  .control-label{font-weight:600;color:#374151;margin-bottom:6px;display:block}
+  .control-desc{color:var(--muted);font-size:13px;margin-bottom:8px}
+
+  input[type=range]{width:100%;height:10px;border-radius:8px;background:#e5e7eb;
+                   outline:none;-webkit-appearance:none;margin:8px 0;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{
+    appearance:none;width:22px;height:22px;border-radius:50%;background:var(--simulink);
+    cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px;height:22px;border-radius:50%;background:var(--simulink);cursor:pointer;border:none
+  }
+  input[type=number], select{
+    padding:10px 12px;border:2px solid var(--frame);border-radius:10px;font-size:14px;background:#fff
+  }
+  input[type=number]:focus, select:focus{border-color:var(--simulink);outline:none;box-shadow:0 0 0 3px rgba(0,118,186,.12)}
+
+  .btn{
+    background:var(--simulink);border:0;color:#fff;padding:11px 16px;border-radius:12px;
+    cursor:pointer;font-weight:600;transition:all .25s;display:inline-flex;align-items:center;gap:8px
+  }
+  .btn:hover{background:#005a9e;transform:translateY(-1px)}
+  .btn.matlab{background:var(--matlab)}
+  .btn.matlab:hover{background:#ea580c}
+  .btn.outline{background:transparent;border:2px solid var(--simulink);color:var(--simulink)}
+  .btn.outline:hover{background:var(--simulink);color:#fff}
+  .btn.success{background:var(--ok)}
+  .btn.danger{background:var(--bad)}
+  .btn.engine{background:var(--engine)}
+  .btn-group{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+
+  canvas{width:100%;height:480px;background:#fff;border:3px solid var(--frame);
+         border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.08)}
+
+  .tabs{
+    display:flex;gap:6px;border-bottom:4px solid var(--frame);margin-bottom:18px;
+    background:var(--bg2);border-radius:16px 16px 0 0;padding:10px 10px 0 10px
+  }
+  .tab{padding:12px 18px;cursor:pointer;border-radius:12px 12px 0 0;font-weight:600;transition:.25s}
+  .tab:hover{background:rgba(0,118,186,.1)}
+  .tab.active{background:var(--simulink);color:#fff;box-shadow:0 4px 12px rgba(0,118,186,.25)}
+  .tab-content{display:none;animation:fade .35s ease}
+  .tab-content.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .code-block{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:18px;
+              border-left:6px solid var(--simulink);font-family:'Courier New',monospace;font-size:14px;overflow-x:auto}
+
+  .results-panel{background:linear-gradient(135deg,#ecfdf5 0%,#a7f3d0 100%);
+                 border:2px solid var(--engine);border-radius:16px;padding:16px;margin:16px 0}
+  .result-item{background:rgba(255,255,255,.95);border-radius:10px;padding:12px;margin:8px 0;
+               display:flex;align-items:center;gap:10px}
+  .result-label{font-weight:700;color:#065f46;min-width:140px}
+  .result-value{font-family:'Courier New',monospace;background:#0f172a;color:#e2e8f0;
+                padding:8px 10px;border-radius:8px;flex:1}
+
+  .step-guide{
+    background:linear-gradient(135deg,#fef3c7 0%,#fed7aa 100%);
+    border:2px solid var(--warn);border-radius:16px;padding:18px;margin:16px 0
+  }
+  .step{background:rgba(255,255,255,.9);border-radius:10px;padding:14px;margin:10px 0;
+        border-left:4px solid var(--warn);position:relative}
+  .step-number{
+    position:absolute;left:-10px;top:-10px;width:24px;height:24px;
+    background:var(--warn);color:#fff;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:700;font-size:12px
+  }
+
+  .qa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .qa-card{background:var(--card);border:2px solid var(--frame);border-radius:14px;padding:16px}
+  .qa-card h4{margin:0 0 8px 0}
+  .bullet{margin:0 0 0 18px}
+  
+  @media (max-width:768px){canvas{height:380px};.model-canvas{height:300px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SARLAVHA -->
+  <div class="header">
+    <h1>MATLAB Simulink paketi</h1>
+    <h2>Avtomobil tormoz tizimi modellashtirish</h2>
+    <p>Dinamik tizimlar simulyatsiyasi, blok-diagramma modellash va real vaqt tahlili</p>
+    <div class="subtitle">Interaktiv Simulink model • Fizika tizimlari • Xavfsizlik tahlili</div>
+  </div>
+
+  <!-- AMALIY MASALA TAQDIMOTI -->
+  <div class="problem-showcase">
+    <div class="problem-title">🚙 Avtomobil tormozlash xavfsizlik tizimi (ABS)</div>
+    <div class="problem-scenario">
+      <h4>📝 Masalaning quyilishi:</h4>
+      <p>
+        1500 kg massali avtomobil 80 km/soat tezlikda harakatlanayotgan paytda to'satdan 
+        yo'lda bolalar paydo bo'ldi. Haydovchi zudlik bilan tormozni bosdi.
+        Avtomobil necha metr masofada to'xtaydi?
+      </p>
+      <div class="info-box">
+        <strong>Hisobga olinadigan fizik omillar:</strong>
+        <ul class="bullet">
+          <li><strong>Avtomobil massasi:</strong> m = 1500 kg</li>
+          <li><strong>Boshlang'ich tezlik:</strong> v₀ = 80 km/soat = 22.2 m/s</li>
+          <li><strong>Tormoz kuchi:</strong> F = μ × m × g (ishqalanish koeffitsienti)</li>
+          <li><strong>Yo'l sharoiti:</strong> quruq asfalt (μ=0.7), nam yo'l (μ=0.4), muz (μ=0.1)</li>
+          <li><strong>Haydovchi reaktsiya vaqti:</strong> 0.5-1.5 sekund</li>
+          <li><strong>ABS tizimi:</strong> g'ildiraklarning qulflanishini oldini olish</li>
+        </ul>
+      </div>
+      <p><strong>Matematik model (Neyuton qonunlari):</strong></p>
+      <div class="equation-display">
+        <div class="equation-text">F = m × a = μ × m × g</div>
+        <div class="equation-hint">a = μ × g, s = v₀²/(2×a), t = v₀/a</div>
+      </div>
+      <div class="warning-box">
+        <strong>⚠️ Xavfsizlik masalasi:</strong> 
+        Bolalar 30 metr masofada! Avtomobil o'z vaqtida to'xtay oladimi?
+        Turli yo'l sharoitlarida tormozlash masofasi qanday o'zgaradi?
+      </div>
+    </div>
+    <div class="success-box">
+      <strong>Maqsad:</strong> Simulink'da avtomobil tormozlash jarayonini modellashtirish,
+      turli sharoitlarda xavfsizlik chegaralarini aniqlash va ABS tizimining samaradorligini tahlil qilish.
+    </div>
+  </div>
+
+  <!-- SIMULINK MODEL YARATISH QADAMLARI -->
+  <div class="step-guide">
+    <h3>🛠️ Simulink modelini yaratish bosqichlari</h3>
+    
+    <div class="step">
+      <div class="step-number">1</div>
+      <h4>MATLAB Simulink ochish</h4>
+      <div class="code-block">
+>> simulink
+% yoki
+>> slLibraryBrowser</div>
+      <p>Simulink Library Browser ochiladi va yangi model yaratamiz.</p>
+    </div>
+
+    <div class="step">
+      <div class="step-number">2</div>
+      <h4>Asosiy bloklar qo'shish</h4>
+      <ul class="bullet">
+        <li><strong>Constant:</strong> Boshlang'ich tezlik (22.2 m/s)</li>
+        <li><strong>Step:</strong> Tormoz signali</li>
+        <li><strong>Gain:</strong> Tormoz kuchi koeffitsienti</li>
+        <li><strong>Integrator:</strong> Tezlanish → Tezlik</li>
+        <li><strong>Integrator:</strong> Tezlik → Masofa</li>
+        <li><strong>Scope:</strong> Grafik natijalar</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <div class="step-number">3</div>
+      <h4>Matematik hisoblash bloki</h4>
+      <div class="code-block">
+% MATLAB Function blokida:
+function [acceleration, brake_force] = brake_dynamics(velocity, brake_signal, mu, mass)
+    g = 9.81; % Yerning tortishish tezlanishi
+    
+    if brake_signal > 0 && velocity > 0
+        brake_force = mu * mass * g;
+        acceleration = -brake_force / mass; % Manfiy (sekinlash)
+    else
+        brake_force = 0;
+        acceleration = 0;
+    end
+end</div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">4</div>
+      <h4>Bloklarni ulash va sozlash</h4>
+      <p>Signal oqimini to'g'ri yo'naltirish va parametrlarni kiritish</p>
+    </div>
+  </div>
+
+  <!-- ASOSIY SIMULYATOR -->
+  <div class="card">
+    <h2>🎛️ Simulink tormozlash simulyatori</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="model">🔧 Model yaratish</div>
+      <div class="tab" data-tab="simulator">🚗 Simulyatsiya</div>
+      <div class="tab" data-tab="analysis">📊 Tahlil va xavfsizlik</div>
+      <div class="tab" data-tab="code">💻 MATLAB kodlari</div>
+      <div class="tab" data-tab="tasks">📝 Topshiriqlar</div>
+    </div>
+
+    <!-- MODEL YARATISH TABI -->
+    <div class="tab-content active" id="tab-model">
+      <h3>🔧 Simulink blok-diagramma modeli</h3>
+      
+      <div class="simulink-model">
+        <h4>Avtomobil tormozlash tizimi modeli</h4>
+        <div class="model-canvas" id="modelCanvas">
+          <!-- Simulink bloklari JavaScript orqali chiziladi -->
+          <div class="block input" style="left:20px;top:50px" data-block="initial_velocity">
+            Boshlang'ich<br>tezlik<br>22.2 m/s
+          </div>
+          
+          <div class="block input" style="left:20px;top:150px" data-block="brake_signal">
+            Tormoz<br>signali<br>Step
+          </div>
+          
+          <div class="block math" style="left:200px;top:100px" data-block="brake_calc">
+            Tormoz kuchi<br>F = μ×m×g<br>MATLAB Func
+          </div>
+          
+          <div class="block math" style="left:400px;top:100px" data-block="acceleration">
+            Tezlanish<br>a = F/m<br>Gain: -1/m
+          </div>
+          
+          <div class="block system" style="left:580px;top:50px" data-block="integrator1">
+            ∫<br>Tezlik<br>Integrator
+          </div>
+          
+          <div class="block system" style="left:750px;top:50px" data-block="integrator2">
+            ∫<br>Masofa<br>Integrator
+          </div>
+          
+          <div class="block output" style="left:580px;top:200px" data-block="scope1">
+            Tezlik<br>grafigi<br>Scope
+          </div>
+          
+          <div class="block output" style="left:750px;top:200px" data-block="scope2">
+            Masofa<br>grafigi<br>Scope
+          </div>
+          
+          <!-- Signals/Wires -->
+          <div class="wire" style="left:120px;top:69px;width:70px"></div>
+          <div class="wire" style="left:120px;top:169px;width:70px"></div>
+          <div class="wire" style="left:310px;top:119px;width:80px"></div>
+          <div class="wire" style="left:500px;top:119px;width:70px"></div>
+          <div class="wire" style="left:650px;top:69px;width:90px"></div>
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn" id="showBlocks">📦 Bloklar to'plami</button>
+          <button class="btn outline" id="connectBlocks">🔗 Bloklarni ulash</button>
+          <button class="btn success" id="validateModel">✅ Modelni tekshirish</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>📦 Simulink bloklar kutubxonasi</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="info-box">
+              <strong>Sources (Manbalar):</strong>
+              <ul class="bullet">
+                <li>Constant - doimiy qiymat</li>
+                <li>Step - qadam signali</li>
+                <li>Sine Wave - sinus to'lqin</li>
+                <li>From Workspace - ma'lumot</li>
+              </ul>
+            </div>
+            
+            <div class="info-box">
+              <strong>Math Operations:</strong>
+              <ul class="bullet">
+                <li>Gain - ko'paytirish</li>
+                <li>Sum - qo'shish/ayirish</li>
+                <li>Product - ko'paytirish</li>
+                <li>Math Function - matematik</li>
+              </ul>
+            </div>
+            
+            <div class="info-box">
+              <strong>Continuous:</strong>
+              <ul class="bullet">
+                <li>Integrator - integrallash</li>
+                <li>Derivative - hosilalash</li>
+                <li>Transfer Fcn - uzatish</li>
+                <li>State-Space - holat fazosi</li>
+              </ul>
+            </div>
+            
+            <div class="info-box">
+              <strong>Sinks (Qabul qiluvchi):</strong>
+              <ul class="bullet">
+                <li>Scope - grafik ko'rsatish</li>
+                <li>Display - raqam</li>
+                <li>To Workspace - saqlash</li>
+                <li>XY Graph - XY grafik</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h4>⚙️ Model parametrlari</h4>
+          <div class="control-panel">
+            <div class="control-group">
+              <label class="control-label">Simulyatsiya vaqti (sekund):</label>
+              <input type="number" id="simTime" value="10" min="1" max="30">
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label">Hisoblash qadami (s):</label>
+              <select id="stepSize">
+                <option value="0.01">0.01 s (yuqori aniqlik)</option>
+                <option value="0.1" selected>0.1 s (o'rtacha)</option>
+                <option value="1">1 s (past aniqlik)</option>
+              </select>
+            </div>
+            
+            <div class="control-group">
+              <label class="control-label">Solver turi:</label>
+              <select id="solverType">
+                <option value="ode45" selected>ode45 (Runge-Kutta)</option>
+                <option value="ode23">ode23 (tez)</option>
+                <option value="ode15s">ode15s (qattiq tizim)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULYATSIYA TABI -->
+    <div class="tab-content" id="tab-simulator">
+      <h3>🚗 Avtomobil tormozlash simulyatsiyasi</h3>
+      
+      <div class="grid2">
+        <div>
+          <div class="control-panel">
+            <h4>🎛️ Avtomobil parametrlari</h4>
+            
+            <div class="control-group">
+              <label class="control-label">Avtomobil massasi (kg): <span id="valMass">1500</span></label>
+              <div class="control-desc">Yengil avtomobil: 1000-1500kg, SUV: 2000-2500kg</div>
+              <input id="paramMass" type="range" min="800" max="3000" step="100" value="1500">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Boshlang'ich tezlik (km/soat): <span id="valSpeed">80</span></label>
+              <div class="control-desc">Shahar: 60km/s, Magistral: 90-120km/s</div>
+              <input id="paramSpeed" type="range" min="30" max="120" step="10" value="80">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Yo'l sharoiti:</label>
+              <select id="roadCondition">
+                <option value="0.8">☀️ Quruq asfalt (μ=0.8)</option>
+                <option value="0.6" selected>🌤️ Ozgina nam (μ=0.6)</option>
+                <option value="0.4">🌧️ Nam yo'l (μ=0.4)</option>
+                <option value="0.2">❄️ Qor (μ=0.2)</option>
+                <option value="0.1">🧊 Muz (μ=0.1)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Reaktsiya vaqti (s): <span id="valReaction">1.0</span></label>
+              <div class="control-desc">Haydovchi tormozni bosguncha ketgan vaqt</div>
+              <input id="paramReaction" type="range" min="0.3" max="2.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">ABS tizimi:</label>
+              <select id="absSystem">
+                <option value="false">❌ ABS yo'q</option>
+                <option value="true" selected>✅ ABS mavjud</option>
+              </select>
+            </div>
+
+            <div class="btn-group">
+              <button class="btn" id="runSimulation">▶️ Simulyatsiya ishga tushirish</button>
+              <button class="btn outline" id="resetSim">🔄 Qayta boshlash</button>
+              <button class="btn success" id="compareScenarios">📊 Ssenarilar taqqosi</button>
+            </div>
+          </div>
+
+          <div class="results-panel">
+            <h4>📋 Simulyatsiya natijalari</h4>
+            <div class="result-item">
+              <div class="result-label">Tormozlash masofasi:</div>
+              <div class="result-value" id="brakeDistance">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Tormozlash vaqti:</div>
+              <div class="result-value" id="brakeTime">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Maksimal tezlanish:</div>
+              <div class="result-value" id="maxDeceleration">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Xavfsizlik holati:</div>
+              <div class="result-value" id="safetyStatus">--</div>
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <h4>⚠️ Xavfsizlik tahlili</h4>
+            <div id="safetyAnalysis">
+              <p>Simulyatsiya ishga tushirganingizdan keyin xavfsizlik tahlili ko'rsatiladi.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4>📈 Real vaqt grafiklar</h4>
+          <canvas id="simulationCanvas" width="800" height="480"></canvas>
+          
+          <div class="btn-group" style="margin-top:10px">
+            <button class="btn success" id="saveResults">💾 Natijalarni saqlash</button>
+            <button class="btn matlab" id="exportSimulink">📤 Simulink modelga yuborish</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAHLIL VA XAVFSIZLIK TABI -->
+    <div class="tab-content" id="tab-analysis">
+      <h3>📊 Xavfsizlik tahlili va ko'rsatkichlar</h3>
+      
+      <div class="grid3">
+        <div class="card">
+          <h4>🚦 Xavfsizlik masofalari</h4>
+          <canvas id="safetyChart" width="400" height="300"></canvas>
+          <div class="success-box">
+            <strong>Tavsiya:</strong> 
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>🌧️ Yo'l sharoiti ta'siri</h4>
+          <canvas id="roadChart" width="400" height="300"></canvas>
+          <div class="warning-box">
+            <strong>Diqqat:</strong> Muzli yo'lda tormozlash masofasi 8 barobar oshadi!
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>⚡ ABS tizimi samaradorligi</h4>
+          <canvas id="absChart" width="400" height="300"></canvas>
+          <div class="info-box">
+            <strong>ABS afzalligi:</strong> G'ildiraklarning qulflanishini oldini oladi,
+            haydovchiga rulni boshqarish imkonini saqlaydi
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>📊 Turli avtomobillar uchun taqqoslash</h4>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;border:2px solid var(--frame)">
+            <thead style="background:var(--bg2)">
+              <tr>
+                <th style="padding:12px;border:1px solid var(--frame)">Avtomobil turi</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Massa (kg)</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Tormoz masofasi (m)</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Tormoz vaqti (s)</th>
+                <th style="padding:12px;border:1px solid var(--frame)">Xavfsizlik bahosi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Yengil avtomobil</td>
+                <td style="padding:12px;border:1px solid var(--frame)">1200 kg</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="lightCarDistance">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="lightCarTime">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">⭐⭐⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Sedan</td>
+                <td style="padding:12px;border:1px solid var(--frame)">1500 kg</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="sedanDistance">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="sedanTime">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">⭐⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">SUV</td>
+                <td style="padding:12px;border:1px solid var(--frame)">2200 kg</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="suvDistance">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="suvTime">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">⭐⭐⭐</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;border:1px solid var(--frame)">Yuk mashinasi</td>
+                <td style="padding:12px;border:1px solid var(--frame)">3500 kg</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="truckDistance">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)" id="truckTime">--</td>
+                <td style="padding:12px;border:1px solid var(--frame)">⭐⭐</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATLAB KODLARI TABI -->
+    <div class="tab-content" id="tab-code">
+      <h3>💻 Simulink model kodlari</h3>
+      
+      <div class="card">
+        <h4>🔧 Simulink model yaratish kodi</h4>
+        <div class="code-block" id="simulinkCode">
+% Avtomobil tormozlash tizimi Simulink modeli
+% Model yaratish va konfiguratsiya
+
+% Yangi model yaratish
+model_name = 'BrakeSystem';
+new_system(model_name);
+open_system(model_name);
+
+% Model parametrlari
+set_param(model_name, 'StopTime', '10');
+set_param(model_name, 'FixedStep', '0.01');
+set_param(model_name, 'Solver', 'ode45');
+
+% Bloklar qo'shish
+% 1. Boshlang'ich tezlik (Constant)
+add_block('simulink/Sources/Constant', [model_name '/Initial_Velocity']);
+set_param([model_name '/Initial_Velocity'], 'Value', '22.2'); % 80 km/soat
+
+% 2. Tormoz signali (Step)
+add_block('simulink/Sources/Step', [model_name '/Brake_Signal']);
+set_param([model_name '/Brake_Signal'], 'Time', '1'); % 1 sekund keyin
+set_param([model_name '/Brake_Signal'], 'After', '1');
+
+% 3. MATLAB Function - Tormoz dinamikasi
+add_block('simulink/User-Defined Functions/MATLAB Function', ...
+          [model_name '/Brake_Dynamics']);
+
+% 4. Tezlik integratori  
+add_block('simulink/Continuous/Integrator', [model_name '/Velocity_Int']);
+
+% 5. Masofa integratori
+add_block('simulink/Continuous/Integrator', [model_name '/Distance_Int']);
+
+% 6. Grafik ko'rsatish
+add_block('simulink/Sinks/Scope', [model_name '/Velocity_Scope']);
+add_block('simulink/Sinks/Scope', [model_name '/Distance_Scope']);
+
+% Bloklarni joylash
+set_param([model_name '/Initial_Velocity'], 'Position', [30 50 80 80]);
+set_param([model_name '/Brake_Signal'], 'Position', [30 150 80 180]);
+set_param([model_name '/Brake_Dynamics'], 'Position', [150 100 250 150]);
+set_param([model_name '/Velocity_Int'], 'Position', [300 80 350 120]);
+set_param([model_name '/Distance_Int'], 'Position', [400 80 450 120]);
+set_param([model_name '/Velocity_Scope'], 'Position', [500 50 550 100]);
+set_param([model_name '/Distance_Scope'], 'Position', [500 130 550 180]);
+
+% Signallarni ulash
+add_line(model_name, 'Initial_Velocity/1', 'Brake_Dynamics/1');
+add_line(model_name, 'Brake_Signal/1', 'Brake_Dynamics/2');
+add_line(model_name, 'Brake_Dynamics/1', 'Velocity_Int/1');
+add_line(model_name, 'Velocity_Int/1', 'Distance_Int/1');
+add_line(model_name, 'Velocity_Int/1', 'Velocity_Scope/1');
+add_line(model_name, 'Distance_Int/1', 'Distance_Scope/1');
+
+% Modelni saqlash
+save_system(model_name);
+
+fprintf('Simulink model muvaffaqiyatli yaratildi: %s\n', model_name);
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn matlab" id="copySimulinkCode">📋 Simulink kodini nusxalash</button>
+          <button class="btn" id="downloadSimulinkCode">💾 .m fayl yuklab olish</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>⚡ MATLAB Function bloki kodi</h4>
+        <div class="code-block" id="matlabFunctionCode">
+function [acceleration, brake_force, abs_active] = brake_dynamics(velocity, brake_signal, mu, mass, has_abs)
+    % Avtomobil tormozlash dinamikasi
+    % Kirish: tezlik, tormoz signali, ishqalanish koef., massa, ABS
+    % Chiqish: tezlanish, tormoz kuchi, ABS holati
+    
+    persistent wheel_slip_history;
+    if isempty(wheel_slip_history)
+        wheel_slip_history = zeros(1, 10); % Oxirgi 10 ta qiymat
+    end
+    
+    g = 9.81; % Yerning tortishish tezlanishi (m/s²)
+    
+    % ABS tizimi parametrlari
+    max_slip_ratio = 0.2; % Maksimal slip nisbati
+    abs_threshold = 0.15;  % ABS ishga tushish chegarasi
+    
+    if brake_signal > 0 && velocity > 0.1 % Tormoz bosilgan va harakat bor
+        
+        % Maksimal tormoz kuchi
+        max_brake_force = mu * mass * g;
+        
+        if has_abs
+            % ABS tizimi bilan
+            % G'ildirak slipini hisoblash (soddalashtirilgan)
+            wheel_slip = min(velocity / 10, max_slip_ratio); % Taxminiy slip
+            
+            % Slip tarixini yangilash
+            wheel_slip_history = [wheel_slip_history(2:end), wheel_slip];
+            avg_slip = mean(wheel_slip_history);
+            
+            if avg_slip > abs_threshold
+                % ABS ishga tushdi - tormoz kuchini kamaytirish
+                brake_force = max_brake_force * 0.7; % 30% kamaytirish
+                abs_active = 1;
+            else
+                brake_force = max_brake_force;
+                abs_active = 0;
+            end
+        else
+            % ABS tizimisiz - g'ildiraklarning qulflanishi mumkin
+            brake_force = max_brake_force;
+            
+            % Qulflangan g'ildiraklarda ishqalanish kamayadi
+            if velocity < 5 % Past tezlikda slip ko'payadi
+                brake_force = brake_force * 0.6; % 40% kamaytirish
+            end
+            abs_active = 0;
+        end
+        
+        % Tezlanishni hisoblash (manfiy - sekinlash)
+        acceleration = -brake_force / mass;
+        
+    else
+        % Tormoz bosilmagan yoki to'xtab qolgan
+        brake_force = 0;
+        acceleration = 0;
+        abs_active = 0;
+    end
+    
+    % Tezlik manfiy bo'lishining oldini olish
+    if velocity <= 0
+        acceleration = max(acceleration, 0);
+    end
+end
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn matlab" id="copyMatlabFunc">📋 MATLAB Function kodini nusxalash</button>
+          <button class="btn" id="downloadMatlabFunc">💾 .m fayl yuklab olish</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>📊 Simulyatsiya ishga tushirish va tahlil</h4>
+        <div class="code-block" id="analysisCode">
+% Simulink modelini ishga tushirish va natijalarni tahlil qilish
+model_name = 'BrakeSystem';
+
+% Simulyatsiya parametrlarini o'rnatish
+simIn = Simulink.SimulationInput(model_name);
+simIn = simIn.setModelParameter('StopTime', '15');
+simIn = simIn.setModelParameter('FixedStep', '0.01');
+
+% Turli sharoitlar uchun simulyatsiya
+road_conditions = [0.8, 0.6, 0.4, 0.2, 0.1]; % μ qiymatlari
+condition_names = {'Quruq asfalt', 'Ozgina nam', 'Nam yo''l', 'Qor', 'Muz'};
+masses = [1200, 1500, 2200, 3500]; % kg
+mass_names = {'Yengil', 'Sedan', 'SUV', 'Yuk mashinasi'};
+
+results = struct();
+
+for i = 1:length(road_conditions)
+    for j = 1:length(masses)
+        % Parametrlarni o'rnatish
+        mu = road_conditions(i);
+        mass = masses(j);
+        
+        % Workspace'ga parametrlarni yuborish
+        assignin('base', 'mu', mu);
+        assignin('base', 'vehicle_mass', mass);
+        assignin('base', 'has_abs', true);
+        
+        % Simulyatsiyani ishga tushirish
+        simOut = sim(model_name, simIn);
+        
+        % Natijalarni olish
+        velocity = simOut.logsout.getElement('velocity').Values;
+        distance = simOut.logsout.getElement('distance').Values;
+        
+        % Asosiy ko'rsatkichlarni hisoblash
+        brake_distance = distance.Data(end);
+        brake_time = find(velocity.Data <= 0.1, 1) * 0.01; % To'xtash vaqti
+        
+        if isempty(brake_time)
+            brake_time = 15; % Maksimal vaqt
+        end
+        
+        % Natijalarni saqlash
+        key = sprintf('%s_%s', condition_names{i}, mass_names{j});
+        key = strrep(strrep(key, ' ', '_'), '''', '');
+        
+        results.(key).brake_distance = brake_distance;
+        results.(key).brake_time = brake_time;
+        results.(key).mu = mu;
+        results.(key).mass = mass;
+    end
+end
+
+% Natijalarni grafik ko'rsatish
+figure('Position', [100 100 1200 800]);
+
+% 1. Tormozlash masofasi taqqosi
+subplot(2,2,1);
+bar_data = zeros(length(road_conditions), length(masses));
+for i = 1:length(road_conditions)
+    for j = 1:length(masses)
+        key = sprintf('%s_%s', condition_names{i}, mass_names{j});
+        key = strrep(strrep(key, ' ', '_'), '''', '');
+        bar_data(i,j) = results.(key).brake_distance;
+    end
+end
+
+bar(bar_data);
+xlabel('Yo''l sharoiti');
+ylabel('Tormozlash masofasi (m)');
+title('Turli sharoitlarda tormozlash masofasi');
+legend(mass_names, 'Location', 'northwest');
+set(gca, 'XTickLabel', condition_names);
+
+% 2. Xavfsizlik diagrammasi
+subplot(2,2,2);
+safety_threshold = 30; % 30 metr - xavfsizlik chegarasi
+safe_data = bar_data < safety_threshold;
+imagesc(safe_data);
+colormap([1 0.5 0.5; 0.5 1 0.5]); % Qizil-yashil rang
+xlabel('Avtomobil turi');
+ylabel('Yo''l sharoiti');
+title('Xavfsizlik xaritasi (Yashil = Xavfsiz)');
+set(gca, 'XTick', 1:length(masses), 'XTickLabel', mass_names);
+set(gca, 'YTick', 1:length(road_conditions), 'YTickLabel', condition_names);
+
+% Natijalarni Excel faylga eksport qilish
+T = table();
+for i = 1:length(road_conditions)
+    for j = 1:length(masses)
+        key = sprintf('%s_%s', condition_names{i}, mass_names{j});
+        key = strrep(strrep(key, ' ', '_'), '''', '');
+        
+        new_row = table({condition_names{i}}, {mass_names{j}}, ...
+                       results.(key).mass, results.(key).mu, ...
+                       results.(key).brake_distance, results.(key).brake_time, ...
+                       'VariableNames', {'Road_Condition', 'Vehicle_Type', ...
+                       'Mass_kg', 'Friction_Coeff', 'Brake_Distance_m', 'Brake_Time_s'});
+        T = [T; new_row];
+    end
+end
+
+writetable(T, 'brake_analysis_results.xlsx');
+fprintf('Natijalar brake_analysis_results.xlsx fayliga saqlandi\n');
+
+% Xavfsizlik xulosasi
+fprintf('\n=== XAVFSIZLIK TAHLILI ===\n');
+dangerous_scenarios = T(T.Brake_Distance_m > safety_threshold, :);
+if height(dangerous_scenarios) > 0
+    fprintf('XAVFLI SHAROITLAR TOPILDI:\n');
+    disp(dangerous_scenarios);
+else
+    fprintf('Barcha sharoitlar xavfsizlik chegarasi ichida.\n');
+end
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn matlab" id="copyAnalysisCode">📋 Tahlil kodini nusxalash</button>
+          <button class="btn success" id="runFullAnalysis">▶️ To'liq tahlil ishga tushirish</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPSHIRIQLAR TABI -->
+    <div class="tab-content" id="tab-tasks">
+      <h3>📝 Amaliy topshiriqlar va loyihalar</h3>
+      
+      <div class="qa-grid">
+        <div class="qa-card">
+          <h4>🔬 Laboratoriya ishlari</h4>
+          <ol class="bullet">
+            <li><strong>1-topshiriq:</strong> Asosiy Simulink modelni yarating va turli massalar uchun sinovdan o'tkazing</li>
+            <li><strong>2-topshiriq:</strong> ABS tizimi bor va bo'lmagan holatlarni taqqoslang</li>
+            <li><strong>3-topshiriq:</strong> Turli yo'l sharoitlarida xavfsizlik masofalarini aniqlang</li>
+            <li><strong>4-topshiriq:</strong> Haydovchi reaktsiya vaqtining ta'sirini tadqiq qiling</li>
+            <li><strong>5-topshiriq:</strong> Real avtomobil ma'lumotlari bilan modelni tekshiring</li>
+          </ol>
+        </div>
+        
+        <div class="qa-card">
+          <h4>💼 Kurs loyihasi</h4>
+          <div class="warning-box">
+            <strong>Vazifa:</strong> To'liq avtomobil dinamikasi tizimini Simulink'da yaratish
+          </div>
+          <ul class="bullet">
+            <li>Motor, transmissiya, g'ildiraklar modelini qo'shish</li>
+            <li>Aerodynamik qarshilik va yo'l qiyaligini hisobga olish</li>
+            <li>ESP (Electronic Stability Program) tizimini modellashtirish</li>
+            <li>Turli havo sharoitlari uchun adaptiv tormozlash</li>
+            <li>Real vaqt animatsiya va 3D vizualizatsiya</li>
+          </ul>
+        </div>
+        
+        <div class="qa-card">
+          <h4>🏆 Ilg'or topshiriqlar</h4>
+          <ol class="bullet">
+            <li><strong>Avtomatik tormozlash:</strong> Radar/kamera ma'lumotlari asosida</li>
+            <li><strong>Mashina o'rganishi:</strong> Optimal tormozlash strategiyasi</li>
+            <li><strong>Co-simulation:</strong> CarSim yoki Adams Car bilan</li>
+            <li><strong>Hardware-in-the-Loop:</strong> Real ECU bilan test</li>
+            <li><strong>Fuzzy Logic:</strong> Noaniq sharoitlar uchun boshqaruv</li>
+          </ol>
+        </div>
+        
+        <div class="qa-card">
+          <h4>❓ Nazariy savollar</h4>
+          <ul class="bullet">
+            <li>ABS tizimi qanday printsip asosida ishlaydi?</li>
+            <li>Simulink'da algebraik sikl (algebraic loop) nima?</li>
+            <li>Fixed-step va variable-step solver orasidagi farq?</li>
+            <li>Tormozlashda kinetik va potensial energiya qanday o'zgaradi?</li>
+            <li>Model-based design nima va qanday afzalliklari bor?</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="step-guide">
+        <h4>📋 Topshiriqlarni bajarish algoritmi</h4>
+        
+        <div class="step">
+          <div class="step-number">1</div>
+          <h4>Muammoni tahlil qilish</h4>
+          <p>Fizik jarayonni tushunish, matematik tenglamalarni chiqarish, soddalashtirishlar kiritish</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <h4>Simulink modelini loyihalash</h4>
+          <p>Blok-diagramma chizish, signallar oqimini rejalashtirish, parametrlarni aniqlash</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <h4>Model yaratish va sozlash</h4>
+          <p>Bloklarni qo'shish, ulash, parametrlarni kiritish, boshlang'ich shartlarni o'rnatish</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <h4>Simulyatsiya va tekshirish</h4>
+          <p>Modelni ishga tushirish, natijalarni tahlil qilish, xatolarni tuzatish</p>
+        </div>
+
+        <div class="step">
+          <div class="step-number">5</div>
+          <h4>Validatsiya va optimizatsiya</h4>
+          <p>Real ma'lumotlar bilan taqqoslash, modelni yaxshilash, hisobot tayyorlash</p>
+        </div>
+      </div>
+      
+      <div class="success-box">
+        <strong>Baholash mezonlari:</strong> Model to'g'riligi (25%), Simulink texnikasi (25%), 
+        Natijalar tahlili (25%), Hisobot va taqdimot (25%)
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULINK SIMULYATORI ===== -->
+<script>
+// ======== UTILITY FUNCTIONS ========
+function $(id) { return document.getElementById(id); }
+
+function downloadFile(content, filename, mimeType = 'text/plain') {
+    const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ======== SIMULATION STATE ========
+let carState = {
+    mass: 1500,          // Avtomobil massasi (kg)
+    initialSpeed: 80,    // Boshlang'ich tezlik (km/soat)
+    mu: 0.6,            // Ishqalanish koeffitsienti
+    reactionTime: 1.0,   // Reaktsiya vaqti (s)
+    hasABS: true,        // ABS tizimi
+    simTime: 10,         // Simulyatsiya vaqti
+    simData: []          // Simulyatsiya ma'lumotlari
+};
+
+// ======== PHYSICS CALCULATIONS ========
+function calculateBrakeDistance(mass, speed_kmh, mu, reactionTime, hasABS) {
+    const speed_ms = speed_kmh / 3.6; // km/soat -> m/s
+    const g = 9.81; // Yerning tortishish tezlanishi
+    
+    // Reaktsiya masofasi
+    const reactionDistance = speed_ms * reactionTime;
+    
+    // Tormozlash tezlanishi
+    let deceleration = mu * g;
+    if (!hasABS && mu < 0.3) {
+        // ABS bo'lmasa, nam sharoitda g'ildiraklarning qulflanishi
+        deceleration *= 0.7; // 30% kamaytirish
+    }
+    
+    // Tormozlash masofasi (kinematika formulasi)
+    const brakeDistance = (speed_ms * speed_ms) / (2 * deceleration);
+    
+    // Umumiy masofa
+    const totalDistance = reactionDistance + brakeDistance;
+    
+    // Tormozlash vaqti (to'xtash vaqti)
+    const brakeTime = speed_ms / deceleration;
+    
+    return {
+        totalDistance,
+        reactionDistance,
+        brakeDistance,
+        brakeTime: brakeTime + reactionTime,
+        maxDeceleration: deceleration
+    };
+}
+
+function simulateBraking() {
+    const dt = 0.1; // Vaqt qadami (s)
+    const maxTime = carState.simTime;
+    
+    const speed_ms = carState.initialSpeed / 3.6;
+    const g = 9.81;
+    
+    let time = 0;
+    let velocity = speed_ms;
+    let distance = 0;
+    let brakeActive = false;
+    
+    const timeData = [];
+    const velocityData = [];
+    const distanceData = [];
+    const accelerationData = [];
+    const brakeForceData = [];
+    
+    while (time <= maxTime && velocity > 0.01) {
+        // Tormoz faollashuvini tekshirish
+        if (time >= carState.reactionTime && !brakeActive) {
+            brakeActive = true;
+        }
+        
+        let acceleration = 0;
+        let brakeForce = 0;
+        
+        if (brakeActive && velocity > 0) {
+            // Tormoz kuchi
+            brakeForce = carState.mu * carState.mass * g;
+            
+            // ABS tizimi simulyatsiyasi
+            if (carState.hasABS) {
+                // ABS g'ildiraklarning qulflanishini oldini oladi
+                if (carState.mu < 0.3) {
+                    brakeForce *= 0.9; // ABS samaradorligi
+                }
+            } else {
+                // ABS yo'q - nam sharoitda slip ko'payadi
+                if (carState.mu < 0.4 && velocity < 10) {
+                    brakeForce *= 0.6; // G'ildiraklarning qulflanishi
+                }
+            }
+            
+            acceleration = -brakeForce / carState.mass;
+        }
+        
+        // Kinematika
+        velocity += acceleration * dt;
+        if (velocity < 0) velocity = 0;
+        
+        distance += velocity * dt;
+        
+        // Ma'lumotlarni saqlash
+        timeData.push(time);
+        velocityData.push(velocity * 3.6); // m/s -> km/soat
+        distanceData.push(distance);
+        accelerationData.push(acceleration);
+        brakeForceData.push(brakeForce);
+        
+        time += dt;
+    }
+    
+    carState.simData = {
+        time: timeData,
+        velocity: velocityData,
+        distance: distanceData,
+        acceleration: accelerationData,
+        brakeForce: brakeForceData
+    };
+    
+    return carState.simData;
+}
+
+// ======== CANVAS DRAWING ========
+function setupCanvas(canvasId) {
+    const canvas = $(canvasId);
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    return { canvas, ctx, w: rect.width, h: rect.height };
+}
+
+function drawGrid(ctx, w, h) {
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    
+    // Vertical grid
+    for (let x = 60; x < w - 40; x += (w - 100) / 10) {
+        ctx.beginPath();
+        ctx.moveTo(x, 40);
+        ctx.lineTo(x, h - 60);
+        ctx.stroke();
+    }
+    
+    // Horizontal grid
+    for (let y = 40; y < h - 60; y += (h - 100) / 8) {
+        ctx.beginPath();
+        ctx.moveTo(60, y);
+        ctx.lineTo(w - 40, y);
+        ctx.stroke();
+    }
+}
+
+function drawAxes(ctx, w, h) {
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    
+    // X axis
+    ctx.beginPath();
+    ctx.moveTo(60, h - 60);
+    ctx.lineTo(w - 40, h - 60);
+    ctx.stroke();
+    
+    // Y axis
+    ctx.beginPath();
+    ctx.moveTo(60, 40);
+    ctx.lineTo(60, h - 60);
+    ctx.stroke();
+    
+    // Labels
+    ctx.fillStyle = '#374151';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    
+    // X axis labels (time)
+    const maxTime = Math.max(...carState.simData.time) || 10;
+    for (let i = 0; i <= maxTime; i += 2) {
+        const x = 60 + (i / maxTime) * (w - 100);
+        ctx.fillText(`${i}s`, x, h - 35);
+    }
+    
+    // Y axis labels (speed)
+    ctx.textAlign = 'right';
+    const maxSpeed = Math.max(carState.initialSpeed, ...carState.simData.velocity || [80]);
+    for (let i = 0; i <= maxSpeed; i += 20) {
+        const y = h - 60 - (i / maxSpeed) * (h - 100);
+        ctx.fillText(`${i} km/s`, 55, y + 5);
+    }
+    
+    // Axis titles
+    ctx.textAlign = 'center';
+    ctx.fillText('Vaqt (sekund)', w / 2, h - 10);
+    
+    ctx.save();
+    ctx.translate(20, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Tezlik (km/soat)', 0, 0);
+    ctx.restore();
+}
+
+function drawSimulationChart() {
+    const { ctx, w, h } = setupCanvas('simulationCanvas');
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    if (!carState.simData.time || carState.simData.time.length === 0) {
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Simulyatsiya ishga tushirganingizdan keyin grafik ko\'rsatiladi', w/2, h/2);
+        return;
+    }
+    
+    drawGrid(ctx, w, h);
+    drawAxes(ctx, w, h);
+    
+    const maxTime = Math.max(...carState.simData.time);
+    const maxSpeed = Math.max(carState.initialSpeed, ...carState.simData.velocity);
+    
+    // Tezlik chizig'i
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    carState.simData.time.forEach((t, i) => {
+        const x = 60 + (t / maxTime) * (w - 100);
+        const y = h - 60 - (carState.simData.velocity[i] / maxSpeed) * (h - 100);
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.stroke();
+    
+    // Tormoz boshlanish nuqtasi
+    const brakeStartIndex = carState.simData.time.findIndex(t => t >= carState.reactionTime);
+    if (brakeStartIndex !== -1) {
+        const x = 60 + (carState.reactionTime / maxTime) * (w - 100);
+        const y = h - 60 - (carState.simData.velocity[brakeStartIndex] / maxSpeed) * (h - 100);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Tormoz boshlandi', x, y - 12);
+    }
+    
+    // Masofa chizig'i (ikkinchi o'qi)
+    ctx.strokeStyle = '#059669';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    
+    const maxDistance = Math.max(...carState.simData.distance);
+    carState.simData.time.forEach((t, i) => {
+        const x = 60 + (t / maxTime) * (w - 100);
+        const y = h - 60 - (carState.simData.distance[i] / maxDistance) * (h - 100) * 0.5;
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Legend
+    ctx.fillStyle = '#374151';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText('🔵 Tezlik (km/soat)', w - 200, 60);
+    ctx.fillText('🟢 Masofa (m)', w - 200, 80);
+}
+
+function drawAnalysisCharts() {
+    // Xavfsizlik diagrammasi
+    const { ctx: ctx1, w: w1, h: h1 } = setupCanvas('safetyChart');
+    ctx1.clearRect(0, 0, w1, h1);
+    
+    const distances = [15, 25, 45, 80, 150]; // Turli sharoitlar uchun masofalar
+    const labels = ['Quruq', 'Ozgina nam', 'Nam', 'Qor', 'Muz'];
+    const safetyLimit = 30; // 30 metr - xavfsizlik chegarasi
+    
+    const barWidth = (w1 - 100) / distances.length;
+    const maxDistance = Math.max(...distances);
+    
+    distances.forEach((dist, i) => {
+        const barHeight = (dist / maxDistance) * (h1 - 100);
+        const x = 50 + i * barWidth;
+        const y = h1 - 50 - barHeight;
+        
+        // Rang tanlash (xavsizmi)
+        const color = dist <= safetyLimit ? '#10b981' : '#ef4444';
+        ctx1.fillStyle = color;
+        ctx1.fillRect(x, y, barWidth - 10, barHeight);
+        
+        // Qiymat yozish
+        ctx1.fillStyle = '#374151';
+        ctx1.font = '10px Arial';
+        ctx1.textAlign = 'center';
+        ctx1.fillText(`${dist}m`, x + barWidth/2, y - 5);
+        ctx1.fillText(labels[i], x + barWidth/2, h1 - 25);
+    });
+    
+    // Xavfsizlik chizig'i
+    const safetyY = h1 - 50 - (safetyLimit / maxDistance) * (h1 - 100);
+    ctx1.strokeStyle = '#f59e0b';
+    ctx1.lineWidth = 2;
+    ctx1.setLineDash([5, 5]);
+    ctx1.beginPath();
+    ctx1.moveTo(50, safetyY);
+    ctx1.lineTo(w1 - 50, safetyY);
+    ctx1.stroke();
+    ctx1.setLineDash([]);
+    
+    ctx1.fillStyle = '#f59e0b';
+    ctx1.font = '12px Arial';
+    ctx1.fillText('Xavfsizlik chegarasi', w1 - 120, safetyY - 5);
+}
+
+// ======== UI UPDATES ========
+function updateUI() {
+    // Update parameter displays
+    $('valMass').textContent = carState.mass;
+    $('valSpeed').textContent = carState.initialSpeed;
+    $('valReaction').textContent = carState.reactionTime.toFixed(1);
+    
+    // Calculate and update results
+    const results = calculateBrakeDistance(
+        carState.mass,
+        carState.initialSpeed,
+        carState.mu,
+        carState.reactionTime,
+        carState.hasABS
+    );
+    
+    $('brakeDistance').textContent = `${results.totalDistance.toFixed(1)} m`;
+    $('brakeTime').textContent = `${results.brakeTime.toFixed(1)} s`;
+    $('maxDeceleration').textContent = `${results.maxDeceleration.toFixed(1)} m/s²`;
+    
+    // Safety status
+    const isSafe = results.totalDistance <= 30;
+    const statusText = isSafe ? 
+        '✅ Xavfsiz - 30m ichida' : 
+        '⚠️ Xavfli - 30m dan ortiq';
+    const statusClass = isSafe ? 'success' : 'danger';
+    
+    $('safetyStatus').innerHTML = `<span class="btn ${statusClass}" style="padding:4px 8px;font-size:12px">${statusText}</span>`;
+    
+    // Safety analysis
+    let analysisText = `
+        <p><strong>Tormozlash masofasi:</strong> ${results.totalDistance.toFixed(1)} metr</p>
+        <p><strong>Reaktsiya masofasi:</strong> ${results.reactionDistance.toFixed(1)} metr</p>
+        <p><strong>Tormoz masofasi:</strong> ${results.brakeDistance.toFixed(1)} metr</p>
+    `;
+    
+    if (!isSafe) {
+        analysisText += `
+            <p style="color:var(--bad)"><strong>⚠️ XAVF:</strong> 
+            Bolalar 30 metr masofada bo'lsa, avtomobil ulardan ${(results.totalDistance - 30).toFixed(1)} metr keyin to'xtaydi!</p>
+            <p><strong>Tavsiyalar:</strong></p>
+            <ul class="bullet">
+                <li>Tezlikni ${Math.ceil(carState.initialSpeed * 0.7)} km/soat gacha kamaytiring</li>
+                <li>Reaktsiya vaqtingizni ${Math.max(0.5, carState.reactionTime - 0.3).toFixed(1)} sekund gacha kamaytiring</li>
+                <li>Masofani saqlang - kamida ${Math.ceil(results.totalDistance / 10) * 10} metr</li>
+            </ul>
+        `;
+    } else {
+        analysisText += `
+            <p style="color:var(--ok)"><strong>✅ XAVFSIZ:</strong> 
+            Avtomobil xavfsizlik zonasida to'xtaydi.</p>
+        `;
+    }
+    
+    $('safetyAnalysis').innerHTML = analysisText;
+    
+    // Update comparison table
+    const masses = [1200, 1500, 2200, 3500];
+    const ids = ['lightCarDistance', 'sedanDistance', 'suvDistance', 'truckDistance'];
+    const timeIds = ['lightCarTime', 'sedanTime', 'suvTime', 'truckTime'];
+    
+    masses.forEach((mass, i) => {
+        const result = calculateBrakeDistance(mass, carState.initialSpeed, carState.mu, carState.reactionTime, carState.hasABS);
+        $(ids[i]).textContent = `${result.totalDistance.toFixed(1)} m`;
+        $(timeIds[i]).textContent = `${result.brakeTime.toFixed(1)} s`;
+    });
+}
+
+function generateSimulinkCode() {
+    return `% Avtomobil tormozlash tizimi - Joriy parametrlar
+% Model parametrlari:
+% Massa: ${carState.mass} kg
+% Tezlik: ${carState.initialSpeed} km/soat
+% Yo'l koeffitsienti: ${carState.mu}
+% Reaktsiya vaqti: ${carState.reactionTime} s
+% ABS: ${carState.hasABS ? 'Ha' : 'Yo\'q'}
+
+model_name = 'BrakeSystem_Custom';
+new_system(model_name);
+open_system(model_name);
+
+% Simulyatsiya parametrlari
+set_param(model_name, 'StopTime', '${carState.simTime}');
+set_param(model_name, 'FixedStep', '0.01');
+set_param(model_name, 'Solver', 'ode45');
+
+% Joriy parametrlarni workspace'ga yuklash
+assignin('base', 'vehicle_mass', ${carState.mass});
+assignin('base', 'initial_velocity', ${carState.initialSpeed / 3.6}); % m/s
+assignin('base', 'friction_coef', ${carState.mu});
+assignin('base', 'reaction_time', ${carState.reactionTime});
+assignin('base', 'has_abs', ${carState.hasABS});
+
+% Bloklar qo'shish va sozlash
+add_block('simulink/Sources/Constant', [model_name '/Initial_Velocity']);
+set_param([model_name '/Initial_Velocity'], 'Value', 'initial_velocity');
+
+add_block('simulink/Sources/Step', [model_name '/Brake_Signal']);
+set_param([model_name '/Brake_Signal'], 'Time', 'reaction_time');
+set_param([model_name '/Brake_Signal'], 'After', '1');
+
+% Hisoblash bo'limini qo'shish
+add_block('simulink/User-Defined Functions/MATLAB Function', [model_name '/Brake_Dynamics']);
+
+% Integratorlar
+add_block('simulink/Continuous/Integrator', [model_name '/Velocity_Int']);
+set_param([model_name '/Velocity_Int'], 'InitialCondition', 'initial_velocity');
+
+add_block('simulink/Continuous/Integrator', [model_name '/Distance_Int']);
+set_param([model_name '/Distance_Int'], 'InitialCondition', '0');
+
+% Grafik chiqish
+add_block('simulink/Sinks/Scope', [model_name '/Results_Scope']);
+
+fprintf('Simulink model yaratildi: %s\\n', model_name);
+fprintf('Parametrlar yuklandi. Simulyatsiyani ishga tushiring: sim(model_name)\\n');
+`;
+}
+
+// ======== EVENT HANDLERS ========
+function bindEvents() {
+    // Parameter controls
+    $('paramMass').addEventListener('input', (e) => {
+        carState.mass = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramSpeed').addEventListener('input', (e) => {
+        carState.initialSpeed = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramReaction').addEventListener('input', (e) => {
+        carState.reactionTime = parseFloat(e.target.value);
+        updateUI();
+    });
+    
+    $('roadCondition').addEventListener('change', (e) => {
+        carState.mu = parseFloat(e.target.value);
+        updateUI();
+    });
+    
+    $('absSystem').addEventListener('change', (e) => {
+        carState.hasABS = e.target.value === 'true';
+        updateUI();
+    });
+    
+    // Simulation buttons
+    $('runSimulation').addEventListener('click', () => {
+        simulateBraking();
+        drawSimulationChart();
+        updateUI();
+        $('runSimulation').textContent = '✅ Simulyatsiya tugadi';
+        setTimeout(() => {
+            $('runSimulation').textContent = '▶️ Simulyatsiya ishga tushirish';
+        }, 2000);
+    });
+    
+    $('resetSim').addEventListener('click', () => {
+        carState.simData = [];
+        drawSimulationChart();
+        updateUI();
+    });
+    
+    $('compareScenarios').addEventListener('click', () => {
+        drawAnalysisCharts();
+        alert('Turli sharoitlar uchun taqqoslash "Tahlil va xavfsizlik" tabida ko\'rsatildi.');
+    });
+    
+    // Model interactions
+    document.querySelectorAll('.block').forEach(block => {
+        block.addEventListener('click', () => {
+            const blockType = block.dataset.block;
+            let info = '';
+            
+            switch(blockType) {
+                case 'initial_velocity':
+                    info = 'Boshlang\'ich tezlik bloki\nJoriy qiymat: ' + carState.initialSpeed + ' km/soat';
+                    break;
+                case 'brake_signal':
+                    info = 'Tormoz signali (Step)\nReaktsiya vaqti: ' + carState.reactionTime + ' sekund';
+                    break;
+                case 'brake_calc':
+                    info = 'Tormoz kuchi hisobi\nF = μ × m × g\nμ = ' + carState.mu;
+                    break;
+                default:
+                    info = 'Simulink bloki: ' + blockType;
+            }
+            
+            alert(info);
+        });
+    });
+    
+    // Code export
+    $('copySimulinkCode').addEventListener('click', () => {
+        const code = generateSimulinkCode();
+        navigator.clipboard.writeText(code).then(() => {
+            $('copySimulinkCode').textContent = '✅ Nusxalandi';
+            setTimeout(() => {
+                $('copySimulinkCode').textContent = '📋 Simulink kodini nusxalash';
+            }, 1500);
+        });
+    });
+    
+    $('downloadSimulinkCode').addEventListener('click', () => {
+        const code = generateSimulinkCode();
+        downloadFile(code, 'brake_system_simulink.m', 'text/plain');
+    });
+    
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            $('tab-' + tab.dataset.tab).classList.add('active');
+            
+            if (tab.dataset.tab === 'analysis') {
+                setTimeout(drawAnalysisCharts, 100);
+            }
+        });
+    });
+}
+
+// ======== INITIALIZATION ========
+function init() {
+    bindEvents();
+    updateUI();
+    
+    // Initial simulation
+    simulateBraking();
+    drawSimulationChart();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+window.addEventListener('resize', () => {
+    drawSimulationChart();
+    drawAnalysisCharts();
+});
+</script>
+
+</body>
+</html>
