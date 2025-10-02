@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Mapleda dasturlash elementlari - Epidemiologik SIR Modeli</title>
+
+<!-- MathJax formulalar uchun -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  :root{
+    --bg1:#f0f8ff; --bg2:#f8fafc; --ink:#0f172a; --muted:#6b7280;
+    --pri:#3b82f6; --pri2:#8b5cf6; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444;
+    --card:#ffffff; --grid:#eef2f7; --frame:#e5e7eb; --accent:#06b6d4;
+    --maple:#228b22; --sir-s:#4ade80; --sir-i:#ef4444; --sir-r:#3b82f6;
+    --epidemic:#dc2626; --recovery:#059669;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:'Segoe UI',Roboto,'San Francisco',Arial,sans-serif;color:var(--ink);
+    background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 30%,#93c5fd 100%);
+    line-height:1.6;font-size:15px
+  }
+  .container{max-width:1800px;margin:0 auto;padding:20px}
+
+  .header{
+    background:var(--card);border-radius:20px;padding:35px;
+    box-shadow:0 25px 50px rgba(0,0,0,.18);text-align:center;margin-bottom:24px;
+    border:1px solid rgba(255,255,255,.35)
+  }
+  .header h1{
+    margin:0 0 14px 0;font-size:36px;font-weight:800;
+    background:linear-gradient(135deg,var(--maple),var(--epidemic));-webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;background-clip:text
+  }
+  .header p{margin:0 0 6px 0;color:var(--muted);font-size:17px}
+  .header .subtitle{color:var(--accent);font-weight:600;font-size:15px}
+  .maple-logo{font-size:48px;margin-bottom:10px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+  @media (max-width:1200px){.grid2{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--card);border-radius:18px;padding:26px;
+    box-shadow:0 15px 35px rgba(0,0,0,.12);margin-bottom:20px;border:1px solid rgba(255,255,255,.28)
+  }
+  .card h2{margin:0 0 18px 0;font-size:24px;font-weight:700;color:#1e293b}
+  .card h3{margin:0 0 14px 0;font-size:20px;font-weight:600;color:#334155}
+  .card h4{margin:0 0 10px 0;font-size:18px;font-weight:600;color:#475569}
+
+  .problem-showcase{
+    background:linear-gradient(135deg,#fef2f2 0%,#fecaca 100%);
+    border:3px solid var(--epidemic);border-radius:20px;padding:26px;margin:25px 0;position:relative
+  }
+  .problem-title{font-size:22px;font-weight:800;color:#991b1b;margin-bottom:14px}
+  .problem-scenario{
+    background:rgba(255,255,255,.95);border-radius:12px;padding:18px;margin:14px 0;border-left:4px solid var(--epidemic)
+  }
+
+  .info-box{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);
+            border-radius:12px;padding:16px;margin:12px 0}
+  .warning-box{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  .success-box{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);
+               border-radius:12px;padding:16px;margin:12px 0}
+  .maple-box{background:rgba(34,139,34,.1);border:1px solid rgba(34,139,34,.3);
+              border-radius:12px;padding:16px;margin:12px 0}
+
+  .equation-display{
+    background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+    border:3px solid var(--maple);border-radius:16px;padding:18px;margin:14px 0;text-align:center
+  }
+  .equation-text{font-size:20px;font-weight:700;color:var(--maple)}
+  .equation-hint{color:var(--muted);font-size:14px;margin-top:6px}
+
+  .control-panel{background:linear-gradient(135deg,#f8fafc 0%,#f1f5f9 100%);
+                 border:2px solid var(--frame);border-radius:16px;padding:20px;margin:16px 0}
+  .control-group{margin-bottom:16px}
+  .control-label{font-weight:600;color:#374151;margin-bottom:6px;display:block}
+  .control-desc{color:var(--muted);font-size:13px;margin-bottom:8px}
+
+  input[type=range]{width:100%;height:12px;border-radius:8px;background:#e5e7eb;
+                   outline:none;-webkit-appearance:none;margin:8px 0;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{
+    appearance:none;width:24px;height:24px;border-radius:50%;background:var(--maple);
+    cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)
+  }
+  input[type=range]::-moz-range-thumb{
+    width:24px;height:24px;border-radius:50%;background:var(--maple);cursor:pointer;border:none
+  }
+  input[type=number], select{
+    padding:12px 14px;border:2px solid var(--frame);border-radius:10px;font-size:14px;background:#fff
+  }
+  input[type=number]:focus, select:focus{border-color:var(--maple);outline:none;box-shadow:0 0 0 3px rgba(34,139,34,.12)}
+
+  .btn{
+    background:var(--maple);border:0;color:#fff;padding:12px 18px;border-radius:12px;
+    cursor:pointer;font-weight:600;transition:all .25s;display:inline-flex;align-items:center;gap:8px;
+    font-size:14px
+  }
+  .btn:hover{background:#228b22cc;transform:translateY(-1px)}
+  .btn.simulate{background:var(--epidemic)}
+  .btn.simulate:hover{background:#dc2626cc}
+  .btn.outline{background:transparent;border:2px solid var(--maple);color:var(--maple)}
+  .btn.outline:hover{background:var(--maple);color:#fff}
+  .btn.success{background:var(--ok)}
+  .btn.danger{background:var(--bad)}
+  .btn.primary{background:var(--pri)}
+  .btn-group{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+
+  canvas{width:100%;height:400px;background:#fff;border:3px solid var(--frame);
+         border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.08)}
+  .canvas-large{height:500px}
+
+  .tabs{
+    display:flex;gap:6px;border-bottom:4px solid var(--frame);margin-bottom:18px;
+    background:var(--bg2);border-radius:16px 16px 0 0;padding:10px 10px 0 10px;flex-wrap:wrap
+  }
+  .tab{padding:12px 18px;cursor:pointer;border-radius:12px 12px 0 0;font-weight:600;transition:.25s;font-size:14px}
+  .tab:hover{background:rgba(34,139,34,.1)}
+  .tab.active{background:var(--maple);color:#fff;box-shadow:0 4px 12px rgba(34,139,34,.25)}
+  .tab-content{display:none;animation:fade .35s ease}
+  .tab-content.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .code-block{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:20px;
+              border-left:6px solid var(--maple);font-family:'Courier New',monospace;font-size:13px;overflow-x:auto}
+  .code-comment{color:#64748b}
+  .code-keyword{color:#fbbf24}
+  .code-string{color:#34d399}
+  .code-number{color:#8b5cf6}
+
+  .results-panel{background:linear-gradient(135deg,#f0fdf4 0%,#bbf7d0 100%);
+                 border:2px solid var(--ok);border-radius:16px;padding:16px;margin:16px 0}
+  .result-item{background:rgba(255,255,255,.95);border-radius:10px;padding:12px;margin:8px 0;
+               display:flex;align-items:center;gap:10px}
+  .result-label{font-weight:700;color:#065f46;min-width:160px;font-size:14px}
+  .result-value{font-family:'Courier New',monospace;background:#0f172a;color:#e2e8f0;
+                padding:8px 12px;border-radius:8px;flex:1;font-size:14px}
+
+  .sir-legend{display:flex;gap:20px;justify-content:center;margin:15px 0;flex-wrap:wrap}
+  .legend-item{display:flex;align-items:center;gap:8px;font-weight:600}
+  .legend-color{width:20px;height:20px;border-radius:4px}
+  .legend-s{background:var(--sir-s)}
+  .legend-i{background:var(--sir-i)}
+  .legend-r{background:var(--sir-r)}
+
+  .assignment-card{
+    background:linear-gradient(135deg,#fef3c7 0%,#fed7aa 100%);
+    border:2px solid var(--warn);border-radius:14px;padding:18px;margin:14px 0
+  }
+  .assignment-title{font-weight:800;color:#92400e;margin-bottom:12px;font-size:16px}
+
+  .rubric-table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13px}
+  .rubric-table th, .rubric-table td{padding:10px;text-align:left;border:1px solid var(--frame)}
+  .rubric-table th{background:var(--maple);color:#fff;font-weight:600}
+  .rubric-table tr:nth-child(even){background:#f9fafb}
+
+  .step-indicator{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:50%;background:var(--maple);color:#fff;
+    font-weight:700;margin-right:12px;font-size:16px
+  }
+
+  .progress-bar{background:#e5e7eb;border-radius:10px;height:20px;margin:10px 0}
+  .progress-fill{background:var(--maple);height:100%;border-radius:10px;transition:width 0.5s ease}
+
+  .scenario-box{
+    background:linear-gradient(135deg,#ede9fe 0%,#ddd6fe 100%);
+    border:2px solid var(--pri2);border-radius:14px;padding:16px;margin:14px 0
+  }
+
+  .interactive-demo{
+    background:linear-gradient(135deg,#ecfdf5 0%,#a7f3d0 100%);
+    padding:25px;border-radius:15px;margin:20px 0;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);border:2px solid var(--ok)
+  }
+
+  @media (max-width:768px){
+    .canvas{height:300px}
+    .canvas-large{height:350px}
+    .grid2{grid-template-columns:1fr}
+    .tabs{flex-direction:column}
+    .sir-legend{flex-direction:column;align-items:center}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- SARLAVHA -->
+  <div class="header">
+    <div class="maple-logo">🍁</div>
+    <h1>Mapleda dasturlash elementlari</h1>
+    <p>SIR Epidemiologik Model - Differential tenglamalar</p>
+    <div class="subtitle">🦠 Interaktiv simulyator • 📊 Real-vaqt tahlil • 💻 Maple kodlar</div>
+  </div>
+
+  <!-- AMALIY MASALA TAQDIMOTI -->
+  <div class="problem-showcase">
+    <div class="problem-title">🦠 Epidemiyaning tarqalish dinamikasi</div>
+    <div class="problem-scenario">
+      <h4>📝 Masala qo'yilishi:</h4>
+      <p>
+        100,000 aholili shaharda yangi infeksion kasallik tarqala boshladi. Dastlab 10 kishi kasallangan, 
+        qolgan aholi kasallikka moyil. Tibbiy mutaxassislar kasallikning tarqalish tezligi va 
+        sog'ayish jarayonini matematik model orqali bashorat qilishi kerak.
+      </p>
+      
+      <div class="scenario-box">
+        <h4>🏥 COVID-19 ga o'xshash model</h4>
+        <ul>
+          <li><strong>Shahar:</strong> Toshkent tumani (100,000 aholi)</li>
+          <li><strong>Boshlang'ich holatlar:</strong> 10 kasallangan, 99,990 sog'lom</li>
+          <li><strong>Tarqalish koeffitsienti:</strong> β = 0.3 (har kun 1 kasallangan 0.3 ta kishini yuqtiradi)</li>
+          <li><strong>Sog'ayish koeffitsienti:</strong> γ = 0.1 (10% kasallardan kuniga sog'ayadi)</li>
+          <li><strong>Inkubatsiya davri:</strong> 5-14 kun</li>
+        </ul>
+      </div>
+      
+      <div class="info-box">
+        <strong>SIR Model Komponentlari:</strong>
+        <ul style="margin-left:20px">
+          <li><strong style="color:var(--sir-s)">S(t) - Susceptible:</strong> Kasallikka moyil bo'lganlar soni</li>
+          <li><strong style="color:var(--sir-i)">I(t) - Infected:</strong> Kasallanganlar soni</li>
+          <li><strong style="color:var(--sir-r)">R(t) - Recovered:</strong> Sog'ayganlar (immunitetga ega) soni</li>
+        </ul>
+      </div>
+      
+      <div class="equation-display">
+        <div class="equation-text">
+          $\frac{dS}{dt} = -\beta \frac{SI}{N}$<br>
+          $\frac{dI}{dt} = \beta \frac{SI}{N} - \gamma I$<br>
+          $\frac{dR}{dt} = \gamma I$
+        </div>
+        <div class="equation-hint">
+          <strong>Bu yerda:</strong> β-tarqalish koeffitsienti, γ-sog'ayish koeffitsienti, N-umumiy aholi
+        </div>
+      </div>
+    </div>
+    
+    <div class="maple-box">
+      <strong>🎯 Maqsad:</strong> Maple dasturlash tillining kuchli imkoniyatlaridan foydalanib, 
+      differential tenglamalar tizimini yechish, parametrik tahlil o'tkazish va 
+      epidemiyaning dinamikasini vizual ko'rsatish.
+    </div>
+  </div>
+
+  <!-- ASOSIY SIMULYATOR -->
+  <div class="card">
+    <h2>🎛️ SIR Model Simulyatori</h2>
+
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-tab="theory">📖 Nazariya</div>
+      <div class="tab" data-tab="simulator">🧪 Simulyator</div>
+      <div class="tab" data-tab="analysis">📊 Parametrik Tahlil</div>
+      <div class="tab" data-tab="maple">🍁 Maple Kodlari</div>
+      <div class="tab" data-tab="assignments">📝 Topshiriqlar</div>
+      <div class="tab" data-tab="assessment">📋 Baholash</div>
+    </div>
+
+    <!-- NAZARIYA TABI -->
+    <div class="tab-content active" id="tab-theory">
+      <h3>📖 SIR Model Nazariyasi</h3>
+      
+      <div class="grid2">
+        <div>
+          <div class="maple-box">
+            <h4>🔢 Maple Dasturlash Asoslari</h4>
+            <ul>
+              <li><strong>Differential tenglamalar:</strong> <code>diff(y(t), t)</code></li>
+              <li><strong>Tenglamalar tizimi:</strong> <code>dsolve({eq1, eq2, eq3})</code></li>
+              <li><strong>Boshlang'ich shartlar:</strong> <code>y(0) = y0</code></li>
+              <li><strong>Parametrlar:</strong> <code>beta := 0.3; gamma := 0.1;</code></li>
+              <li><strong>Sonli yechim:</strong> <code>dsolve(..., numeric)</code></li>
+              <li><strong>Grafik chizish:</strong> <code>odeplot, plot</code></li>
+            </ul>
+          </div>
+          
+          <div class="info-box">
+            <h4>🦠 Epidemiologik Parametrlar</h4>
+            <p><strong>R₀ (Reproduktiv son):</strong> R₀ = β/γ</p>
+            <ul>
+              <li>R₀ > 1: Epidemiya tarqaladi</li>
+              <li>R₀ = 1: Epidemiya barqaror</li>  
+              <li>R₀ < 1: Epidemiya susayadi</li>
+            </ul>
+            <p><strong>Herd Immunity:</strong> 1 - 1/R₀</p>
+          </div>
+        </div>
+
+        <div>
+          <h4>🔄 Model Dinamikasi</h4>
+          <canvas id="theoryCanvas" width="600" height="400"></canvas>
+          
+          <div class="sir-legend">
+            <div class="legend-item">
+              <div class="legend-color legend-s"></div>
+              <span>Susceptible (S)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color legend-i"></div>
+              <span>Infected (I)</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color legend-r"></div>
+              <span>Recovered (R)</span>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <h4>💡 Asosiy Xususiyatlar:</h4>
+            <ul>
+              <li>S(t) monoton kamayadi</li>
+              <li>R(t) monoton o'sadi</li>
+              <li>I(t) avval o'sadi, keyin kamayadi</li>
+              <li>S(t) + I(t) + R(t) = N (doimiy)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULYATOR TABI -->
+    <div class="tab-content" id="tab-simulator">
+      <div class="grid2">
+        <div>
+          <div class="control-panel">
+            <h3>⚙️ Model Parametrlari</h3>
+
+            <div class="control-group">
+              <label class="control-label">Aholi soni (N): <span id="valPopulation">100000</span></label>
+              <div class="control-desc">Jami aholi soni (kishi)</div>
+              <input id="paramPopulation" type="range" min="10000" max="1000000" step="10000" value="100000">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Boshlang'ich kasallar (I₀): <span id="valInitialInfected">10</span></label>
+              <div class="control-desc">Dastlabki kasallanganlar soni</div>
+              <input id="paramInitialInfected" type="range" min="1" max="1000" step="1" value="10">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Tarqalish koeffitsienti (β): <span id="valBeta">0.3</span></label>
+              <div class="control-desc">Har kun 1 kasallanganki yuqtirish o'rtachasi</div>
+              <input id="paramBeta" type="range" min="0.1" max="1.0" step="0.01" value="0.3">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Sog'ayish koeffitsienti (γ): <span id="valGamma">0.1</span></label>
+              <div class="control-desc">Kunlik sog'ayish sur'ati</div>
+              <input id="paramGamma" type="range" min="0.01" max="0.5" step="0.01" value="0.1">
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Simulyatsiya davomiyligi: <span id="valDuration">365</span> kun</label>
+              <input id="paramDuration" type="range" min="30" max="1095" step="30" value="365">
+            </div>
+
+            <div class="btn-group">
+              <button class="btn simulate" id="runSimulation">🧪 Simulyatsiyani Boshlash</button>
+              <button class="btn outline" id="resetParams">🔄 Parametrlarni Tiklash</button>
+              <button class="btn success" id="exportResults">📊 Natijalarni Eksport</button>
+            </div>
+
+            <div class="warning-box">
+              <strong>⚠️ Diqqat:</strong> R₀ = β/γ = <span id="reproductiveNumber">3.0</span>
+              <div id="epidemicStatus">Epidemiya faol tarqaladi</div>
+            </div>
+          </div>
+
+          <div class="results-panel">
+            <h4>📊 Real-vaqt Natijalar</h4>
+            <div class="result-item">
+              <div class="result-label">Maksimal kasallar:</div>
+              <div class="result-value" id="maxInfected">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Epidemiya pik vaqti:</div>
+              <div class="result-value" id="peakTime">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Jami kasallanganlar:</div>
+              <div class="result-value" id="totalInfected">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Herd Immunity chegara:</div>
+              <div class="result-value" id="herdImmunity">--</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Epidemiya davomiyligi:</div>
+              <div class="result-value" id="epidemicDuration">--</div>
+            </div>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" id="simulationProgress"></div>
+          </div>
+        </div>
+
+        <div>
+          <h3>📈 SIR Model Dinamikasi</h3>
+          <canvas id="sirCanvas" class="canvas-large" width="800" height="500"></canvas>
+          
+          <div class="sir-legend">
+            <div class="legend-item">
+              <div class="legend-color legend-s"></div>
+              <span>Susceptible (S) - Kasallikka moyil</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color legend-i"></div>
+              <span>Infected (I) - Kasallangan</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color legend-r"></div>
+              <span>Recovered (R) - Sog'aygan</span>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button class="btn" id="saveChart">📸 Grafikni Saqlash</button>
+            <button class="btn primary" id="animateModel">🎬 Animatsiya</button>
+            <button class="btn outline" id="zoomChart">🔍 Kattalashtirish</button>
+          </div>
+
+          <div class="interactive-demo">
+            <h4>🎮 Interaktiv Demo</h4>
+            <p>Parametrlarni o'zgartirib, epidemiyaning turli stsenariylarini kuzating:</p>
+            <div class="btn-group">
+              <button class="btn" onclick="loadScenario('covid')">😷 COVID-19</button>
+              <button class="btn" onclick="loadScenario('flu')">🤧 Gripp</button>
+              <button class="btn" onclick="loadScenario('measles')">🤒 Qizamiq</button>
+              <button class="btn outline" onclick="loadScenario('controlled')">🏥 Nazorat ostida</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARAMETRIK TAHLIL TABI -->
+    <div class="tab-content" id="tab-analysis">
+      <h3>📊 Parametrik Tahlil va Sezgirlik</h3>
+      
+      <div class="grid3">
+        <div class="card">
+          <h4>📈 β Parametri Ta'siri</h4>
+          <canvas id="betaAnalysis" width="400" height="300"></canvas>
+          <div class="info-box">
+            Tarqalish koeffitsienti oshsa, epidemiya piki tezroq va balandroq bo'ladi.
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>⚕️ γ Parametri Ta'siri</h4>
+          <canvas id="gammaAnalysis" width="400" height="300"></canvas>
+          <div class="success-box">
+            Sog'ayish tezligi oshsa, epidemiya muddati qisqaradi.
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>🎯 R₀ Tahlili</h4>
+          <canvas id="r0Analysis" width="400" height="300"></canvas>
+          <div class="warning-box">
+            R₀ > 1 bo'lganda epidemiya rivojlanadi. R₀ < 1 da susayadi.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>📋 Taqqoslash Jadvali</h4>
+        <table class="rubric-table">
+          <thead>
+            <tr>
+              <th>Kasallik turi</th>
+              <th>β koeffitsient</th>
+              <th>γ koeffitsient</th>
+              <th>R₀ qiymati</th>
+              <th>Inkubatsiya davri</th>
+              <th>Herd Immunity %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>COVID-19</td>
+              <td>0.5 - 0.8</td>
+              <td>0.07 - 0.14</td>
+              <td>2.5 - 4.0</td>
+              <td>5-14 kun</td>
+              <td>60-75%</td>
+            </tr>
+            <tr>
+              <td>Gripp</td>
+              <td>0.3 - 0.5</td>
+              <td>0.2 - 0.5</td>
+              <td>1.3 - 1.8</td>
+              <td>1-3 kun</td>
+              <td>23-44%</td>
+            </tr>
+            <tr>
+              <td>Qizamiq</td>
+              <td>1.0 - 2.0</td>
+              <td>0.1 - 0.2</td>
+              <td>12-18</td>
+              <td>8-12 kun</td>
+              <td>92-95%</td>
+            </tr>
+            <tr>
+              <td>Adabiyot misolii</td>
+              <td id="currentBeta">0.3</td>
+              <td id="currentGamma">0.1</td>
+              <td id="currentR0">3.0</td>
+              <td>10 kun</td>
+              <td id="currentHerd">67%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MAPLE KODLARI TABI -->
+    <div class="tab-content" id="tab-maple">
+      <h3>🍁 Maple Dasturlash Kodlari</h3>
+      
+      <div class="card">
+        <h4>🔢 Asosiy SIR Model Kodi</h4>
+        <div class="code-block" id="mainMapleCode">
+<span class="code-comment"># SIR Epidemiologik Model - Maple Dasturlash</span>
+<span class="code-keyword">restart;</span>
+
+<span class="code-comment"># Parametrlarni e'lon qilish</span>
+<span class="code-keyword">with</span>(DEtools):
+<span class="code-keyword">with</span>(plots):
+
+<span class="code-comment"># Model parametrlari (joriy sozlamalar asosida)</span>
+N := <span class="code-number" id="maple-N">100000</span>;        <span class="code-comment"># Jami aholi</span>
+beta := <span class="code-number" id="maple-beta">0.3</span>;      <span class="code-comment"># Tarqalish koeffitsienti</span>
+gamma := <span class="code-number" id="maple-gamma">0.1</span>;     <span class="code-comment"># Sog'ayish koeffitsienti</span>
+I0 := <span class="code-number" id="maple-I0">10</span>;          <span class="code-comment"># Boshlang'ich kasallar</span>
+S0 := N - I0;      <span class="code-comment"># Boshlang'ich moyillar</span>
+R0 := <span class="code-number">0</span>;          <span class="code-comment"># Boshlang'ich sog'ayganlar</span>
+
+<span class="code-comment"># Differential tenglamalar tizimi</span>
+<span class="code-keyword">sys</span> := {
+    <span class="code-keyword">diff</span>(S(t), t) = -beta * S(t) * I(t) / N,
+    <span class="code-keyword">diff</span>(I(t), t) = beta * S(t) * I(t) / N - gamma * I(t),
+    <span class="code-keyword">diff</span>(R(t), t) = gamma * I(t)
+};
+
+<span class="code-comment"># Boshlang'ich shartlar</span>
+<span class="code-keyword">ics</span> := {S(<span class="code-number">0</span>) = S0, I(<span class="code-number">0</span>) = I0, R(<span class="code-number">0</span>) = R0};
+
+<span class="code-comment"># Sonli yechim olish</span>
+<span class="code-keyword">sol</span> := <span class="code-keyword">dsolve</span>(sys <span class="code-keyword">union</span> ics, {S(t), I(t), R(t)}, <span class="code-keyword">numeric</span>);
+
+<span class="code-comment"># Natijalarni grafik ko'rinishida chizish</span>
+<span class="code-keyword">p1</span> := <span class="code-keyword">odeplot</span>(sol, [t, S(t)], <span class="code-number">0</span>..<span class="code-number">365</span>, 
+                <span class="code-string">color</span> = <span class="code-string">green</span>, <span class="code-string">thickness</span> = <span class="code-number">3</span>, 
+                <span class="code-string">legend</span> = <span class="code-string">"Susceptible"</span>);
+
+<span class="code-keyword">p2</span> := <span class="code-keyword">odeplot</span>(sol, [t, I(t)], <span class="code-number">0</span>..<span class="code-number">365</span>, 
+                <span class="code-string">color</span> = <span class="code-string">red</span>, <span class="code-string">thickness</span> = <span class="code-number">3</span>, 
+                <span class="code-string">legend</span> = <span class="code-string">"Infected"</span>);
+
+<span class="code-keyword">p3</span> := <span class="code-keyword">odeplot</span>(sol, [t, R(t)], <span class="code-number">0</span>..<span class="code-number">365</span>, 
+                <span class="code-string">color</span> = <span class="code-string">blue</span>, <span class="code-string">thickness</span> = <span class="code-number">3</span>, 
+                <span class="code-string">legend</span> = <span class="code-string">"Recovered"</span>);
+
+<span class="code-comment"># Birlashtirilgan grafik</span>
+<span class="code-keyword">display</span>([p1, p2, p3], 
+    <span class="code-string">title</span> = <span class="code-string">"SIR Epidemiologik Model"</span>,
+    <span class="code-string">labels</span> = [<span class="code-string">"Vaqt (kun)"</span>, <span class="code-string">"Aholi soni"</span>],
+    <span class="code-string">labelfont</span> = [TIMES, <span class="code-number">14</span>],
+    <span class="code-string">titlefont</span> = [TIMES, BOLD, <span class="code-number">16</span>]);
+
+<span class="code-comment"># R0 (reproduktiv son) hisoblash</span>
+R0_value := <span class="code-keyword">evalf</span>(beta / gamma);
+<span class="code-keyword">printf</span>(<span class="code-string">"Reproduktiv son R0 = %.2f\n"</span>, R0_value);
+
+<span class="code-comment"># Herd immunity chegara</span>
+herd_immunity := <span class="code-number">1</span> - <span class="code-number">1</span> / R0_value;
+<span class="code-keyword">printf</span>(<span class="code-string">"Herd Immunity chegara = %.1f%%\n"</span>, herd_immunity * <span class="code-number">100</span>);
+
+<span class="code-comment"># Maksimal kasallar va vaqtini topish</span>
+<span class="code-keyword">max_infected</span> := <span class="code-number">0</span>;
+<span class="code-keyword">peak_time</span> := <span class="code-number">0</span>;
+
+<span class="code-keyword">for</span> day <span class="code-keyword">from</span> <span class="code-number">1</span> <span class="code-keyword">to</span> <span class="code-number">365</span> <span class="code-keyword">do</span>
+    current_I := <span class="code-keyword">rhs</span>(<span class="code-keyword">subs</span>(t = day, sol(day)[<span class="code-number">3</span>]));
+    <span class="code-keyword">if</span> current_I > max_infected <span class="code-keyword">then</span>
+        max_infected := current_I;
+        peak_time := day;
+    <span class="code-keyword">end if</span>;
+<span class="code-keyword">end do</span>;
+
+<span class="code-keyword">printf</span>(<span class="code-string">"Maksimal kasallar: %.0f kishi (%d-kun)\n"</span>, max_infected, peak_time);
+        </div>
+        
+        <div class="btn-group">
+          <button class="btn" id="copyMainMaple">📋 Asosiy Kodni Nusxalash</button>
+          <button class="btn success" id="downloadMainMaple">💾 .mw Fayl Yuklab Olish</button>
+          <button class="btn outline" id="updateMapleCode">🔄 Kodda Parametrlarni Yangilash</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>📊 Parametrik Tahlil Kodi</h4>
+        <div class="code-block">
+<span class="code-comment"># Parametrik tahlil va sezgirlik o'rganish</span>
+<span class="code-keyword">restart;</span>
+<span class="code-keyword">with</span>(DEtools):
+<span class="code-keyword">with</span>(plots):
+
+<span class="code-comment"># Beta parametrining ta'siri</span>
+<span class="code-keyword">analyze_beta</span> := <span class="code-keyword">proc</span>()
+    <span class="code-keyword">local</span> beta_values, plot_list, i, sol_temp, p_temp;
+    
+    beta_values := [<span class="code-number">0.1, 0.2, 0.3, 0.4, 0.5</span>];
+    plot_list := [];
+    
+    <span class="code-keyword">for</span> i <span class="code-keyword">from</span> <span class="code-number">1</span> <span class="code-keyword">to</span> <span class="code-keyword">nops</span>(beta_values) <span class="code-keyword">do</span>
+        <span class="code-comment"># Har bir beta qiymat uchun yechim</span>
+        sys_temp := {
+            <span class="code-keyword">diff</span>(S(t), t) = -beta_values[i] * S(t) * I(t) / <span class="code-number">100000</span>,
+            <span class="code-keyword">diff</span>(I(t), t) = beta_values[i] * S(t) * I(t) / <span class="code-number">100000</span> - <span class="code-number">0.1</span> * I(t),
+            <span class="code-keyword">diff</span>(R(t), t) = <span class="code-number">0.1</span> * I(t)
+        };
+        
+        ics_temp := {S(<span class="code-number">0</span>) = <span class="code-number">99990</span>, I(<span class="code-number">0</span>) = <span class="code-number">10</span>, R(<span class="code-number">0</span>) = <span class="code-number">0</span>};
+        sol_temp := <span class="code-keyword">dsolve</span>(sys_temp <span class="code-keyword">union</span> ics_temp, 
+                            {S(t), I(t), R(t)}, <span class="code-keyword">numeric</span>);
+        
+        p_temp := <span class="code-keyword">odeplot</span>(sol_temp, [t, I(t)], <span class="code-number">0</span>..<span class="code-number">200</span>, 
+                          <span class="code-string">color</span> = <span class="code-keyword">colors</span>[i], <span class="code-string">thickness</span> = <span class="code-number">2</span>,
+                          <span class="code-string">legend</span> = <span class="code-keyword">cat</span>(<span class="code-string">"β = "</span>, beta_values[i]));
+        
+        plot_list := [<span class="code-keyword">op</span>(plot_list), p_temp];
+    <span class="code-keyword">end do</span>;
+    
+    <span class="code-keyword">display</span>(plot_list, 
+        <span class="code-string">title</span> = <span class="code-string">"Beta Parametrining Ta'siri"</span>,
+        <span class="code-string">labels</span> = [<span class="code-string">"Vaqt (kun)"</span>, <span class="code-string">"Kasallar soni"</span>]);
+<span class="code-keyword">end proc</span>;
+
+<span class="code-comment"># Gamma parametrining ta'siri</span>
+<span class="code-keyword">analyze_gamma</span> := <span class="code-keyword">proc</span>()
+    <span class="code-comment"># Shunga o'xshash implementatsiya gamma uchun</span>
+<span class="code-keyword">end proc</span>;
+
+<span class="code-comment"># Optimizatsiya - Eng yaxshi nazorat strategiyasi</span>
+<span class="code-keyword">find_optimal_strategy</span> := <span class="code-keyword">proc</span>(target_max_infected)
+    <span class="code-keyword">local</span> best_beta, min_duration, beta_test, duration;
+    
+    min_duration := <span class="code-keyword">infinity</span>;
+    best_beta := <span class="code-number">0</span>;
+    
+    <span class="code-keyword">for</span> beta_test <span class="code-keyword">from</span> <span class="code-number">0.1</span> <span class="code-keyword">by</span> <span class="code-number">0.01</span> <span class="code-keyword">to</span> <span class="code-number">0.5</span> <span class="code-keyword">do</span>
+        <span class="code-comment"># Har bir beta uchun simulyatsiya</span>
+        duration := simulate_epidemic(beta_test, <span class="code-number">0.1</span>, target_max_infected);
+        
+        <span class="code-keyword">if</span> duration < min_duration <span class="code-keyword">then</span>
+            min_duration := duration;
+            best_beta := beta_test;
+        <span class="code-keyword">end if</span>;
+    <span class="code-keyword">end do</span>;
+    
+    <span class="code-keyword">return</span> best_beta;
+<span class="code-keyword">end proc</span>;
+
+<span class="code-comment"># Tahlillarni ishga tushirish</span>
+analyze_beta();
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>🎬 Animatsiya va Interaktiv Kod</h4>
+        <div class="code-block">
+<span class="code-comment"># SIR Model Animatsiyasi</span>
+<span class="code-keyword">with</span>(plots):
+<span class="code-keyword">with</span>(plottools):
+
+<span class="code-comment"># Animatsion vizualizatsiya</span>
+<span class="code-keyword">create_sir_animation</span> := <span class="code-keyword">proc</span>()
+    <span class="code-keyword">local</span> frames, frame_count, t_val, S_val, I_val, R_val;
+    
+    frames := [];
+    
+    <span class="code-keyword">for</span> frame_count <span class="code-keyword">from</span> <span class="code-number">1</span> <span class="code-keyword">to</span> <span class="code-number">100</span> <span class="code-keyword">do</span>
+        t_val := frame_count * <span class="code-number">3.65</span>; <span class="code-comment"># 365 kun / 100 frame</span>
+        
+        <span class="code-comment"># Joriy qiymatlarni olish</span>
+        S_val := <span class="code-keyword">rhs</span>(<span class="code-keyword">subs</span>(t = t_val, sol(t_val)[<span class="code-number">2</span>]));
+        I_val := <span class="code-keyword">rhs</span>(<span class="code-keyword">subs</span>(t = t_val, sol(t_val)[<span class="code-number">3</span>]));
+        R_val := <span class="code-keyword">rhs</span>(<span class="code-keyword">subs</span>(t = t_val, sol(t_val)[<span class="code-number">4</span>]));
+        
+        <span class="code-comment"># Pie chart yaratish</span>
+        frame_plot := <span class="code-keyword">pieplot</span>([S_val, I_val, R_val],
+            <span class="code-string">color</span> = [<span class="code-string">green</span>, <span class="code-string">red</span>, <span class="code-string">blue</span>],
+            <span class="code-string">legend</span> = [<span class="code-string">"Susceptible"</span>, <span class="code-string">"Infected"</span>, <span class="code-string">"Recovered"</span>],
+            <span class="code-string">title</span> = <span class="code-keyword">cat</span>(<span class="code-string">"Kun: "</span>, <span class="code-keyword">round</span>(t_val)));
+        
+        frames := [<span class="code-keyword">op</span>(frames), frame_plot];
+    <span class="code-keyword">end do</span>;
+    
+    <span class="code-keyword">animate</span>(frames, <span class="code-string">frames</span> = <span class="code-number">100</span>);
+<span class="code-keyword">end proc</span>;
+
+<span class="code-comment"># Interaktiv explore interface</span>
+<span class="code-keyword">with</span>(Explore):
+
+<span class="code-keyword">interactive_sir</span> := <span class="code-keyword">proc</span>()
+    <span class="code-keyword">Explore</span>(
+        <span class="code-comment"># SIR yechimini ko'rsatish</span>
+        <span class="code-keyword">display</span>([
+            <span class="code-keyword">odeplot</span>(dsolve({
+                <span class="code-keyword">diff</span>(S(t), t) = -beta_param * S(t) * I(t) / N_param,
+                <span class="code-keyword">diff</span>(I(t), t) = beta_param * S(t) * I(t) / N_param - gamma_param * I(t),
+                <span class="code-keyword">diff</span>(R(t), t) = gamma_param * I(t),
+                S(<span class="code-number">0</span>) = N_param - I0_param,
+                I(<span class="code-number">0</span>) = I0_param,
+                R(<span class="code-number">0</span>) = <span class="code-number">0</span>
+            }, {S(t), I(t), R(t)}, <span class="code-keyword">numeric</span>), 
+            [t, S(t)], <span class="code-number">0</span>..<span class="code-number">365</span>, <span class="code-string">color</span> = <span class="code-string">green</span>),
+            
+            <span class="code-keyword">odeplot</span>(<span class="code-comment"># I(t) uchun</span>),
+            <span class="code-keyword">odeplot</span>(<span class="code-comment"># R(t) uchun</span>)
+        ]),
+        
+        <span class="code-comment"># Parametrlar</span>
+        <span class="code-string">parameters</span> = [
+            beta_param = <span class="code-number">0.1</span> .. <span class="code-number">1.0</span>,
+            gamma_param = <span class="code-number">0.01</span> .. <span class="code-number">0.5</span>,
+            N_param = <span class="code-number">10000</span> .. <span class="code-number">1000000</span>,
+            I0_param = <span class="code-number">1</span> .. <span class="code-number">1000</span>
+        ],
+        
+        <span class="code-string">initialvalues</span> = [
+            beta_param = <span class="code-number">0.3</span>,
+            gamma_param = <span class="code-number">0.1</span>,
+            N_param = <span class="code-number">100000</span>,
+            I0_param = <span class="code-number">10</span>
+        ]
+    );
+<span class="code-keyword">end proc</span>;
+
+<span class="code-comment"># Interaktiv interfeyisni ishga tushirish</span>
+interactive_sir();
+        </div>
+      </div>
+    </div>
+
+    <!-- TOPSHIRIQLAR TABI -->
+    <div class="tab-content" id="tab-assignments">
+      <h3>📝 Amaliy Topshiriqlar va Loyihalar</h3>
+      
+      <div class="grid2">
+        <div>
+          <div class="assignment-card">
+            <div class="assignment-title">
+              <span class="step-indicator">1</span>
+              Asosiy SIR Model (25 ball)
+            </div>
+            <div class="success-box">
+              <strong>Vazifa:</strong> Quyidagi parametrlar bilan SIR modelini Maple'da dasturlang va tahlil qiling:
+              <ul>
+                <li>N = 50,000, I₀ = 5, β = 0.4, γ = 0.15</li>
+                <li>365 kunlik simulyatsiya o'tkazing</li>
+                <li>R₀ ni hisoblang va interpretatsiya qiling</li>
+                <li>Maksimal kasallar sonini va vaqtini toping</li>
+              </ul>
+            </div>
+            
+            <div class="maple-box">
+              <strong>🍁 Namuna yechim:</strong>
+              <div class="code-block" style="font-size:11px">
+<span class="code-comment"># Topshiriq 1 yechimi</span>
+<span class="code-keyword">restart;</span>
+<span class="code-keyword">with</span>(DEtools):
+
+N := <span class="code-number">50000</span>; beta := <span class="code-number">0.4</span>; gamma := <span class="code-number">0.15</span>; I0 := <span class="code-number">5</span>;
+
+sys1 := {
+    <span class="code-keyword">diff</span>(S(t), t) = -beta * S(t) * I(t) / N,
+    <span class="code-keyword">diff</span>(I(t), t) = beta * S(t) * I(t) / N - gamma * I(t),
+    <span class="code-keyword">diff</span>(R(t), t) = gamma * I(t)
+};
+
+ics1 := {S(<span class="code-number">0</span>) = N - I0, I(<span class="code-number">0</span>) = I0, R(<span class="code-number">0</span>) = <span class="code-number">0</span>};
+sol1 := <span class="code-keyword">dsolve</span>(sys1 <span class="code-keyword">union</span> ics1, {S(t), I(t), R(t)}, <span class="code-keyword">numeric</span>);
+
+R0_calc := <span class="code-keyword">evalf</span>(beta / gamma);
+<span class="code-keyword">printf</span>(<span class="code-string">"R0 = %.2f\n"</span>, R0_calc);
+              </div>
+            </div>
+          </div>
+
+          <div class="assignment-card">
+            <div class="assignment-title">
+              <span class="step-indicator">2</span>
+              Parametrik Tahlil (30 ball)
+            </div>
+            <div class="info-box">
+              <strong>Vazifa:</strong> β = [0.2, 0.3, 0.4, 0.5] qiymatlari uchun I(t) grafiklarini bir koordinata sistemida chizing va tahlil qiling.
+            </div>
+            
+            <div class="warning-box">
+              <strong>Bajarilishi kerak:</strong>
+              <ul>
+                <li>4 ta turli β qiymat uchun yechim topish</li>
+                <li>Grafiklarni turli ranglarda chizish</li>
+                <li>Legend va sarlavha qo'shish</li>
+                <li>Har bir holat uchun pik vaqti va maksimal qiymatni hisoblash</li>
+                <li>Natijalarni taqqoslash va xulosa chiqarish</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="assignment-card">
+            <div class="assignment-title">
+              <span class="step-indicator">3</span>
+              Interaktiv Interface (35 ball)
+            </div>
+            <div class="success-box">
+              <strong>Vazifa:</strong> Explore buyrug'i yordamida interaktiv SIR modeli yarating.
+              <ul>
+                <li>β, γ, N, I₀ parametrlarini real-vaqtda o'zgartirish imkoniyati</li>
+                <li>S(t), I(t), R(t) grafiklarini birga ko'rsatish</li>
+                <li>R₀ qiymatini real-vaqtda hisoblash</li>
+                <li>Foydalanuvchi uchun qulay interfeys</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="assignment-card">
+            <div class="assignment-title">
+              <span class="step-indicator">4</span>
+              Real Ma'lumotlar bilan Tahlil (40 ball)
+            </div>
+            <div class="warning-box">
+              <strong>Murakkab vazifa:</strong> COVID-19 yoki boshqa epidemiya ma'lumotlarini olib, SIR model parametrlarini aniqlang.
+              <div class="code-block" style="font-size:11px; margin-top:10px">
+<span class="code-comment"># Real ma'lumotlar tahlili</span>
+real_data := [
+    [<span class="code-number">1, 10</span>], [<span class="code-number">7, 50</span>], [<span class="code-number">14, 200</span>], [<span class="code-number">21, 500</span>], 
+    [<span class="code-number">28, 800</span>], [<span class="code-number">35, 1000</span>], [<span class="code-number">42, 900</span>]
+];
+
+<span class="code-comment"># Parameter fitting</span>
+<span class="code-keyword">with</span>(CurveFitting):
+fitted_params := LeastSquares(real_data, t, 
+    curve = a * <span class="code-keyword">exp</span>(b * t) / (<span class="code-number">1</span> + c * <span class="code-keyword">exp</span>(b * t)));
+              </div>
+            </div>
+          </div>
+
+          <div class="assignment-card">
+            <div class="assignment-title">
+              <span class="step-indicator">5</span>
+              Kengaytirilgan SEIR Model (50 ball - Bonus)
+            </div>
+            <div class="info-box">
+              <strong>Ilg'or vazifa:</strong> SEIR (Susceptible-Exposed-Infected-Recovered) modelini dasturlang.
+              
+              <div class="equation-display" style="font-size:16px; margin:10px 0">
+                <div class="equation-text">
+                  $\frac{dS}{dt} = -\beta \frac{SI}{N}$<br>
+                  $\frac{dE}{dt} = \beta \frac{SI}{N} - \sigma E$<br>
+                  $\frac{dI}{dt} = \sigma E - \gamma I$<br>
+                  $\frac{dR}{dt} = \gamma I$
+                </div>
+                <div class="equation-hint">σ - inkubatsiya koeffitsienti (1/inkubatsiya_davri)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="success-box">
+            <h4>📚 Qo'shimcha Resurslar</h4>
+            <ul>
+              <li><strong>Maple Help:</strong> ?dsolve, ?odeplot, ?Explore</li>
+              <li><strong>Adabiyot:</strong> "Mathematical Biology" - Murray J.D.</li>
+              <li><strong>Online kurslar:</strong> Coursera, edX epidemiologiya kurslari</li>
+              <li><strong>Ma'lumotlar manbai:</strong> WHO, CDC rasmiy saytlari</li>
+            </ul>
+          </div>
+
+          <div class="maple-box">
+            <h4>💡 Bajarishda Yordam</h4>
+            <p><strong>Umumiy xatolar:</strong></p>
+            <ul>
+              <li>Boshlang'ich shartlar noto'g'ri berilishi</li>
+              <li>Numeric va symbolic aralashib ketishi</li>
+              <li>Plot parametrlari noto'g'ri sozlanishi</li>
+              <li>Vaqt oralig'i juda katta yoki kichik tanlanishi</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BAHOLASH TABI -->
+    <div class="tab-content" id="tab-assessment">
+      <h3>📋 Baholash Tizimi va Mezonlar</h3>
+      
+      <div class="card">
+        <h4>🎯 Baholash Rubrikasi</h4>
+        <table class="rubric-table">
+          <thead>
+            <tr>
+              <th>Mezon</th>
+              <th>A'lo (5) - 90-100%</th>
+              <th>Yaxshi (4) - 75-89%</th>
+              <th>Qoniqarli (3) - 60-74%</th>
+              <th>Qoniqarsiz (2) - <60%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Maple Kod Sifati</strong><br>(25 ball)</td>
+              <td>• Barcha kodlar xatosiz<br>• Yaxshi kommentariya<br>• Optimallashtirilgan</td>
+              <td>• Kichik xatolar<br>• Asosiy qismlar to'g'ri<br>• Ba'zi kommentlar</td>
+              <td>• Bir nechta xato<br>• Asosiy vazifa bajarilgan<br>• Kam kommentariya</td>
+              <td>• Ko'p xato<br>• Ishlamaydi<br>• Kommentariya yo'q</td>
+            </tr>
+            <tr>
+              <td><strong>Matematik Tahlil</strong><br>(30 ball)</td>
+              <td>• Chuqur tahlil<br>• R₀ to'g'ri interpretatsiya<br>• Parametrlar sezgirligi</td>
+              <td>• Yaxshi tahlil<br>• Asosiy xulosalar to'g'ri<br>• R₀ hisoblangan</td>
+              <td>• Oddiy tahlil<br>• Ba'zi xulosalar<br>• Asosiy tushunchalar</td>
+              <td>• Tahlil yetarli emas<br>• Noto'g'ri xulosalar<br>• Tushunchalar xato</td>
+            </tr>
+            <tr>
+              <td><strong>Vizualizatsiya</strong><br>(20 ball)</td>
+              <td>• Professional grafiklar<br>• To'liq legendalar<br>• Ranglar moslashgan</td>
+              <td>• Yaxshi grafiklar<br>• Asosiy elementlar bor<br>• Aniq ko'rinish</td>
+              <td>• Oddiy grafiklar<br>• Ba'zi elementlar yo'q<br>• Tushunarli</td>
+              <td>• Grafik noaniq<br>• Elementlar yo'q<br>• Tushunarsiz</td>
+            </tr>
+            <tr>
+              <td><strong>Hisobot va Hujjat</strong><br>(15 ball)</td>
+              <td>• To'liq hisobot<br>• Ilmiy yondashuv<br>• Adabiyotlar</td>
+              <td>• Yaxshi hisobot<br>• Aniq tuzilgan<br>• Asosiy qismlar</td>
+              <td>• Oddiy hisobot<br>• Ba'zi qismlar<br>• Asosiy ma'lumot</td>
+              <td>• Hisobot yetarli emas<br>• Noaniq<br>• Ma'lumot kam</td>
+            </tr>
+            <tr>
+              <td><strong>Ijodkorlik</strong><br>(10 ball)</td>
+              <td>• Yangicha yondashuv<br>• Qo'shimcha tadqiqot<br>• O'z g'oyalari</td>
+              <td>• Ba'zi ijodiy yechim<br>• Qiziqarli elementlar<br>• Faol yondashuv</td>
+              <td>• Standart yechim<br>• Oddiy yondashuv<br>• Minimal ijodkorlik</td>
+              <td>• Faqat namunaviy<br>• Ijodkorlik yo'q<br>• Takrorlash</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h4>📊 Ball Taqsimoti</h4>
+          <canvas id="gradeDistribution" width="400" height="300"></canvas>
+          
+          <div class="results-panel">
+            <div class="result-item">
+              <div class="result-label">Jami ball:</div>
+              <div class="result-value">100 ball</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Minimal chegara:</div>
+              <div class="result-value">60 ball (3)</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">O'rtacha vaqt:</div>
+              <div class="result-value">4-6 soat</div>
+            </div>
+            <div class="result-item">
+              <div class="result-label">Topshirish muddati:</div>
+              <div class="result-value">2 hafta</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4>📝 Topshirish Talablari</h4>
+          <div class="success-box">
+            <h5>✅ Majburiy Fayllar:</h5>
+            <ul>
+              <li><strong>.mw fayl:</strong> Asosiy Maple kodi</li>
+              <li><strong>.pdf hisobot:</strong> Tahlil va xulosalar</li>
+              <li><strong>Grafiklar:</strong> PNG yoki JPEG formatda</li>
+              <li><strong>Ma'lumotlar:</strong> CSV format (agar kerak bo'lsa)</li>
+            </ul>
+          </div>
+          
+          <div class="warning-box">
+            <h5>⚠️ Muhim Eslatmalar:</h5>
+            <ul>
+              <li>Plagiatni tekshirish amalga oshiriladi</li>
+              <li>Barcha kodlar izohli bo'lishi shart</li>
+              <li>Namuna ko'chirish taqiqlanadi</li>
+              <li>Guruh ishi 3 kishigacha</li>
+            </ul>
+          </div>
+          
+          <div class="info-box">
+            <h5>🏆 Bonus Imkoniyatlari:</h5>
+            <ul>
+              <li><strong>+10 ball:</strong> 3D vizualizatsiya (Phase portrait)</li>
+              <li><strong>+15 ball:</strong> Web-interfeys yaratish</li>
+              <li><strong>+20 ball:</strong> Real ma'lumotlar bilan validatsiya</li>
+              <li><strong>+25 ball:</strong> Yangi model variantini taklif qilish</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>🎓 Pedagogik Strategiya</h4>
+        <div class="grid3">
+          <div class="scenario-box">
+            <h5>🧠 Konstruktivizm</h5>
+            <p>Talabalar o'z bilimlarini faol qurishadi, nazariyadan amaliyotga o'tishadi, matematik tushunchalarni vizual ko'rinishda o'rganadilar.</p>
+          </div>
+          
+          <div class="interactive-demo">
+            <h5>🎮 Gamifikatsiya</h5>
+            <p>Parametrlarni o'zgartirib turli stsenariylarni sinab ko'rish, "epidemiologik detektiv" o'yini, eng yaxshi model topish.</p>
+          </div>
+          
+          <div class="maple-box">
+            <h5>🤝 Hamkorlikda Ta'lim</h5>
+            <p>Guruh loyihalari, peer review, matematik modellashtirishda birgalikda muammolarni yechish, natijalarni muhokama qilish.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="success-box">
+        <h4>🎯 Kutilgan Natijalar</h4>
+        <p>Ushbu laboratoriya mashg'ulotidan so'ng talabalar quyidagi ko'nikmalarni egallashadi:</p>
+        <div class="grid2">
+          <div>
+            <h5>🔬 Texnik Ko'nikmalar:</h5>
+            <ul>
+              <li>Maple'da differential tenglamalar yechish</li>
+              <li>Parametrik tahlil o'tkazish</li>
+              <li>Professional grafik va vizualizatsiya yaratish</li>
+              <li>Sonli usullar va analitik yechimlarni qo'llash</li>
+            </ul>
+          </div>
+          <div>
+            <h5>🧮 Matematik Kompetentliklar:</h5>
+            <ul>
+              <li>Epidemiologik modellarni tushunish</li>
+              <li>Parametrlar sezgirligini baholash</li>
+              <li>Real dunyoviy masalalarni matematik modellashtirish</li>
+              <li>Natijalarni interpretatsiya qilish va tahlil qilish</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULYATOR LOGIKASI ===== -->
+<script>
+// ======== UTILITY FUNCTIONS ========
+function $(id) { return document.getElementById(id); }
+
+function downloadFile(content, filename, mimeType = 'text/plain') {
+    const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ======== SIR MODEL STATE ========
+let sirState = {
+    N: 100000,          // Total population
+    I0: 10,             // Initial infected
+    beta: 0.3,          // Transmission rate
+    gamma: 0.1,         // Recovery rate
+    duration: 365,      // Simulation days
+    currentData: [],    // Current simulation data
+    isRunning: false    // Simulation status
+};
+
+// ======== SIR MODEL CALCULATIONS ========
+function solveSIR() {
+    const dt = 0.1; // Time step
+    const steps = Math.floor(sirState.duration / dt);
+    
+    // Initial conditions
+    let S = sirState.N - sirState.I0;
+    let I = sirState.I0;
+    let R = 0;
+    
+    const data = [];
+    
+    for (let step = 0; step <= steps; step++) {
+        const t = step * dt;
+        
+        // Store current values
+        data.push({
+            t: t,
+            S: S,
+            I: I,
+            R: R
+        });
+        
+        // Calculate derivatives
+        const dSdt = -sirState.beta * S * I / sirState.N;
+        const dIdt = sirState.beta * S * I / sirState.N - sirState.gamma * I;
+        const dRdt = sirState.gamma * I;
+        
+        // Update values using Euler method
+        S += dSdt * dt;
+        I += dIdt * dt;
+        R += dRdt * dt;
+        
+        // Ensure non-negative values
+        S = Math.max(0, S);
+        I = Math.max(0, I);
+        R = Math.max(0, R);
+    }
+    
+    sirState.currentData = data;
+    return data;
+}
+
+function calculateMetrics() {
+    if (sirState.currentData.length === 0) return {};
+    
+    // Find peak infection
+    let maxI = 0;
+    let peakTime = 0;
+    
+    sirState.currentData.forEach((point, index) => {
+        if (point.I > maxI) {
+            maxI = point.I;
+            peakTime = point.t;
+        }
+    });
+    
+    // Calculate R0 and herd immunity
+    const R0 = sirState.beta / sirState.gamma;
+    const herdImmunity = (1 - 1/R0) * 100;
+    
+    // Total infected (final R value)
+    const finalR = sirState.currentData[sirState.currentData.length - 1].R;
+    
+    // Epidemic duration (when I drops below 1)
+    let epidemicDuration = sirState.duration;
+    for (let i = sirState.currentData.length - 1; i >= 0; i--) {
+        if (sirState.currentData[i].I >= 1) {
+            epidemicDuration = sirState.currentData[i].t;
+            break;
+        }
+    }
+    
+    return {
+        maxInfected: maxI,
+        peakTime: peakTime,
+        totalInfected: finalR,
+        R0: R0,
+        herdImmunity: herdImmunity,
+        epidemicDuration: epidemicDuration
+    };
+}
+
+// ======== CANVAS DRAWING ========
+function setupCanvas(canvasId) {
+    const canvas = $(canvasId);
+    if (!canvas) return null;
+    
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    return { canvas, ctx, w: rect.width, h: rect.height };
+}
+
+function drawGrid(ctx, w, h) {
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    
+    // Vertical grid lines
+    for (let x = 80; x < w - 40; x += (w - 120) / 10) {
+        ctx.beginPath();
+        ctx.moveTo(x, 40);
+        ctx.lineTo(x, h - 80);
+        ctx.stroke();
+    }
+    
+    // Horizontal grid lines  
+    for (let y = 40; y < h - 80; y += (h - 120) / 8) {
+        ctx.beginPath();
+        ctx.moveTo(80, y);
+        ctx.lineTo(w - 40, y);
+        ctx.stroke();
+    }
+}
+
+function drawAxes(ctx, w, h) {
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 2;
+    
+    // X axis
+    ctx.beginPath();
+    ctx.moveTo(80, h - 80);
+    ctx.lineTo(w - 40, h - 80);
+    ctx.stroke();
+    
+    // Y axis
+    ctx.beginPath();
+    ctx.moveTo(80, 40);
+    ctx.lineTo(80, h - 80);
+    ctx.stroke();
+    
+    // Labels
+    ctx.fillStyle = '#374151';
+    ctx.font = '12px Arial';
+    ctx.textAlign = 'center';
+    
+    // X axis labels (days)
+    const timeSteps = Math.min(10, Math.floor(sirState.duration / 30));
+    for (let i = 0; i <= timeSteps; i++) {
+        const day = (sirState.duration / timeSteps) * i;
+        const x = 80 + (i / timeSteps) * (w - 120);
+        ctx.fillText(`${Math.round(day)}`, x, h - 55);
+    }
+    
+    // Y axis labels (population)
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 8; i++) {
+        const pop = (sirState.N / 8) * i;
+        const y = h - 80 - (i / 8) * (h - 120);
+        ctx.fillText(`${Math.round(pop / 1000)}k`, 75, y + 4);
+    }
+    
+    // Axis titles
+    ctx.textAlign = 'center';
+    ctx.fillText('Vaqt (kun)', w / 2, h - 20);
+    
+    ctx.save();
+    ctx.translate(25, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Aholi soni', 0, 0);
+    ctx.restore();
+}
+
+function drawSIRChart() {
+    const setup = setupCanvas('sirCanvas');
+    if (!setup) return;
+    const { ctx, w, h } = setup;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, w, h);
+    
+    // Draw grid and axes
+    drawGrid(ctx, w, h);
+    drawAxes(ctx, w, h);
+    
+    if (sirState.currentData.length === 0) {
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Simulyatsiyani ishga tushiring', w / 2, h / 2);
+        return;
+    }
+    
+    const data = sirState.currentData;
+    const maxTime = Math.max(...data.map(d => d.t));
+    
+    // Draw curves
+    const curves = [
+        { key: 'S', color: '#4ade80', name: 'Susceptible' },
+        { key: 'I', color: '#ef4444', name: 'Infected' },
+        { key: 'R', color: '#3b82f6', name: 'Recovered' }
+    ];
+    
+    curves.forEach(curve => {
+        ctx.strokeStyle = curve.color;
+        ctx.fillStyle = curve.color + '20';
+        ctx.lineWidth = 3;
+        
+        // Draw filled area
+        ctx.beginPath();
+        ctx.moveTo(80, h - 80);
+        
+        data.forEach(point => {
+            const x = 80 + (point.t / maxTime) * (w - 120);
+            const y = h - 80 - (point[curve.key] / sirState.N) * (h - 120);
+            ctx.lineTo(x, y);
+        });
+        
+        ctx.lineTo(80 + (w - 120), h - 80);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Draw line
+        ctx.beginPath();
+        data.forEach((point, index) => {
+            const x = 80 + (point.t / maxTime) * (w - 120);
+            const y = h - 80 - (point[curve.key] / sirState.N) * (h - 120);
+            
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+    });
+    
+    // Mark peak infection
+    const metrics = calculateMetrics();
+    if (metrics.peakTime && metrics.maxInfected) {
+        const peakX = 80 + (metrics.peakTime / maxTime) * (w - 120);
+        const peakY = h - 80 - (metrics.maxInfected / sirState.N) * (h - 120);
+        
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(peakX, peakY, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Peak', peakX, peakY - 12);
+    }
+}
+
+function drawTheoryChart() {
+    const setup = setupCanvas('theoryCanvas');
+    if (!setup) return;
+    const { ctx, w, h } = setup;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, w, h);
+    
+    // Simple theoretical SIR curve
+    const steps = 200;
+    const timeMax = 200;
+    
+    // Theoretical parameters
+    const N = 1000;
+    const beta = 0.4;
+    const gamma = 0.1;
+    let S = 990, I = 10, R = 0;
+    
+    const theoreticalData = [];
+    
+    for (let step = 0; step <= steps; step++) {
+        const t = (step / steps) * timeMax;
+        
+        theoreticalData.push({
+            t: t,
+            S: S / N,
+            I: I / N,
+            R: R / N
+        });
+        
+        const dt = 0.5;
+        const dSdt = -beta * S * I / N;
+        const dIdt = beta * S * I / N - gamma * I;
+        const dRdt = gamma * I;
+        
+        S += dSdt * dt;
+        I += dIdt * dt;
+        R += dRdt * dt;
+        
+        S = Math.max(0, S);
+        I = Math.max(0, I);
+        R = Math.max(0, R);
+    }
+    
+    // Draw axes
+    ctx.strokeStyle = '#6b7280';
+    ctx.lineWidth = 1;
+    
+    ctx.beginPath();
+    ctx.moveTo(50, h - 50);
+    ctx.lineTo(w - 30, h - 50);
+    ctx.lineTo(w - 40, h - 55);
+    ctx.moveTo(w - 30, h - 50);
+    ctx.lineTo(w - 40, h - 45);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(50, 30);
+    ctx.lineTo(50, h - 50);
+    ctx.lineTo(45, h - 60);
+    ctx.moveTo(50, 30);
+    ctx.lineTo(55, h - 60);
+    ctx.stroke();
+    
+    // Draw curves
+    const colors = ['#4ade80', '#ef4444', '#3b82f6'];
+    const keys = ['S', 'I', 'R'];
+    
+    keys.forEach((key, index) => {
+        ctx.strokeStyle = colors[index];
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        
+        theoreticalData.forEach((point, i) => {
+            const x = 50 + (point.t / timeMax) * (w - 80);
+            const y = h - 50 - point[key] * (h - 80);
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        
+        ctx.stroke();
+    });
+    
+    // Labels
+    ctx.fillStyle = '#374151';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Vaqt', w / 2, h - 15);
+    
+    ctx.save();
+    ctx.translate(20, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Nisbat', 0, 0);
+    ctx.restore();
+}
+
+// ======== UI UPDATES ========
+function updateUI() {
+    // Update parameter displays
+    $('valPopulation').textContent = sirState.N.toLocaleString();
+    $('valInitialInfected').textContent = sirState.I0;
+    $('valBeta').textContent = sirState.beta.toFixed(2);
+    $('valGamma').textContent = sirState.gamma.toFixed(2);
+    $('valDuration').textContent = sirState.duration;
+    
+    // Calculate and display R0
+    const R0 = sirState.beta / sirState.gamma;
+    $('reproductiveNumber').textContent = R0.toFixed(1);
+    
+    // Update epidemic status
+    const statusElement = $('epidemicStatus');
+    if (R0 > 1.5) {
+        statusElement.textContent = 'Epidemiya tez tarqaladi';
+        statusElement.style.color = '#dc2626';
+    } else if (R0 > 1) {
+        statusElement.textContent = 'Epidemiya sekin tarqaladi';
+        statusElement.style.color = '#f59e0b';
+    } else {
+        statusElement.textContent = 'Epidemiya susayadi';
+        statusElement.style.color = '#059669';
+    }
+    
+    // Update results if simulation has run
+    const metrics = calculateMetrics();
+    if (Object.keys(metrics).length > 0) {
+        $('maxInfected').textContent = `${Math.round(metrics.maxInfected).toLocaleString()} kishi`;
+        $('peakTime').textContent = `${Math.round(metrics.peakTime)} kun`;
+        $('totalInfected').textContent = `${Math.round(metrics.totalInfected).toLocaleString()} kishi`;
+        $('herdImmunity').textContent = `${metrics.herdImmunity.toFixed(1)}%`;
+        $('epidemicDuration').textContent = `${Math.round(metrics.epidemicDuration)} kun`;
+    }
+    
+    // Update comparison table
+    $('currentBeta').textContent = sirState.beta.toFixed(2);
+    $('currentGamma').textContent = sirState.gamma.toFixed(2);
+    $('currentR0').textContent = R0.toFixed(1);
+    $('currentHerd').textContent = `${((1 - 1/R0) * 100).toFixed(0)}%`;
+    
+    // Update Maple code parameters
+    if ($('maple-N')) $('maple-N').textContent = sirState.N;
+    if ($('maple-beta')) $('maple-beta').textContent = sirState.beta;
+    if ($('maple-gamma')) $('maple-gamma').textContent = sirState.gamma;
+    if ($('maple-I0')) $('maple-I0').textContent = sirState.I0;
+}
+
+function generateMapleCode() {
+    return `# SIR Epidemiologik Model - Joriy Parametrlar
+restart;
+with(DEtools):
+with(plots):
+
+# Model parametrlari
+N := ${sirState.N};           # Jami aholi
+beta := ${sirState.beta};     # Tarqalish koeffitsienti  
+gamma := ${sirState.gamma};   # Sog'ayish koeffitsienti
+I0 := ${sirState.I0};         # Boshlang'ich kasallar
+S0 := N - I0;                 # Boshlang'ich moyillar
+R0 := 0;                      # Boshlang'ich sog'ayganlar
+
+# Differential tenglamalar tizimi
+sys := {
+    diff(S(t), t) = -beta * S(t) * I(t) / N,
+    diff(I(t), t) = beta * S(t) * I(t) / N - gamma * I(t),
+    diff(R(t), t) = gamma * I(t)
+};
+
+# Boshlang'ich shartlar
+ics := {S(0) = S0, I(0) = I0, R(0) = R0};
+
+# Sonli yechim
+sol := dsolve(sys union ics, {S(t), I(t), R(t)}, numeric);
+
+# Grafiklar
+p1 := odeplot(sol, [t, S(t)], 0..${sirState.duration}, 
+              color = green, thickness = 3, legend = "Susceptible");
+p2 := odeplot(sol, [t, I(t)], 0..${sirState.duration}, 
+              color = red, thickness = 3, legend = "Infected");  
+p3 := odeplot(sol, [t, R(t)], 0..${sirState.duration}, 
+              color = blue, thickness = 3, legend = "Recovered");
+
+# Birlashtirilgan grafik
+display([p1, p2, p3], 
+    title = "SIR Epidemiologik Model",
+    labels = ["Vaqt (kun)", "Aholi soni"],
+    labelfont = [TIMES, 14],
+    titlefont = [TIMES, BOLD, 16]);
+
+# Asosiy ko'rsatkichlar
+R0_value := evalf(beta / gamma);
+herd_immunity := 1 - 1 / R0_value;
+
+printf("\\n=== NATIJALAR ===\\n");
+printf("Reproduktiv son R0 = %.2f\\n", R0_value);
+printf("Herd Immunity chegara = %.1f%%\\n", herd_immunity * 100);
+
+# Ma'lumotlarni eksport
+export_data := proc()
+    local t_vals, results, i;
+    t_vals := [seq(i, i=0..${sirState.duration})];
+    results := [];
+    
+    for i in t_vals do
+        results := [op(results), [i, rhs(subs(t=i, sol(i)[2])), 
+                                 rhs(subs(t=i, sol(i)[3])), 
+                                 rhs(subs(t=i, sol(i)[4]))]];
+    end do;
+    
+    ExportMatrix("sir_results.csv", results);
+end proc;
+
+export_data();
+`;
+}
+
+// ======== PREDEFINED SCENARIOS ========
+function loadScenario(type) {
+    switch(type) {
+        case 'covid':
+            sirState.beta = 0.6;
+            sirState.gamma = 0.07;
+            sirState.I0 = 50;
+            sirState.duration = 730;
+            break;
+        case 'flu':
+            sirState.beta = 0.4;
+            sirState.gamma = 0.3;
+            sirState.I0 = 100;
+            sirState.duration = 180;
+            break;
+        case 'measles':
+            sirState.beta = 1.5;
+            sirState.gamma = 0.1;
+            sirState.I0 = 10;
+            sirState.duration = 365;
+            break;
+        case 'controlled':
+            sirState.beta = 0.15;
+            sirState.gamma = 0.2;
+            sirState.I0 = 5;
+            sirState.duration = 365;
+            break;
+        default:
+            return;
+    }
+    
+    // Update sliders
+    $('paramBeta').value = sirState.beta;
+    $('paramGamma').value = sirState.gamma;
+    $('paramInitialInfected').value = sirState.I0;
+    $('paramDuration').value = sirState.duration;
+    
+    updateUI();
+    
+    // Auto-run simulation
+    setTimeout(() => {
+        solveSIR();
+        drawSIRChart();
+        updateUI();
+    }, 100);
+}
+
+// ======== EVENT HANDLERS ========
+function bindEvents() {
+    // Parameter controls
+    $('paramPopulation').addEventListener('input', (e) => {
+        sirState.N = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramInitialInfected').addEventListener('input', (e) => {
+        sirState.I0 = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    $('paramBeta').addEventListener('input', (e) => {
+        sirState.beta = parseFloat(e.target.value);
+        updateUI();
+    });
+    
+    $('paramGamma').addEventListener('input', (e) => {
+        sirState.gamma = parseFloat(e.target.value);
+        updateUI();
+    });
+    
+    $('paramDuration').addEventListener('input', (e) => {
+        sirState.duration = parseInt(e.target.value);
+        updateUI();
+    });
+    
+    // Simulation control
+    $('runSimulation').addEventListener('click', () => {
+        if (sirState.isRunning) return;
+        
+        sirState.isRunning = true;
+        $('runSimulation').textContent = '⏳ Simulyatsiya...';
+        $('runSimulation').disabled = true;
+        
+        // Simulate progress
+        const progressBar = $('simulationProgress');
+        let progress = 0;
+        
+        const progressInterval = setInterval(() => {
+            progress += 10;
+            progressBar.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+                
+                // Run actual simulation
+                solveSIR();
+                drawSIRChart();
+                updateUI();
+                
+                sirState.isRunning = false;
+                $('runSimulation').textContent = '✅ Tayyor!';
+                $('runSimulation').disabled = false;
+                
+                setTimeout(() => {
+                    $('runSimulation').textContent = '🧪 Simulyatsiyani Boshlash';
+                }, 2000);
+                
+                progressBar.style.width = '0%';
+            }
+        }, 200);
+    });
+    
+    $('resetParams').addEventListener('click', () => {
+        sirState.N = 100000;
+        sirState.I0 = 10;
+        sirState.beta = 0.3;
+        sirState.gamma = 0.1;
+        sirState.duration = 365;
+        
+        $('paramPopulation').value = sirState.N;
+        $('paramInitialInfected').value = sirState.I0;
+        $('paramBeta').value = sirState.beta;
+        $('paramGamma').value = sirState.gamma;
+        $('paramDuration').value = sirState.duration;
+        
+        updateUI();
+        
+        // Clear chart
+        sirState.currentData = [];
+        drawSIRChart();
+    });
+    
+    $('exportResults').addEventListener('click', () => {
+        if (sirState.currentData.length === 0) {
+            alert('Avval simulyatsiyani ishga tushiring!');
+            return;
+        }
+        
+        let csv = 'Vaqt(kun),Susceptible,Infected,Recovered\n';
+        sirState.currentData.forEach(point => {
+            csv += `${point.t.toFixed(1)},${Math.round(point.S)},${Math.round(point.I)},${Math.round(point.R)}\n`;
+        });
+        
+        downloadFile(csv, 'sir_simulation_data.csv', 'text/csv');
+    });
+    
+    // Chart controls
+    $('saveChart').addEventListener('click', () => {
+        const canvas = $('sirCanvas');
+        if (canvas) {
+            const link = document.createElement('a');
+            link.download = 'sir_model_chart.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+    });
+    
+    $('animateModel').addEventListener('click', () => {
+        if (sirState.currentData.length === 0) {
+            alert('Avval simulyatsiyani ishga tushiring!');
+            return;
+        }
+        
+        // Simple animation by redrawing with subset of data
+        let frame = 0;
+        const totalFrames = Math.min(100, sirState.currentData.length);
+        
+        const animationInterval = setInterval(() => {
+            const frameData = sirState.currentData.slice(0, (frame * sirState.currentData.length) / totalFrames);
+            
+            // Temporarily replace data for drawing
+            const originalData = sirState.currentData;
+            sirState.currentData = frameData;
+            drawSIRChart();
+            sirState.currentData = originalData;
+            
+            frame++;
+            if (frame >= totalFrames) {
+                clearInterval(animationInterval);
+                drawSIRChart(); // Final complete chart
+            }
+        }, 100);
+    });
+    
+    // Maple code functions
+    $('copyMainMaple').addEventListener('click', () => {
+        const code = generateMapleCode();
+        navigator.clipboard.writeText(code).then(() => {
+            $('copyMainMaple').textContent = '✅ Nusxalandi';
+            setTimeout(() => {
+                $('copyMainMaple').textContent = '📋 Asosiy Kodni Nusxalash';
+            }, 2000);
+        });
+    });
+    
+    $('downloadMainMaple').addEventListener('click', () => {
+        const code = generateMapleCode();
+        downloadFile(code, 'sir_model.mw', 'text/plain');
+    });
+    
+    $('updateMapleCode').addEventListener('click', () => {
+        updateUI(); // This updates the Maple code parameters in the display
+        alert('Maple kod parametrlari yangilandi!');
+    });
+    
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            $('tab-' + tab.dataset.tab).classList.add('active');
+            
+            // Draw theory chart when theory tab is opened
+            if (tab.dataset.tab === 'theory') {
+                setTimeout(drawTheoryChart, 100);
+            }
+        });
+    });
+}
+
+// ======== ANALYSIS CHARTS ========
+function drawAnalysisCharts() {
+    // Beta parameter analysis
+    const betaSetup = setupCanvas('betaAnalysis');
+    if (betaSetup) {
+        const { ctx, w, h } = betaSetup;
+        ctx.clearRect(0, 0, w, h);
+        
+        // Simple visualization of beta effect
+        const betaValues = [0.2, 0.3, 0.4, 0.5];
+        const colors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
+        
+        // Draw axes
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(40, h - 40);
+        ctx.lineTo(w - 20, h - 40);
+        ctx.moveTo(40, 20);
+        ctx.lineTo(40, h - 40);
+        ctx.stroke();
+        
+        // Draw curves for different beta values
+        betaValues.forEach((beta, index) => {
+            ctx.strokeStyle = colors[index];
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let t = 0; t <= 200; t += 2) {
+                // Simplified infected curve: I(t) ≈ I0 * exp((β-γ)*t) for early phase
+                const earlyGrowth = Math.max(0, 10 * Math.exp((beta - 0.1) * t / 50));
+                const infected = Math.min(earlyGrowth, 1000 * Math.exp(-(t-100)*(t-100)/3000)); // Peak and decline
+                
+                const x = 40 + (t / 200) * (w - 60);
+                const y = h - 40 - (infected / 1000) * (h - 60);
+                
+                if (t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+        });
+        
+        // Legend
+        ctx.font = '12px Arial';
+        betaValues.forEach((beta, index) => {
+            ctx.fillStyle = colors[index];
+            ctx.fillRect(20, 30 + index * 20, 15, 10);
+            ctx.fillStyle = '#374151';
+            ctx.fillText(`β = ${beta}`, 40, 40 + index * 20);
+        });
+    }
+    
+    // Gamma parameter analysis
+    const gammaSetup = setupCanvas('gammaAnalysis');
+    if (gammaSetup) {
+        const { ctx, w, h } = gammaSetup;
+        ctx.clearRect(0, 0, w, h);
+        
+        // Similar analysis for gamma
+        const gammaValues = [0.05, 0.1, 0.15, 0.2];
+        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
+        
+        // Draw axes
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(40, h - 40);
+        ctx.lineTo(w - 20, h - 40);
+        ctx.moveTo(40, 20);
+        ctx.lineTo(40, h - 40);
+        ctx.stroke();
+        
+        gammaValues.forEach((gamma, index) => {
+            ctx.strokeStyle = colors[index];
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let t = 0; t <= 300; t += 3) {
+                // Higher gamma = faster recovery = shorter epidemic
+                const infected = 500 * Math.exp(-(t-50)*(t-50)/(1000/gamma)) * Math.exp(-gamma*t/10);
+                
+                const x = 40 + (t / 300) * (w - 60);
+                const y = h - 40 - Math.max(0, infected / 500) * (h - 60);
+                
+                if (t === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+        });
+        
+        // Legend
+        ctx.font = '12px Arial';
+        gammaValues.forEach((gamma, index) => {
+            ctx.fillStyle = colors[index];
+            ctx.fillRect(20, 30 + index * 20, 15, 10);
+            ctx.fillStyle = '#374151';
+            ctx.fillText(`γ = ${gamma}`, 40, 40 + index * 20);
+        });
+    }
+    
+    // R0 analysis
+    const r0Setup = setupCanvas('r0Analysis');
+    if (r0Setup) {
+        const { ctx, w, h } = r0Setup;
+        ctx.clearRect(0, 0, w, h);
+        
+        // Draw R0 threshold visualization
+        ctx.strokeStyle = '#6b7280';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(40, h - 40);
+        ctx.lineTo(w - 20, h - 40);
+        ctx.moveTo(40, 20);
+        ctx.lineTo(40, h - 40);
+        ctx.stroke();
+        
+        // Critical line at R0 = 1
+        const criticalY = h - 40 - (1/5) * (h - 60); // R0 scale 0-5
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(40, criticalY);
+        ctx.lineTo(w - 20, criticalY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // R0 values visualization
+        const r0Values = [0.5, 1.5, 2.5, 3.5];
+        const colors = ['#22c55e', '#f59e0b', '#ef4444', '#dc2626'];
+        const outcomes = ['Susayadi', 'Sekin tarqaladi', 'Tez tarqaladi', 'Epidemiya'];
+        
+        r0Values.forEach((r0, index) => {
+            const y = h - 40 - (r0/5) * (h - 60);
+            ctx.fillStyle = colors[index];
+            ctx.beginPath();
+            ctx.arc(80 + index * (w-120)/3, y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = '#374151';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`R₀=${r0}`, 80 + index * (w-120)/3, y + 25);
+            ctx.fillText(outcomes[index], 80 + index * (w-120)/3, y + 40);
+        });
+        
+        // Critical threshold label
+        ctx.fillStyle = '#dc2626';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('R₀ = 1 (kritik chegara)', w - 180, criticalY - 5);
+    }
+    
+    // Grade distribution chart
+    const gradeSetup = setupCanvas('gradeDistribution');
+    if (gradeSetup) {
+        const { ctx, w, h } = gradeSetup;
+        ctx.clearRect(0, 0, w, h);
+        
+        const grades = ['Qoniqarsiz\n(<60)', 'Qoniqarli\n(60-74)', 'Yaxshi\n(75-89)', "A'lo\n(90-100)"];
+        const percentages = [15, 25, 45, 15]; // Expected distribution
+        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'];
+        
+        // Draw pie chart
+        let startAngle = -Math.PI / 2;
+        const centerX = w / 2;
+        const centerY = h / 2;
+        const radius = Math.min(w, h) / 3;
+        
+        percentages.forEach((percent, index) => {
+            const endAngle = startAngle + (percent / 100) * 2 * Math.PI;
+            
+            ctx.fillStyle = colors[index];
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Label
+            const labelAngle = startAngle + (endAngle - startAngle) / 2;
+            const labelX = centerX + Math.cos(labelAngle) * (radius * 0.7);
+            const labelY = centerY + Math.sin(labelAngle) * (radius * 0.7);
+            
+            ctx.fillStyle = '#fff';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${percent}%`, labelX, labelY);
+            
+            startAngle = endAngle;
+        });
+        
+        // Legend
+        grades.forEach((grade, index) => {
+            ctx.fillStyle = colors[index];
+            ctx.fillRect(20, 20 + index * 25, 15, 15);
+            ctx.fillStyle = '#374151';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(grade, 45, 32 + index * 25);
+        });
+    }
+}
+
+// ======== INITIALIZATION ========
+function init() {
+    bindEvents();
+    updateUI();
+    drawTheoryChart();
+    drawSIRChart();
+    
+    // Initial simple simulation for theory
+    solveSIR();
+    drawSIRChart();
+    updateUI();
+}
+
+// Start when page loads
+document.addEventListener('DOMContentLoaded', init);
+
+// Handle window resize
+window.addEventListener('resize', () => {
+    setTimeout(() => {
+        drawSIRChart();
+        drawTheoryChart();
+        drawAnalysisCharts();
+    }, 100);
+});
+
+// Auto-draw analysis charts when tab is opened
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('tab') && e.target.dataset.tab === 'analysis') {
+        setTimeout(drawAnalysisCharts, 200);
+    }
+});
+</script>
+
+</body>
+</html>
