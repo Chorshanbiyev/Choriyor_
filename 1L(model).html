@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maple Simulatori - Tenglamalar va Sistemalar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .visualization-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, #2980b9, #1f618d);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #bdc3c7;
+            margin: 0 5px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .step.active {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            transform: scale(1.05);
+        }
+
+        .step.completed {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        #graph-container {
+            width: 100%;
+            height: 400px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solution-display {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .solution-display h3 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .maple-code {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .explanation {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .explanation h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .step-indicator {
+                flex-direction: column;
+            }
+            
+            .step {
+                margin: 5px 0;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍁 Maple Simulatori</h1>
+            <p>Tenglamalar va tenglamalar sistemasini yechish</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1">1. Tenglama Tanlash</div>
+            <div class="step" id="step2">2. Parametrlar</div>
+            <div class="step" id="step3">3. Yechish</div>
+            <div class="step" id="step4">4. Grafik</div>
+            <div class="step" id="step5">5. Natija</div>
+        </div>
+
+        <div class="main-content">
+            <div class="control-panel">
+                <h2 class="section-title">🔧 Boshqaruv Paneli</h2>
+                
+                <div class="input-group">
+                    <label for="equation-type">Tenglama Turi:</label>
+                    <select id="equation-type">
+                        <option value="linear">Chiziqli tenglama (ax + b = 0)</option>
+                        <option value="quadratic">Kvadrat tenglama (ax² + bx + c = 0)</option>
+                        <option value="cubic">Kub tenglama (ax³ + bx² + cx + d = 0)</option>
+                        <option value="system">2x2 Chiziqli sistema</option>
+                        <option value="nonlinear">Nochiziqli sistema</option>
+                    </select>
+                </div>
+
+                <div id="parameters">
+                    <!-- Parametrlar dinamik ravishda yuklanadi -->
+                </div>
+
+                <button class="btn" onclick="solveEquation()">🧮 Tenglamani Hisobla</button>
+                <button class="btn" onclick="drawGraph()">📊 Grafik ko'rinishi</button>
+                <button class="btn" onclick="showMapleCode()">🍁 Maple Kodi</button>
+                <button class="btn" onclick="resetAll()">🔄 Qayta Boshlash</button>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Hisoblanmoqda...</p>
+                </div>
+
+                <div class="error-message" id="error-message"></div>
+                <div class="success-message" id="success-message"></div>
+            </div>
+
+            <div class="visualization-panel">
+                <h2 class="section-title">📊 Vizualizatsiya</h2>
+                <div id="graph-container">
+                    <canvas id="graph-canvas" width="100%" height="400"></canvas>
+                </div>
+
+                <div class="explanation">
+                    <h4>💡 Qadamlar:</h4>
+                    <div id="steps-explanation">
+                        Tenglama turini tanlang va parametrlarni kiriting
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 0 30px 30px;">
+            <div class="solution-display" id="solution-display" style="display: none;">
+                <h3>🎯 Yechim Natijalari</h3>
+                <div id="solution-content"></div>
+            </div>
+
+            <div class="maple-code" id="maple-code" style="display: none;">
+                <h3 style="color: #ecf0f1; margin-bottom: 15px;">🍁 Maple Kodi</h3>
+                <div id="maple-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let equationType = 'linear';
+        let parameters = {};
+        let solutions = [];
+
+        // Boshlang'ich yuklanish
+        document.addEventListener('DOMContentLoaded', function() {
+            loadParameters();
+            updateStepsExplanation();
+        });
+
+        // Tenglama turini o'zgartirish
+        document.getElementById('equation-type').addEventListener('change', function() {
+            equationType = this.value;
+            loadParameters();
+            resetSteps();
+            updateStepsExplanation();
+        });
+
+        function loadParameters() {
+            const parametersDiv = document.getElementById('parameters');
+            parametersDiv.innerHTML = '';
+
+            switch(equationType) {
+                case 'linear':
+                    parametersDiv.innerHTML = `
+                        <div class="input-group">
+                            <label for="param-a">a koeffitsienti:</label>
+                            <input type="number" id="param-a" value="2" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-b">b koeffitsienti:</label>
+                            <input type="number" id="param-b" value="-6" step="0.1">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'quadratic':
+                    parametersDiv.innerHTML = `
+                        <div class="input-group">
+                            <label for="param-a">a koeffitsienti:</label>
+                            <input type="number" id="param-a" value="1" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-b">b koeffitsienti:</label>
+                            <input type="number" id="param-b" value="-5" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-c">c koeffitsienti:</label>
+                            <input type="number" id="param-c" value="6" step="0.1">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'cubic':
+                    parametersDiv.innerHTML = `
+                        <div class="input-group">
+                            <label for="param-a">a koeffitsienti:</label>
+                            <input type="number" id="param-a" value="1" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-b">b koeffitsienti:</label>
+                            <input type="number" id="param-b" value="-6" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-c">c koeffitsienti:</label>
+                            <input type="number" id="param-c" value="11" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-d">d koeffitsienti:</label>
+                            <input type="number" id="param-d" value="-6" step="0.1">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'system':
+                    parametersDiv.innerHTML = `
+                        <h4>Birinchi tenglama: a₁x + b₁y = c₁</h4>
+                        <div class="input-group">
+                            <label for="param-a1">a₁:</label>
+                            <input type="number" id="param-a1" value="2" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-b1">b₁:</label>
+                            <input type="number" id="param-b1" value="3" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-c1">c₁:</label>
+                            <input type="number" id="param-c1" value="12" step="0.1">
+                        </div>
+                        <h4>Ikkinchi tenglama: a₂x + b₂y = c₂</h4>
+                        <div class="input-group">
+                            <label for="param-a2">a₂:</label>
+                            <input type="number" id="param-a2" value="4" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-b2">b₂:</label>
+                            <input type="number" id="param-b2" value="-1" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-c2">c₂:</label>
+                            <input type="number" id="param-c2" value="5" step="0.1">
+                        </div>
+                    `;
+                    break;
+                    
+                case 'nonlinear':
+                    parametersDiv.innerHTML = `
+                        <h4>Sistema: x² + y² = r² va x + y = s</h4>
+                        <div class="input-group">
+                            <label for="param-r">r (doira radiusi):</label>
+                            <input type="number" id="param-r" value="5" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="param-s">s (chiziq):</label>
+                            <input type="number" id="param-s" value="2" step="0.1">
+                        </div>
+                    `;
+                    break;
+            }
+            updateStep(2);
+        }
+
+        function solveEquation() {
+            showLoading(true);
+            collectParameters();
+            
+            setTimeout(() => {
+                try {
+                    switch(equationType) {
+                        case 'linear':
+                            solveLinear();
+                            break;
+                        case 'quadratic':
+                            solveQuadratic();
+                            break;
+                        case 'cubic':
+                            solveCubic();
+                            break;
+                        case 'system':
+                            solveSystem();
+                            break;
+                        case 'nonlinear':
+                            solveNonlinear();
+                            break;
+                    }
+                    updateStep(3);
+                    showLoading(false);
+                    showSuccess("Tenglama muvaffaqiyatli echildi!");
+                } catch(error) {
+                    showLoading(false);
+                    showError("Xatolik yuz berdi: " + error.message);
+                }
+            }, 1500);
+        }
+
+        function collectParameters() {
+            parameters = {};
+            const inputs = document.querySelectorAll('#parameters input');
+            inputs.forEach(input => {
+                parameters[input.id.replace('param-', '')] = parseFloat(input.value) || 0;
+            });
+        }
+
+        function solveLinear() {
+            const {a, b} = parameters;
+            if (a === 0) {
+                if (b === 0) {
+                    solutions = ["Cheksiz ko'p yechim"];
+                } else {
+                    solutions = ["yechim mavjud emas"];
+                }
+            } else {
+                solutions = [-b/a];
+            }
+            displaySolution(`Chiziqli tenglama: ${a}x + ${b} = 0`, solutions);
+        }
+
+        function solveQuadratic() {
+            const {a, b, c} = parameters;
+            if (a === 0) {
+                solveLinear();
+                return;
+            }
+            
+            const discriminant = b*b - 4*a*c;
+            if (discriminant > 0) {
+                const x1 = (-b + Math.sqrt(discriminant)) / (2*a);
+                const x2 = (-b - Math.sqrt(discriminant)) / (2*a);
+                solutions = [x1, x2];
+            } else if (discriminant === 0) {
+                solutions = [-b / (2*a)];
+            } else {
+                const real = -b / (2*a);
+                const imag = Math.sqrt(-discriminant) / (2*a);
+                solutions = [`${real} + ${imag}i`, `${real} - ${imag}i`];
+            }
+            displaySolution(`Kvadrat tenglama: ${a}x² + ${b}x + ${c} = 0`, solutions);
+        }
+
+        function solveCubic() {
+            const {a, b, c, d} = parameters;
+            // Simplified cubic solver (approximation)
+            solutions = [];
+            for (let x = -10; x <= 10; x += 0.1) {
+                const y = a*x*x*x + b*x*x + c*x + d;
+                if (Math.abs(y) < 0.1) {
+                    solutions.push(Math.round(x * 10) / 10);
+                }
+            }
+            solutions = [...new Set(solutions)]; // Remove duplicates
+            displaySolution(`Kub tenglama: ${a}x³ + ${b}x² + ${c}x + ${d} = 0`, solutions);
+        }
+
+        function solveSystem() {
+            const {a1, b1, c1, a2, b2, c2} = parameters;
+            const det = a1*b2 - a2*b1;
+            
+            if (det === 0) {
+                solutions = ["Sistema yechimga ega emas yoki cheksiz ko'p yechim"];
+            } else {
+                const x = (c1*b2 - c2*b1) / det;
+                const y = (a1*c2 - a2*c1) / det;
+                solutions = [`x = ${x.toFixed(3)}`, `y = ${y.toFixed(3)}`];
+            }
+            displaySolution(`Sistema:\n${a1}x + ${b1}y = ${c1}\n${a2}x + ${b2}y = ${c2}`, solutions);
+        }
+
+        function solveNonlinear() {
+            const {r, s} = parameters;
+            // x² + y² = r² va x + y = s
+            // y = s - x
+            // x² + (s-x)² = r²
+            // 2x² - 2sx + s² - r² = 0
+            
+            const a = 2;
+            const b = -2*s;
+            const c = s*s - r*r;
+            const discriminant = b*b - 4*a*c;
+            
+            if (discriminant >= 0) {
+                const x1 = (-b + Math.sqrt(discriminant)) / (2*a);
+                const y1 = s - x1;
+                const x2 = (-b - Math.sqrt(discriminant)) / (2*a);
+                const y2 = s - x2;
+                solutions = [`(${x1.toFixed(3)}, ${y1.toFixed(3)})`, `(${x2.toFixed(3)}, ${y2.toFixed(3)})`];
+            } else {
+                solutions = ["Haqiqiy yechim mavjud emas"];
+            }
+            displaySolution(`Nochiziqli sistema:\nx² + y² = ${r}²\nx + y = ${s}`, solutions);
+        }
+
+        function displaySolution(equation, sols) {
+            const solutionDiv = document.getElementById('solution-display');
+            const contentDiv = document.getElementById('solution-content');
+            
+            let content = `<strong>Tenglama:</strong><br>${equation}<br><br>`;
+            content += `<strong>Yechimlar:</strong><br>`;
+            
+            if (Array.isArray(sols)) {
+                sols.forEach((sol, index) => {
+                    content += `x${index + 1} = ${sol}<br>`;
+                });
+            } else {
+                content += sols;
+            }
+            
+            contentDiv.innerHTML = content;
+            solutionDiv.style.display = 'block';
+        }
+
+        function drawGraph() {
+            updateStep(4);
+            const canvas = document.getElementById('graph-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Canvas o'lchamini to'g'irlash
+            const container = document.getElementById('graph-container');
+            canvas.width = container.offsetWidth - 4;
+            canvas.height = container.offsetHeight - 4;
+            
+            // Koordinata tizimini chizish
+            drawCoordinateSystem(ctx, canvas.width, canvas.height);
+            
+            // Tenglamaga qarab grafik chizish
+            switch(equationType) {
+                case 'linear':
+                    drawLinearGraph(ctx, canvas.width, canvas.height);
+                    break;
+                case 'quadratic':
+                    drawQuadraticGraph(ctx, canvas.width, canvas.height);
+                    break;
+                case 'cubic':
+                    drawCubicGraph(ctx, canvas.width, canvas.height);
+                    break;
+                case 'system':
+                    drawSystemGraph(ctx, canvas.width, canvas.height);
+                    break;
+                case 'nonlinear':
+                    drawNonlinearGraph(ctx, canvas.width, canvas.height);
+                    break;
+            }
+            updateStep(5);
+        }
+
+        function drawCoordinateSystem(ctx, width, height) {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Grid chizish
+            for (let i = 0; i <= width; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, height);
+                ctx.stroke();
+            }
+            
+            for (let i = 0; i <= height; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(width, i);
+                ctx.stroke();
+            }
+            
+            // Asosiy o'qlar
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            
+            // X o'qi
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.stroke();
+            
+            // Y o'qi
+            ctx.beginPath();
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+        }
+
+        function drawLinearGraph(ctx, width, height) {
+            const {a, b} = parameters;
+            if (a === 0) return;
+            
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 20;
+            
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = -(a * realX + b);
+                const canvasX = centerX + x;
+                const canvasY = centerY + realY * scale;
+                
+                if (x === -width/2) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+            
+            // Ildizni belgilash
+            if (solutions.length > 0 && typeof solutions[0] === 'number') {
+                ctx.fillStyle = '#e74c3c';
+                const rootX = centerX + solutions[0] * scale;
+                ctx.beginPath();
+                ctx.arc(rootX, centerY, 6, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function drawQuadraticGraph(ctx, width, height) {
+            const {a, b, c} = parameters;
+            
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 20;
+            
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = -(a * realX * realX + b * realX + c);
+                const canvasX = centerX + x;
+                const canvasY = centerY + realY * scale;
+                
+                if (x === -width/2) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+            
+            // Ildizlarni belgilash
+            ctx.fillStyle = '#3498db';
+            solutions.forEach(sol => {
+                if (typeof sol === 'number') {
+                    const rootX = centerX + sol * scale;
+                    ctx.beginPath();
+                    ctx.arc(rootX, centerY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawCubicGraph(ctx, width, height) {
+            const {a, b, c, d} = parameters;
+            
+            ctx.strokeStyle = '#9b59b6';
+            ctx.lineWidth = 3;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 20;
+            
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = -(a * realX * realX * realX + b * realX * realX + c * realX + d);
+                const canvasX = centerX + x;
+                const canvasY = centerY + realY * scale;
+                
+                if (Math.abs(canvasY) < height * 2) {
+                    if (x === -width/2) {
+                        ctx.moveTo(canvasX, canvasY);
+                    } else {
+                        ctx.lineTo(canvasX, canvasY);
+                    }
+                }
+            }
+            ctx.stroke();
+            
+            // Ildizlarni belgilash
+            ctx.fillStyle = '#9b59b6';
+            solutions.forEach(sol => {
+                if (typeof sol === 'number') {
+                    const rootX = centerX + sol * scale;
+                    ctx.beginPath();
+                    ctx.arc(rootX, centerY, 6, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            });
+        }
+
+        function drawSystemGraph(ctx, width, height) {
+            const {a1, b1, c1, a2, b2, c2} = parameters;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 20;
+            
+            // Birinchi chiziq
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = b1 !== 0 ? (c1 - a1 * realX) / b1 : 0;
+                const canvasX = centerX + x;
+                const canvasY = centerY - realY * scale;
+                
+                if (x === -width/2) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+            
+            // Ikkinchi chiziq
+            ctx.strokeStyle = '#3498db';
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = b2 !== 0 ? (c2 - a2 * realX) / b2 : 0;
+                const canvasX = centerX + x;
+                const canvasY = centerY - realY * scale;
+                
+                if (x === -width/2) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function drawNonlinearGraph(ctx, width, height) {
+            const {r, s} = parameters;
+            
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const scale = 20;
+            
+            // Doira chizish
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, r * scale, 0, 2 * Math.PI);
+            ctx.stroke();
+            
+            // Chiziq chizish (x + y = s)
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let x = -width/2; x <= width/2; x++) {
+                const realX = x / scale;
+                const realY = s - realX;
+                const canvasX = centerX + x;
+                const canvasY = centerY - realY * scale;
+                
+                if (x === -width/2) {
+                    ctx.moveTo(canvasX, canvasY);
+                } else {
+                    ctx.lineTo(canvasX, canvasY);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function showMapleCode() {
+            const mapleDiv = document.getElementById('maple-code');
+            const contentDiv = document.getElementById('maple-content');
+            
+            let code = '';
+            switch(equationType) {
+                case 'linear':
+                    code = `> # Chiziqli tenglama yechish
+> eq := ${parameters.a}*x + ${parameters.b} = 0;
+> solve(eq, x);
+> plot(${parameters.a}*x + ${parameters.b}, x = -10..10);`;
+                    break;
+                case 'quadratic':
+                    code = `> # Kvadrat tenglama yechish
+> eq := ${parameters.a}*x^2 + ${parameters.b}*x + ${parameters.c} = 0;
+> solve(eq, x);
+> plot(${parameters.a}*x^2 + ${parameters.b}*x + ${parameters.c}, x = -10..10);`;
+                    break;
+                case 'cubic':
+                    code = `> # Kub tenglama yechish
+> eq := ${parameters.a}*x^3 + ${parameters.b}*x^2 + ${parameters.c}*x + ${parameters.d} = 0;
+> solve(eq, x);
+> plot(${parameters.a}*x^3 + ${parameters.b}*x^2 + ${parameters.c}*x + ${parameters.d}, x = -5..5);`;
+                    break;
+                case 'system':
+                    code = `> # Chiziqli sistema yechish
+> eq1 := ${parameters.a1}*x + ${parameters.b1}*y = ${parameters.c1};
+> eq2 := ${parameters.a2}*x + ${parameters.b2}*y = ${parameters.c2};
+> solve({eq1, eq2}, {x, y});
+> plots[implicitplot]({eq1, eq2}, x = -10..10, y = -10..10);`;
+                    break;
+                case 'nonlinear':
+                    code = `> # Nochiziqli sistema yechish
+> eq1 := x^2 + y^2 = ${parameters.r}^2;
+> eq2 := x + y = ${parameters.s};
+> solve({eq1, eq2}, {x, y});
+> plots[implicitplot]({eq1, eq2}, x = -10..10, y = -10..10);`;
+                    break;
+            }
+            
+            contentDiv.innerHTML = code;
+            mapleDiv.style.display = 'block';
+        }
+
+        function updateStep(step) {
+            // Barcha qadamlarni qayta sozlash
+            for (let i = 1; i <= 5; i++) {
+                const stepElement = document.getElementById(`step${i}`);
+                stepElement.classList.remove('active', 'completed');
+                
+                if (i < step) {
+                    stepElement.classList.add('completed');
+                } else if (i === step) {
+                    stepElement.classList.add('active');
+                }
+            }
+            currentStep = step;
+        }
+
+        function updateStepsExplanation() {
+            const explanationDiv = document.getElementById('steps-explanation');
+            const explanations = {
+                'linear': 'Chiziqli tenglama: ax + b = 0 ko\'rinishidagi tenglama. Faqat bitta yechimga ega (a ≠ 0 bo\'lsa).',
+                'quadratic': 'Kvadrat tenglama: ax² + bx + c = 0. Diskriminant orqali yechimlar sonini aniqlash mumkin.',
+                'cubic': 'Kub tenglama: ax³ + bx² + cx + d = 0. Eng ko\'pi 3 ta haqiqiy yechimga ega.',
+                'system': 'Chiziqli sistema: ikki noma\'lumli ikki tenglama. Determinant orqali yechish.',
+                'nonlinear': 'Nochiziqli sistema: doira va to\'g\'ri chiziq kesishishi.'
+            };
+            
+            explanationDiv.innerHTML = explanations[equationType] || 'Tenglama turini tanlang';
+        }
+
+        function resetSteps() {
+            updateStep(1);
+            document.getElementById('solution-display').style.display = 'none';
+            document.getElementById('maple-code').style.display = 'none';
+            const canvas = document.getElementById('graph-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function resetAll() {
+            resetSteps();
+            document.getElementById('equation-type').value = 'linear';
+            equationType = 'linear';
+            loadParameters();
+            updateStepsExplanation();
+            hideMessages();
+        }
+
+        function showLoading(show) {
+            const loadingDiv = document.getElementById('loading');
+            if (show) {
+                loadingDiv.classList.add('show');
+            } else {
+                loadingDiv.classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function hideMessages() {
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('success-message').style.display = 'none';
+        }
+
+        // Canvas o'lchamini qayta sozlash
+        window.addEventListener('resize', function() {
+            const canvas = document.getElementById('graph-canvas');
+            const container = document.getElementById('graph-container');
+            canvas.width = container.offsetWidth - 4;
+            canvas.height = container.offsetHeight - 4;
+        });
+    </script>
+</body>
+</html>
