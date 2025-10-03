@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Matlabda dasturlash elementlari — GUI, grafik interfeyslar</title>
+
+<!-- MathJax formulalar uchun -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+:root{
+  --bg1:#f0f4f8;--ink:#1a202c;--muted:#6b7280;--card:#fff;--frame:#cbd5e0;--pri:#0076a8;
+  --ok:#38a169;--bad:#e53e3e;--warn:#d69e2e;--grid:#edf2f7;--purple:#7c3aed
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,#bee3f8 0%,#90cdf4 30%,#63b3ed 100%);
+  color:var(--ink);line-height:1.55;font-size:15px}
+.container{max-width:1250px;margin:0 auto;padding:20px}
+
+.header{background:var(--card);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:28px;
+  text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.12)}
+.header h1{margin:0 0 8px;font-size:32px;font-weight:800;
+  background:linear-gradient(135deg,var(--pri),#9f7aea);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .sub{color:var(--muted)}
+.badge{display:inline-block;padding:6px 10px;border-radius:10px;background:#eef2ff;color:#3730a3;font-weight:700;margin:6px}
+
+.card{background:var(--card);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:18px;box-shadow:0 12px 28px rgba(0,0,0,.08);margin:16px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1024px){.grid2{grid-template-columns:1fr}}
+
+.control-panel{border:2px solid var(--frame);border-radius:14px;padding:16px;background:linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%)}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+label{font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+label small{font-weight:600;color:#6b7280}
+label .tip{font-weight:900;color:#6b7280;cursor:help}
+input[type=number],select{width:100%;padding:10px;border:2px solid var(--frame);border-radius:10px;font-size:14px;appearance:auto}
+input[type=number]:focus,select:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,118,168,.12)}
+input[type=range]{width:100%}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn:hover{filter:brightness(0.95)}
+.btn.out{background:transparent;color:var(--pri);border:2px solid var(--pri)}
+.btn.ok{background:var(--ok)} .btn.bad{background:var(--bad)} .btn.warn{background:var(--warn)}
+.btn.ghost{background:transparent;border:2px dashed var(--frame);color:#374151}
+
+.info{background:rgba(49,130,206,.1);border:1px solid rgba(49,130,206,.25);border-radius:12px;padding:12px;margin:10px 0}
+.good{background:rgba(56,161,105,.1);border:1px solid rgba(56,161,105,.35);border-radius:12px;padding:12px;margin:10px 0}
+.warn{background:rgba(214,158,46,.12);border:1px solid rgba(214,158,46,.4);border-radius:12px;padding:12px;margin:10px 0}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:4px solid var(--frame);background:#e2e8f0;border-radius:14px 14px 0 0;padding:8px}
+.tab{padding:10px 14px;border-radius:10px 10px 0 0;background:transparent;cursor:pointer;font-weight:800}
+.tab.active{background:var(--pri);color:#fff}
+.tabp{display:none;animation:fade .3s ease}
+.tabp.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+canvas{width:100%;height:380px;background:#fff;border:3px solid var(--frame);border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.08)}
+.small{height:280px}
+
+.code{background:#111827;color:#e5e7eb;border-left:6px solid var(--pri);font-family:"Courier New",monospace;font-size:13px;border-radius:10px;padding:14px;overflow:auto}
+.code .cm{color:#9ca3af}
+
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi .box{background:#f9fafb;border:1px solid var(--frame);border-radius:10px;padding:8px 10px;font-family:"Courier New";font-size:13px}
+
+.log{background:#f8fafc;border:2px dashed var(--frame);border-radius:12px;padding:12px;margin:12px 0}
+.log h4{margin:0 0 10px 0}
+.step{background:#fff;border:1px solid var(--frame);border-radius:10px;padding:10px;margin:8px 0;font-family:"Courier New",monospace;font-size:13px}
+.smallnote{font-size:12px;color:#6b7280}
+hr.sepLine{border:0;border-top:2px dashed var(--frame);margin:12px 0}
+.stat{display:inline-block;margin-right:10px;padding:6px 8px;border-radius:8px;background:#f3f4f6;border:1px solid #e5e7eb;font-family:"Courier New";font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Matlabda dasturlash elementlari</h1>
+    <div class="sub">Tavsiya etilgan vosita: <b>MATLAB</b> • Vizual yondashuv: <b>GUI (grafik interfeyslar)</b></div>
+    </div>
+
+  <!-- Masalaning qo'yilishi -->
+  <div class="card">
+    <h3>📝 Masalaning qo‘yilishi</h3>
+    <div class="grid2">
+      <div>
+        <div class="info">
+          <b>Vazifa:</b> MATLAB’da <b>GUI</b> yaratish (programmatik yoki App Designer). Ilova foydalanuvchiga parametrlarni (slayder/forma) o‘zgartirishga, natijani <b>grafikda ko‘rishga</b> va asosiy <b>hisob-kitoblar</b>ni (ildizlar, maydon, statistikalar) olishga imkon bersin.
+        </div>
+        <div class="good">
+          <b>Minimal talablar:</b>
+          <ul class="smallnote">
+            <li>UI komponentlar: slayderlar, matn maydonlari, tugmalar, grafikli oyna (axes).</li>
+            <li>Callbacklar: parametr o‘zgarsa — <i>updatePlot</i>; hisoblash tugmasi — <i>computeStats</i>.</li>
+            <li>Natijalar paneli: ildizlar (agar polinom bo‘lsa), maydon (trapz), min/max/mean.</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="warn">
+          <b>Parametrlar izohi:</b>
+          <ul class="smallnote">
+            <li><b>Funktsiya turi</b>: Polinom ($y=ax^2+bx+c$) yoki Sine ($y=a\sin(bx+c)$).</li>
+            <li><b>a,b,c</b>: amplituda/qiyalik, chastota/koeff., faza/ozod had.</li>
+            <li><b>[x\_min,x\_max]</b>: chiziladigan oraliq.</li>
+            <li><b>N</b>: diskret nuqtalar soni (katta bo‘lsa, chiziq silliqroq).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interaktiv: GUI sim -->
+  <div class="card">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-t="sim">🧪 GUI Simulyator</button>
+      <button class="tab" data-t="steps">🪄 Qadam-baqadam izoh</button>
+      <button class="tab" data-t="code">💻 MATLAB kodlari</button>
+      <button class="tab" data-t="tasks">📝 Topshiriqlar</button>
+    </div>
+
+    <!-- SIM -->
+    <div class="tabp active" id="p-sim">
+      <div class="grid2">
+        <div>
+          <div class="control-panel">
+            <h3>GUI boshqaruvlari</h3>
+            <div class="row">
+              <div>
+                <label>Funktsiya turi</label>
+                <select id="fnType">
+                  <option value="poly">Polinom: y = a x^2 + b x + c</option>
+                  <option value="sine">Sine: y = a sin(b x + c)</option>
+                </select>
+              </div>
+              <div><label>a</label><input id="pa" type="number" value="1" step="0.1"></div>
+              <div><label>b</label><input id="pb" type="number" value="1" step="0.1"></div>
+            </div>
+            <div class="row">
+              <div><label>c</label><input id="pc" type="number" value="0" step="0.1"></div>
+              <div><label>x_min</label><input id="xmin" type="number" value="-6" step="0.5"></div>
+              <div><label>x_max</label><input id="xmax" type="number" value="6" step="0.5"></div>
+            </div>
+            <div class="row2">
+              <div><label>N (nuqta)</label><input id="N" type="number" value="400" step="50"></div>
+              <div><label>Qalinlik</label><input id="lw" type="number" value="2"></div>
+              <div><label>Marker radius</label><input id="mr" type="number" value="3"></div>
+              <div style="display:flex;align-items:flex-end;gap:8px">
+                <button class="btn" id="update">Chizish</button>
+                <button class="btn ok" id="compute">Hisoblash</button>
+              </div>
+            </div>
+            <div class="kpi" id="kpi"></div>
+          </div>
+
+          <div class="log" id="log">
+            <h4>Hisoblash natijalari</h4>
+            <div id="out"></div>
+          </div>
+        </div>
+        <div>
+          <canvas id="plot" class="small"></canvas>
+          <div class="smallnote">Ekran UI simulyatori; MATLAB’da <code>uiaxes</code> da xuddi shunday chizma hosil bo‘ladi.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEPS -->
+    <div class="tabp" id="p-steps">
+      <div class="log" style="margin:0">
+        <h4>GUI yaratish — qadam-baqadam</h4>
+        <div class="step"><b>1) Ustunlar:</b> <code>uifigure</code>, <code>uiaxes</code>, <code>uislider</code>/<code>uieditfield</code>, <code>uidropdown</code>, <code>uibutton</code>.</div>
+        <div class="step"><b>2) Holat (state):</b> <code>app</code> yoki <code>S</code> strukturasi — parametrlar (a,b,c,x_min,x_max,N,fnType) saqlanadi.</div>
+        <div class="step"><b>3) Callbacklar:</b> har bir UI o‘zgarishida <code>updatePlot</code>; “Hisoblash” bosilganda <code>computeStats</code>.</div>
+        <div class="step"><b>4) Chizish:</b> <code>linspace</code> bilan x, so‘ng <code>y</code> ni hisoblab, <code>plot(ax,x,y)</code>; o‘qlar, grid, linewidth sozlanadi.</div>
+        <div class="step"><b>5) Hisoblash:</b> Polinom: <code>roots([a b c])</code>, Sine: <i>ishchi oraliq</i> bo‘yicha nol nuqtalari; maydon: <code>trapz(x,y)</code>; min/max/mean.</div>
+        <div class="step"><b>6) Yakun:</b> Kodni <code>.m</code> faylga saqlab ishga tushiring; xohlasangiz App Designer (<code>.mlapp</code>) ko‘rinishiga o‘tkazing.</div>
+      </div>
+    </div>
+
+    <!-- MATLAB CODES -->
+    <div class="tabp" id="p-code">
+      <div class="code" id="mprog"><span class="cm">% Programmatik GUI (uifigure) kodi shu yerda paydo bo'ladi</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" id="copyProg">📋 Nusxalash</button>
+        <button class="btn ok" id="dlProg">💾 .m fayl (GUI_Programmatic.m)</button>
+      </div>
+      <hr class="sepLine"/>
+      <div class="code" id="mapp"><span class="cm">% App Designer (mlapp) skeleti shu yerda paydo bo'ladi</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" id="copyApp">📋 Nusxalash</button>
+      </div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="tabp" id="p-tasks">
+      <div class="card" style="margin:0">
+        <h3>Amaliy topshiriqlar</h3>
+        <ol>
+          <li><b>Polinom GUI:</b> $y=ax^2+bx+c$ uchun GUI yarating. Ildizlar, ekstremum va maydonni ko‘rsating.</li>
+          <li><b>Sine GUI:</b> $y=a\sin(bx+c)$ uchun amplituda, chastota va fazani slayderlar orqali boshqaring; nol nuqtalarini belgilang.</li>
+          <li><b>Validatsiya:</b> $x_{\min}&lt;x_{\max}$ va $N\ge 50$ shartlarini tekshiring; xatolik xabarini (<code>uialert</code>) chiqaring.</li>
+          <li><b>Qo‘shimcha:</b> “Saqlash” tugmasi bilan chizmani <code>.png</code> sifatida eksport qiling.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Helpers =====
+const $=id=>document.getElementById(id);
+function dprCanvas(node){
+  const dpr=window.devicePixelRatio||1;
+  const rect=node.getBoundingClientRect();
+  node.width=rect.width*dpr; node.height=rect.height*dpr;
+  const ctx=node.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:rect.width,h:rect.height,dpr};
+}
+function downloadFile(content, filename, mime='text/plain'){
+  const blob=new Blob([content],{type:mime+';charset=utf-8'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); URL.revokeObjectURL(url);
+}
+function fmt(n,p=4){return Number(n).toFixed(p)}
+
+// ===== Tabs =====
+(function(){
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tabp').forEach(p=>p.classList.remove('active'));
+    t.classList.add('active'); const id='p-'+t.dataset.t; $(id).classList.add('active');
+  }));
+})();
+
+// ===== State =====
+const S = {
+  fnType:'poly', a:1, b:1, c:0, xmin:-6, xmax:6, N:400, lw:2, mr:3,
+  x:[], y:[]
+};
+
+// ===== UI Read/Write =====
+function readUI(){
+  S.fnType = $('fnType').value;
+  S.a = parseFloat($('pa').value);
+  S.b = parseFloat($('pb').value);
+  S.c = parseFloat($('pc').value);
+  S.xmin = parseFloat($('xmin').value);
+  S.xmax = parseFloat($('xmax').value);
+  S.N = Math.max(10, parseInt($('N').value||400));
+  S.lw = Math.max(1, parseFloat($('lw').value));
+  S.mr = Math.max(0, parseFloat($('mr').value));
+}
+function writeKPI(){
+  const stats = computeBasicStats();
+  $('kpi').innerHTML =
+    `<span class="stat">x∈[${fmt(S.xmin,2)}, ${fmt(S.xmax,2)}], N=${S.N}</span>`+
+    (stats?`<span class="stat">ȳ=${fmt(stats.mean,3)}</span><span class="stat">y_min=${fmt(stats.min,3)}</span><span class="stat">y_max=${fmt(stats.max,3)}</span>`:'');
+}
+
+// ===== Math =====
+function linspace(a,b,n){
+  const out=new Array(n); const h=(b-a)/(n-1);
+  for(let i=0;i<n;i++) out[i]=a+i*h; return out;
+}
+function evalFn(x){
+  if(S.fnType==='poly') return S.a*x*x + S.b*x + S.c;
+  else return S.a*Math.sin(S.b*x + S.c);
+}
+function computeXY(){
+  S.x = linspace(S.xmin, S.xmax, S.N);
+  S.y = S.x.map(evalFn);
+}
+function computeBasicStats(){
+  if(!S.y || S.y.length===0) return null;
+  let s=0, mn=Infinity, mx=-Infinity;
+  for(const v of S.y){s+=v; if(v<mn) mn=v; if(v>mx) mx=v;}
+  return {mean:s/S.y.length, min:mn, max:mx};
+}
+function trapz(x,y){
+  let a=0; for(let i=1;i<x.length;i++){a += (x[i]-x[i-1])*(y[i]+y[i-1])/2;} return a;
+}
+function findZeroCrossings(x,y){
+  const zeros=[]; for(let i=1;i<y.length;i++){ if(y[i]===0) zeros.push(x[i]); else if((y[i-1]<0 && y[i]>0)||(y[i-1]>0 && y[i]<0)){ // linear interp
+    const t = y[i]-y[i-1];
+    const xr = x[i-1] - y[i-1]*(x[i]-x[i-1])/t; zeros.push(xr);
+  }} return zeros;
+}
+
+// ===== Draw =====
+function drawPlot(){
+  const node=$('plot'); const {ctx,w,h}=dprCanvas(node);
+  ctx.clearRect(0,0,w,h);
+  // axes frame
+  const pad=40; const xmin=S.xmin, xmax=S.xmax;
+  const ymn=Math.min(...S.y), ymx=Math.max(...S.y);
+  const ypad = (ymx-ymn===0)?1:0.1*(ymx-ymn);
+  const ymin=ymn-ypad, ymax=ymx+ypad;
+
+  function tx(x){return pad + (x-xmin)/(xmax-xmin)*(w-2*pad)}
+  function ty(y){return h-pad - (y-ymin)/(ymax-ymin)*(h-2*pad)}
+
+  // grid
+  ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=1;
+  const gx = Math.max(1, Math.round((xmax-xmin)/8));
+  const gy = Math.max(1, Math.round((ymax-ymin)/8));
+  for(let x=Math.ceil(xmin); x<=xmax; x+=gx){ctx.beginPath(); ctx.moveTo(tx(x),pad); ctx.lineTo(tx(x),h-pad); ctx.stroke();}
+  const ystep = (ymax-ymin)/8;
+  for(let y=ymin; y<=ymax; y+=ystep){ctx.beginPath(); ctx.moveTo(pad,ty(y)); ctx.lineTo(w-pad,ty(y)); ctx.stroke();}
+
+  // axes
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5;
+  // x-axis at y=0
+  if(ymin<0 && ymax>0){ctx.beginPath(); ctx.moveTo(pad,ty(0)); ctx.lineTo(w-pad,ty(0)); ctx.stroke();}
+  // y-axis at x=0
+  if(xmin<0 && xmax>0){ctx.beginPath(); ctx.moveTo(tx(0),pad); ctx.lineTo(tx(0),h-pad); ctx.stroke();}
+
+  // curve
+  ctx.strokeStyle='#2563eb'; ctx.lineWidth=S.lw; ctx.beginPath();
+  for(let i=0;i<S.x.length;i++){
+    const X=tx(S.x[i]), Y=ty(S.y[i]);
+    if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y);
+  }
+  ctx.stroke();
+
+  // optional markers
+  if(S.mr>0){
+    ctx.fillStyle='#1f2937';
+    for(let i=0;i<S.x.length;i+=Math.max(1,Math.floor(S.N/50))){
+      const X=tx(S.x[i]), Y=ty(S.y[i]); ctx.beginPath(); ctx.arc(X,Y,S.mr,0,2*Math.PI); ctx.fill();
+    }
+  }
+
+  // title
+  ctx.fillStyle='#111827'; ctx.font='13px Segoe UI';
+  const title = (S.fnType==='poly')
+      ? `y = ${S.a} x^2 + ${S.b} x + ${S.c}`
+      : `y = ${S.a} sin(${S.b} x + ${S.c})`;
+  ctx.fillText(title, pad, pad-12);
+}
+
+// ===== Actions =====
+function updateAll(){
+  readUI();
+  if(!(S.xmin < S.xmax)){ $('out').innerHTML = `<div class="step" style="border-color:#fca5a5">x_min < x_max bo'lishi shart</div>`; return; }
+  computeXY(); drawPlot(); writeKPI(); buildCodes();
+}
+
+function doCompute(){
+  if(S.fnType==='poly'){
+    // roots of ax^2 + b x + c
+    const a=S.a,b=S.b,c=S.c;
+    let roots=[];
+    if(Math.abs(a) > 1e-12){
+      const D=b*b-4*a*c;
+      if(D>=0){
+        const r1=(-b+Math.sqrt(D))/(2*a), r2=(-b-Math.sqrt(D))/(2*a);
+        roots = (Math.abs(D)<1e-12)?[r1]:[r1,r2];
+      }else{
+        roots = []; // kompleks ildizlar, grafikda ko'rinmaydi
+      }
+    }else{ // chiziqli
+      if(Math.abs(b)>1e-12) roots=[-c/b];
+    }
+    const area = trapz(S.x,S.y);
+    const st = computeBasicStats();
+    $('out').innerHTML =
+      `<div class="step"><b>Polinom:</b> y = a x^2 + b x + c</div>`+
+      `<div class="step">Ildizlar (real): <b>${roots.length?roots.map(r=>fmt(r,4)).join(', '):'—'}</b></div>`+
+      `<div class="step">Trapetsiya maydoni: <b>${fmt(area,5)}</b></div>`+
+      `<div class="step">Statistika: ȳ=${fmt(st.mean,4)},  y_min=${fmt(st.min,4)}, y_max=${fmt(st.max,4)}</div>`;
+  }else{
+    const zeros = findZeroCrossings(S.x,S.y);
+    const area = trapz(S.x,S.y);
+    const st = computeBasicStats();
+    $('out').innerHTML =
+      `<div class="step"><b>Sine:</b> y = a sin(b x + c)</div>`+
+      `<div class="step">Nol nuqtalari (taxminiy): <b>${zeros.length?zeros.map(z=>fmt(z,4)).join(', '):'—'}</b></div>`+
+      `<div class="step">Trapetsiya maydoni: <b>${fmt(area,5)}</b></div>`+
+      `<div class="step">Statistika: ȳ=${fmt(st.mean,4)},  y_min=${fmt(st.min,4)}, y_max=${fmt(st.max,4)}</div>`;
+  }
+}
+
+// ===== MATLAB Code Generators =====
+function buildProgrammaticCode(){
+  const code = `function GUI_Programmatic
+% L6 — Matlabda dasturlash elementlari: GUI (programmatik)
+% Ushbu GUI polinom y = a x^2 + b x + c yoki sine y = a*sin(b x + c)
+% funksiyasini chizadi va hisob-kitoblar (ildizlar / nol nuqtalari, maydon, statistikalar)ni beradi.
+
+% 1) UI figure va komponentlar
+fig = uifigure('Name','L6 GUI — Programmatik','Position',[100 100 900 560]);
+
+% Axes
+ax = uiaxes(fig,'Position',[320 90 560 420]);
+grid(ax,'on'); ax.Box='on'; xlabel(ax,'x'); ylabel(ax,'y'); title(ax,'Chizma');
+
+% Parametrlar paneli
+pnl = uipanel(fig,'Title','Parametrlar','Position',[20 90 280 420]);
+
+dd = uidropdown(pnl,'Items',{'Polinom: y = a x^2 + b x + c','Sine: y = a sin(b x + c) '}, ...
+    'ItemsData',{'poly','sine'},'Value','${S.fnType}','Position',[20 370 240 30]);
+
+lblA = uilabel(pnl,'Text','a','Position',[20 330 40 25]);
+edA  = uieditfield(pnl,'numeric','Limits',[-Inf Inf],'Value',${S.a},'Position',[60 330 80 25]);
+
+lblB = uilabel(pnl,'Text','b','Position',[150 330 40 25]);
+edB  = uieditfield(pnl,'numeric','Limits',[-Inf Inf],'Value',${S.b},'Position',[190 330 80 25]);
+
+lblC = uilabel(pnl,'Text','c','Position',[20 295 40 25]);
+edC  = uieditfield(pnl,'numeric','Limits',[-Inf Inf],'Value',${S.c},'Position',[60 295 80 25]);
+
+lblX1= uilabel(pnl,'Text','x_{min}','Position',[20 260 50 25]);
+edX1 = uieditfield(pnl,'numeric','Value',${S.xmin},'Position',[80 260 70 25]);
+
+lblX2= uilabel(pnl,'Text','x_{max}','Position',[160 260 50 25]);
+edX2 = uieditfield(pnl,'numeric','Value',${S.xmax},'Position',[220 260 50 25]);
+
+lblN = uilabel(pnl,'Text','N','Position',[20 225 30 25]);
+edN  = uieditfield(pnl,'numeric','Limits',[10 Inf],'Value',${S.N},'Position',[60 225 80 25]);
+
+btnPlot = uibutton(pnl,'Text','Chizish','Position',[20 180 120 30], 'ButtonPushedFcn',@(~,~)updatePlot());
+btnComp = uibutton(pnl,'Text','Hisoblash','Position',[160 180 120 30], 'ButtonPushedFcn',@(~,~)computeStats());
+
+txt = uitextarea(pnl,'Position',[20 20 240 150],'Editable','off','Value',{'Hisoblash natijalari shu yerda paydo bo''ladi'});
+
+% 2) Yordamchi funksiyalar (nested)
+    function [x,y] = makeXY()
+        a=edA.Value; b=edB.Value; c=edC.Value;
+        xmin=edX1.Value; xmax=edX2.Value; N=max(10,round(edN.Value));
+        if xmin>=xmax
+            uialert(fig,'x_{min} < x_{max} bo''lishi shart!','Xato','Icon','error'); x=[]; y=[]; return;
+        end
+        x = linspace(xmin,xmax,N);
+        if strcmp(dd.Value,'poly'), y = a*x.^2 + b*x + c;
+        else, y = a*sin(b*x + c);
+        end
+    end
+
+    function updatePlot()
+        [x,y] = makeXY(); if isempty(x), return; end
+        plot(ax,x,y,'LineWidth',2); grid(ax,'on');
+        if strcmp(dd.Value,'poly')
+            title(ax,sprintf('y = %.3f x^2 + %.3f x + %.3f',edA.Value,edB.Value,edC.Value));
+        else
+            title(ax,sprintf('y = %.3f sin(%.3f x + %.3f)',edA.Value,edB.Value,edC.Value));
+        end
+    end
+
+    function computeStats()
+        [x,y] = makeXY(); if isempty(x), return; end
+        ymean = mean(y); ymin=min(y); ymax=max(y); area = trapz(x,y);
+        if strcmp(dd.Value,'poly')
+            a=edA.Value; b=edB.Value; c=edC.Value;
+            rs = roots([a b c]); rs = rs(imag(rs)==0); % faqat real
+            if isempty(rs), rtxt='—'; else, rtxt = sprintf('%.4f ',rs); end
+            txt.Value = {
+                sprintf('Polinom: y = a x^2 + b x + c')
+                sprintf('Ildizlar (real): %s', rtxt)
+                sprintf('Trapetsiya maydoni: %.5f', area)
+                sprintf('y_mean=%.4f, y_min=%.4f, y_max=%.4f', ymean, ymin, ymax)
+            };
+        else
+            % Nol nuqtalari (taxminiy, o‘tishlarni topamiz)
+            z = [];
+            for k=2:numel(x)
+                if y(k)==0, z(end+1)=x(k); %#ok<AGROW>
+                elseif (y(k-1)<0 && y(k)>0) || (y(k-1)>0 && y(k)<0)
+                    % chiziqli interpolyatsiya
+                    t = y(k)-y(k-1);
+                    z(end+1) = x(k-1) - y(k-1)*(x(k)-x(k-1))/t; %#ok<AGROW>
+                end
+            end
+            if isempty(z), ztxt='—'; else, ztxt=sprintf('%.4f ',z); end
+            txt.Value = {
+                sprintf('Sine: y = a sin(b x + c)')
+                sprintf('Nol nuqtalari (taxminiy): %s', ztxt)
+                sprintf('Trapetsiya maydoni: %.5f', area)
+                sprintf('y_mean=%.4f, y_min=%.4f, y_max=%.4f', ymean, ymin, ymax)
+            };
+        end
+    end
+
+% 3) Dastlabki chizma
+updatePlot();
+
+end
+`;
+  return code;
+}
+
+function buildAppDesignerSkeleton(){
+  const code = `classdef L6_GUI_App < matlab.apps.AppBase
+    % L6 — App Designer skeleti (minimal)
+    % UI komponentlar: dropdown, numeric fields, axes, buttons
+
+    properties (Access = public)
+        UIFigure   matlab.ui.Figure
+        Ax         matlab.ui.control.UIAxes
+        Panel      matlab.ui.container.Panel
+        FnDrop     matlab.ui.control.DropDown
+        AField     matlab.ui.control.NumericEditField
+        BField     matlab.ui.control.NumericEditField
+        CField     matlab.ui.control.NumericEditField
+        XminField  matlab.ui.control.NumericEditField
+        XmaxField  matlab.ui.control.NumericEditField
+        NField     matlab.ui.control.NumericEditField
+        PlotBtn    matlab.ui.control.Button
+        CompBtn    matlab.ui.control.Button
+        OutText    matlab.ui.control.TextArea
+    end
+
+    methods (Access = private)
+        function [x,y] = makeXY(app)
+            a=app.AField.Value; b=app.BField.Value; c=app.CField.Value;
+            xmin=app.XminField.Value; xmax=app.XmaxField.Value; N=max(10,round(app.NField.Value));
+            if xmin>=xmax
+                uialert(app.UIFigure,'x_{min} < x_{max} bo''lishi shart!','Xato','Icon','error'); x=[]; y=[]; return;
+            end
+            x = linspace(xmin,xmax,N);
+            if strcmp(app.FnDrop.Value,'poly'), y = a*x.^2 + b*x + c;
+            else, y = a*sin(b*x + c);
+            end
+        end
+
+        function updatePlot(app, ~, ~)
+            [x,y] = app.makeXY(); if isempty(x), return; end
+            plot(app.Ax,x,y,'LineWidth',2); grid(app.Ax,'on');
+        end
+
+        function computeStats(app, ~, ~)
+            [x,y] = app.makeXY(); if isempty(x), return; end
+            ymean=mean(y); ymin=min(y); ymax=max(y); area=trapz(x,y);
+            if strcmp(app.FnDrop.Value,'poly')
+                a=app.AField.Value; b=app.BField.Value; c=app.CField.Value;
+                rs=roots([a b c]); rs=rs(imag(rs)==0);
+                if isempty(rs), rtxt='—'; else, rtxt=sprintf('%.4f ',rs); end
+                app.OutText.Value = {
+                    sprintf('Polinom')
+                    sprintf('Ildizlar (real): %s', rtxt)
+                    sprintf('Trapetsiya maydoni: %.5f', area)
+                    sprintf('y_mean=%.4f, y_min=%.4f, y_max=%.4f', ymean, ymin, ymax)
+                };
+            else
+                z=[];
+                for k=2:numel(x)
+                    if y(k)==0, z(end+1)=x(k);
+                    elseif (y(k-1)<0 && y(k)>0)||(y(k-1)>0 && y(k)<0)
+                        t=y(k)-y(k-1); z(end+1)=x(k-1)-y(k-1)*(x(k)-x(k-1))/t;
+                    end
+                end
+                if isempty(z), ztxt='—'; else, ztxt=sprintf('%.4f ',z); end
+                app.OutText.Value = {
+                    sprintf('Sine')
+                    sprintf('Nol nuqtalari (taxminiy): %s', ztxt)
+                    sprintf('Trapetsiya maydoni: %.5f', area)
+                    sprintf('y_mean=%.4f, y_min=%.4f, y_max=%.4f', ymean, ymin, ymax)
+                };
+            end
+        end
+    end
+
+    methods (Access = private)
+        function createComponents(app)
+            app.UIFigure = uifigure('Name','L6 GUI — App Designer');
+            app.UIFigure.Position=[100 100 900 560];
+
+            app.Ax = uiaxes(app.UIFigure,'Position',[320 90 560 420]);
+            grid(app.Ax,'on'); xlabel(app.Ax,'x'); ylabel(app.Ax,'y');
+
+            app.Panel = uipanel(app.UIFigure,'Title','Parametrlar','Position',[20 90 280 420]);
+
+            app.FnDrop = uidropdown(app.Panel,'Items',{'Polinom','Sine'},'ItemsData',{'poly','sine'},'Value','${S.fnType}','Position',[20 370 240 30]);
+
+            app.AField = uieditfield(app.Panel,'numeric','Value',${S.a},'Position',[20 330 80 25]);
+            app.BField = uieditfield(app.Panel,'numeric','Value',${S.b},'Position',[120 330 80 25]);
+            app.CField = uieditfield(app.Panel,'numeric','Value',${S.c},'Position',[210 330 50 25]);
+
+            app.XminField = uieditfield(app.Panel,'numeric','Value',${S.xmin},'Position',[20 290 80 25]);
+            app.XmaxField = uieditfield(app.Panel,'numeric','Value',${S.xmax},'Position',[120 290 80 25]);
+            app.NField    = uieditfield(app.Panel,'numeric','Value',${S.N},'Position',[210 290 50 25]);
+
+            app.PlotBtn = uibutton(app.Panel,'Text','Chizish','Position',[20 240 120 30],'ButtonPushedFcn',@app.updatePlot);
+            app.CompBtn = uibutton(app.Panel,'Text','Hisoblash','Position',[160 240 120 30],'ButtonPushedFcn',@app.computeStats);
+
+            app.OutText = uitextarea(app.Panel,'Position',[20 20 240 200],'Editable','off');
+        end
+    end
+
+    methods (Access = public)
+        function app = L6_GUI_App
+            createComponents(app)
+            updatePlot(app);
+        end
+    end
+end
+`;
+  return code;
+}
+
+function buildCodes(){
+  $('mprog').innerHTML = buildProgrammaticCode().replace(/</g,'&lt;');
+  $('mapp').innerHTML  = buildAppDesignerSkeleton().replace(/</g,'&lt;');
+}
+
+// ===== Events =====
+$('update').addEventListener('click',updateAll);
+$('compute').addEventListener('click',doCompute);
+
+['fnType','pa','pb','pc','xmin','xmax','N','lw','mr'].forEach(id=>{
+  $(id).addEventListener('input',()=>{ updateAll(); });
+});
+
+$('copyProg').addEventListener('click',()=>navigator.clipboard.writeText(buildProgrammaticCode()).then(()=>alert('Programmatik GUI kodi nusxalandi!')));
+$('dlProg').addEventListener('click',()=>downloadFile(buildProgrammaticCode(),'GUI_Programmatic.m','text/x-matlab'));
+$('copyApp').addEventListener('click',()=>navigator.clipboard.writeText(buildAppDesignerSkeleton()).then(()=>alert('App Designer skeleti nusxalandi!')));
+
+// ===== Init =====
+function init(){ updateAll(); doCompute(); }
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
