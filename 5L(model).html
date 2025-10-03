@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Matlabda tenglamalar sistemasi — 3D yuzalar & tarmoqli chizmalar (to‘liq, izohli)</title>
+
+<!-- MathJax -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+:root{
+  --bg1:#f0f4f8;--ink:#1a202c;--muted:#6b7280;--card:#fff;--frame:#cbd5e0;--pri:#0076a8;
+  --ok:#38a169;--bad:#e53e3e;--warn:#d69e2e;--grid:#edf2f7;--purple:#7c3aed
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,#bee3f8 0%,#90cdf4 30%,#63b3ed 100%);
+  color:var(--ink);line-height:1.55;font-size:15px}
+.container{max-width:1250px;margin:0 auto;padding:20px}
+.header{background:var(--card);border:1px solid rgba(255,255,255,.35);border-radius:18px;padding:28px;
+  text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.12)}
+.header h1{margin:0 0 8px;font-size:32px;font-weight:800;
+  background:linear-gradient(135deg,var(--pri),#9f7aea);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .sub{color:var(--muted)}
+.badge{display:inline-block;padding:6px 10px;border-radius:10px;background:#eef2ff;color:#3730a3;font-weight:700;margin:6px}
+
+.card{background:var(--card);border:1px solid rgba(255,255,255,.25);border-radius:16px;padding:18px;box-shadow:0 12px 28px rgba(0,0,0,.08);margin:16px 0}
+.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.grid2.swap{grid-template-columns:.9fr 1.1fr}
+@media (max-width:1024px){.grid2,.grid2.swap{grid-template-columns:1fr}}
+
+.control-panel{border:2px solid var(--frame);border-radius:14px;padding:16px;background:linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%)}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.row2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+label{font-size:12.5px;font-weight:700;color:#374151;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+label small{font-weight:600;color:#6b7280}
+label .tip{font-weight:900;color:#6b7280;cursor:help}
+input[type=number]{width:100%;padding:10px;border:2px solid var(--frame);border-radius:10px;font-size:14px}
+input[type=number]:focus{outline:none;border-color:var(--pri);box-shadow:0 0 0 3px rgba(0,118,168,.12)}
+input[type=range]{width:100%}
+.btn{background:var(--pri);color:#fff;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.btn:hover{filter:brightness(0.95)}
+.btn.out{background:transparent;color:var(--pri);border:2px solid var(--pri)}
+.btn.ok{background:var(--ok)} .btn.bad{background:var(--bad)} .btn.warn{background:var(--warn)}
+.btn.ghost{background:transparent;border:2px dashed var(--frame);color:#374151}
+
+.info{background:rgba(49,130,206,.1);border:1px solid rgba(49,130,206,.25);border-radius:12px;padding:12px;margin:10px 0}
+.good{background:rgba(56,161,105,.1);border:1px solid rgba(56,161,105,.35);border-radius:12px;padding:12px;margin:10px 0}
+.warn{background:rgba(214,158,46,.12);border:1px solid rgba(214,158,46,.4);border-radius:12px;padding:12px;margin:10px 0}
+
+.kpi{display:flex;gap:10px;flex-wrap:wrap}
+.kpi .box{background:#f9fafb;border:1px solid var(--frame);border-radius:10px;padding:8px 10px;font-family:"Courier New";font-size:13px}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:4px solid var(--frame);background:#e2e8f0;border-radius:14px 14px 0 0;padding:8px}
+.tab{padding:10px 14px;border-radius:10px 10px 0 0;background:transparent;cursor:pointer;font-weight:800}
+.tab.active{background:var(--pri);color:#fff}
+.tabp{display:none;animation:fade .3s ease}
+.tabp.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+canvas{width:100%;height:360px;background:#fff;border:3px solid var(--frame);border-radius:14px;box-shadow:0 10px 26px rgba(0,0,0,.08)}
+.small{height:280px}
+
+.code{background:#111827;color:#e5e7eb;border-left:6px solid var(--pri);font-family:"Courier New",monospace;font-size:13px;border-radius:10px;padding:14px;overflow:auto}
+.code .cm{color:#9ca3af}
+
+.log{background:#f8fafc;border:2px dashed var(--frame);border-radius:12px;padding:12px;margin:12px 0}
+.log h4{margin:0 0 10px 0}
+.step{background:#fff;border:1px solid var(--frame);border-radius:10px;padding:10px;margin:8px 0;font-family:"Courier New",monospace;font-size:13px}
+.matrix{display:inline-grid;gap:4px;border:1px solid var(--frame);border-radius:8px;padding:6px;background:#fff}
+.matrix.cols-4{grid-template-columns:repeat(4,auto)} .matrix.cols-3{grid-template-columns:repeat(3,auto)}
+.cell{padding:4px 6px;border:1px solid #e5e7eb;border-radius:6px;background:#f9fafb;min-width:38px;text-align:right}
+
+.augwrap{display:flex;align-items:center;gap:8px}
+.sep{width:2px;background:#d1d5db;align-self:stretch;border-radius:2px}
+
+.smallnote{font-size:12px;color:#6b7280}
+hr.sepLine{border:0;border-top:2px dashed var(--frame);margin:12px 0}
+.hl{background:#ecfeff;border:1px solid #06b6d4;border-radius:6px;padding:2px 6px}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Matlabda tenglamalar sistemasi</h1>
+    <div class="sub">Tavsiya etilgan vosita: <b>MATLAB</b> • Vizual yondashuv: <b>3D yuzalar</b>, <b>tarmoqli (contour) chizmalar</b></div>
+    <div>
+      <span class="badge">2×2: chiziqlar</span>
+      <span class="badge">3×3: tekisliklar</span>
+      <span class="badge">Gauss–Jordan</span>
+    </div>
+  </div>
+
+  <!-- Masalaning qo'yilishi -->
+  <div class="card">
+    <h3>📝 Masalaning qo‘yilishi</h3>
+    <div class="grid2">
+      <div>
+        <div class="info">
+          <b>Vazifa A (2×2):</b> $\; \begin{cases} a_1x+b_1y=c_1\\ a_2x+b_2y=c_2\end{cases}$ sistemani yeching, tasniflang (yagona / cheksiz / yo‘q) va ikkala chiziqni chizing, <span class="hl">kesish nuqtasi</span>ni ko‘rsating.
+          <div class="smallnote">Nazariya: $D=a_1b_2-a_2b_1$. Agar $D\neq0$ &rarr; yagona yechim; $D=0$ holida $D_1,D_2$ orqali tasnif.</div>
+        </div>
+        <div class="info">
+          <b>Vazifa B (3×3):</b> $\;A\in\mathbb{R}^{3\times3},\; A x=b$ sistemani yeching. $\det(A)$ va $\operatorname{rank}(A)$, $\operatorname{rank}([A|b])$ orqali tasnif qiling; <span class="hl">uchta tekislik</span>ni 3D’da chizing, kesish nuqtasini belgilang.
+          <div class="smallnote">Nazariya: $\det(A)\neq 0$ &rarr; yagona yechim; $\det(A)=0$ &rarr; rank tekshiruvi.</div>
+        </div>
+        <div class="good">
+          <b>Vazifa C (Contour):</b> $z=z_0$ kesimda $a x+b y+c z=d \Rightarrow a x + b y = d - c z_0$ chiziqlarini chizing va $z_0$ bo‘yicha siljishni tahlil qiling.
+        </div>
+      </div>
+      <div>
+        <div class="warn">
+          <b>Parametrlar izohi:</b>
+          <ul class="smallnote">
+            <li><b>aᵢ, bᵢ, cᵢ (2×2):</b> chiziqlar koeffitsiyentlari.</li>
+            <li><b>aᵢⱼ (3×3) &amp; b:</b> tekisliklar koeffitsiyentlari va ozod had.</li>
+            <li><b>Radius / grid / mesh:</b> ko‘rinish va tarmoq zichligi.</li>
+            <li><b>Yaw/Pitch:</b> 3D proeksiyada aylantirish burchaklari.</li>
+            <li><b>z₀:</b> kontur kesimi balandligi.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interaktiv -->
+  <div class="card">
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-t="sys2">✏️ 2×2 — chiziqlar</button>
+      <button class="tab" data-t="sys3">🔭 3×3 — tekisliklar (3D)</button>
+      <button class="tab" data-t="contour">🗺️ Tarmoqli chizmalar</button>
+      <button class="tab" data-t="matlab">💻 MATLAB kodlari</button>
+      <button class="tab" data-t="help">ℹ️ Parametrlar izohi</button>
+    </div>
+
+    <!-- 2x2 -->
+    <div class="tabp active" id="p-sys2">
+      <div class="grid2">
+        <div>
+          <div class="control-panel">
+            <h3>2×2 sistemasi: <span class="smallnote">a·x + b·y = c</span></h3>
+            <div class="row">
+              <div><label>a₁ <span class="tip" title="1-chiziq x koeffitsiyenti">ℹ️</span></label><input id="a1" type="number" value="2"></div>
+              <div><label>b₁ <span class="tip" title="1-chiziq y koeffitsiyenti">ℹ️</span></label><input id="b1" type="number" value="1"></div>
+              <div><label>c₁ <span class="tip" title="1-chiziq ozod hadi">ℹ️</span></label><input id="c1" type="number" value="5"></div>
+              <div><label>a₂ <span class="tip" title="2-chiziq x koeffitsiyenti">ℹ️</span></label><input id="a2" type="number" value="-1"></div>
+              <div><label>b₂ <span class="tip" title="2-chiziq y koeffitsiyenti">ℹ️</span></label><input id="b2" type="number" value="2"></div>
+              <div><label>c₂ <span class="tip" title="2-chiziq ozod hadi">ℹ️</span></label><input id="c2" type="number" value="1"></div>
+            </div>
+            <hr class="sepLine"/>
+            <div class="row2">
+              <div><label>Ko‘rinish radiusi</label><input id="r2" type="number" value="10"></div>
+              <div><label>Grid qadam</label><input id="g2" type="number" value="1"></div>
+              <div><label>Chiziq qalinligi</label><input id="lw2" type="number" value="2.5"></div>
+              <div><label>Nuqta radiusi</label><input id="pr2" type="number" value="6"></div>
+            </div>
+            <div style="height:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="solve2">🔎 Hisoblash & chizish</button>
+              <button class="btn out" id="code2">📋 MATLAB kod</button>
+              <button class="btn ghost" id="steps2">🪄 Qadam-baqadam</button>
+            </div>
+            <div class="kpi" id="kpi2"></div>
+          </div>
+
+          <div class="log" id="log2" style="display:none">
+            <h4>2×2 — Qadam-baqadam hisob-kitob</h4>
+            <div id="log2steps"></div>
+          </div>
+        </div>
+        <div>
+          <canvas id="cv2d" class="small"></canvas>
+          <div class="code" id="mat2"><span class="cm">% MATLAB kodi shu yerda paydo bo'ladi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3x3 -->
+    <div class="tabp" id="p-sys3">
+      <div class="grid2 swap">
+        <div>
+          <canvas id="cv3d"></canvas>
+          <div class="warn">Eslatma: bu yerda soddalashtirilgan ortografik proeksiya ishlatiladi. MATLAB’da <code>fimplicit3</code>, <code>surf</code> bilan aniq 3D ko‘rinish tavsiya etiladi.</div>
+          <div class="code" id="mat3"><span class="cm">% MATLAB kodi shu yerda paydo bo'ladi</span></div>
+        </div>
+        <div>
+          <div class="control-panel">
+            <h3>3×3: A·x = b</h3>
+            <div class="row">
+              <div><label>a11</label><input id="a11" type="number" value="1"></div>
+              <div><label>a12</label><input id="a12" type="number" value="-2"></div>
+              <div><label>a13</label><input id="a13" type="number" value="1"></div>
+              <div><label>a21</label><input id="a21" type="number" value="2"></div>
+              <div><label>a22</label><input id="a22" type="number" value="1"></div>
+              <div><label>a23</label><input id="a23" type="number" value="-1"></div>
+              <div><label>a31</label><input id="a31" type="number" value="-1"></div>
+              <div><label>a32</label><input id="a32" type="number" value="1"></div>
+              <div><label>a33</label><input id="a33" type="number" value="2"></div>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <div><label>b₁</label><input id="b1_" type="number" value="4"></div>
+              <div><label>b₂</label><input id="b2_" type="number" value="1"></div>
+              <div><label>b₃</label><input id="b3_" type="number" value="-1"></div>
+            </div>
+            <hr class="sepLine"/>
+            <div class="row2">
+              <div><label>Ko‘rinish radiusi</label><input id="r3" type="number" value="6"></div>
+              <div><label>Mesh qadam</label><input id="step3" type="number" value="1"></div>
+              <div><label>Yaw (°)</label><input id="yaw" type="range" min="-180" max="180" value="30"></div>
+              <div><label>Pitch (°)</label><input id="pitch" type="range" min="-89" max="89" value="25"></div>
+            </div>
+            <div style="height:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn" id="solve3">🔎 Hisoblash & 3D chizish</button>
+              <button class="btn out" id="code3">📋 MATLAB kod</button>
+              <button class="btn ghost" id="steps3">🪄 Qadam-baqadam</button>
+            </div>
+            <div class="kpi" id="kpi3"></div>
+          </div>
+
+          <div class="log" id="log3" style="display:none">
+            <h4>3×3 — Gauss–Jordan qadam-baqadam</h4>
+            <div id="log3steps"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contour -->
+    <div class="tabp" id="p-contour">
+      <div class="grid2">
+        <div>
+          <div class="control-panel">
+            <h3>Tarmoqli chizmalar: z = z₀</h3>
+            <p class="smallnote">Har bir tekislik $a x + b y + c z = d$ uchun $z=z_0$ qo‘yib, $a x + b y = d - c z_0$ chiziqlarini chizamiz.</p>
+            <div class="row2">
+              <div><label>z₀</label><input id="z0" type="number" value="0"></div>
+              <div><label>Radius</label><input id="rc" type="number" value="8"></div>
+              <div><label>Grid qadam</label><input id="gc" type="number" value="1"></div>
+              <div style="display:flex;align-items:flex-end"><button class="btn" id="drawC">Chizish</button></div>
+            </div>
+            <div style="height:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn ok" id="goSolZ">🔁 z = z* (yechimdagi z)</button>
+              <button class="btn out" id="codeC">📋 MATLAB kontur kodi</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <canvas id="cvContour" class="small"></canvas>
+          <div class="code" id="matC"><span class="cm">% MATLAB kodi shu yerda paydo bo'ladi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATLAB bundle -->
+    <div class="tabp" id="p-matlab">
+      <div class="code" id="bundle"><span class="cm">% Yig'ma MATLAB skript shu yerda paydo bo'ladi (quyidagi tugmalar orqali ham yangilanadi)</span></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="btn" id="copyAll">📋 Nusxalash</button>
+        <button class="btn ok" id="dlAll">💾 .m fayl</button>
+      </div>
+    </div>
+
+    <!-- Help -->
+    <div class="tabp" id="p-help">
+      <div class="card" style="margin:0">
+        <h3>ℹ️ Parametrlar izohi</h3>
+        <ul>
+          <li><b>aᵢ, bᵢ, cᵢ (2×2):</b> chiziq $a x + b y = c$ koeffitsiyentlari. Grafikda chiziq qiyaligi va kesishi shular bilan belgilanadi.</li>
+          <li><b>aᵢⱼ (3×3):</b> $A$ matritsa elementlari — har qator bitta tekislikning $(a,b,c)$ koeffitsiyentlari.</li>
+          <li><b>b (3×3):</b> ozod hadlar vektori, har tekislik uchun $d$.</li>
+          <li><b>Radius:</b> chiziladigan oynaning ko‘lamini belgilaydi ($[-r,r]$).</li>
+          <li><b>Grid/mesh qadam:</b> fon tarmog‘ining qadam uzunligi (kichik bo‘lsa — zichroq).</li>
+          <li><b>Yaw/Pitch:</b> 3D aylantirish burchaklari (daraja). Yaw — $z$ atrofida, Pitch — $x$ atrofida.</li>
+          <li><b>z₀:</b> kesim balandligi; $z$ oshsa, chiziqlar siljishi $c$ ga mutanosib.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ====== helpers ======
+const $=id=>document.getElementById(id);
+function valNum(id,fallback=0){const el=$(id); if(!el) return fallback; const v=parseFloat(el.value); return Number.isFinite(v)?v:fallback;}
+function setHTML(id,html){const el=$(id); if(el) el.innerHTML=html;}
+function show(id,vis=true){const el=$(id); if(el) el.style.display=vis?'block':'none';}
+function dprCanvas(node){
+  const dpr=window.devicePixelRatio||1;
+  const rect=node.getBoundingClientRect();
+  node.width=rect.width*dpr; node.height=rect.height*dpr;
+  const ctx=node.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:rect.width,h:rect.height,dpr};
+}
+function fmt(n,prec=4){return Number(n).toFixed(prec)}
+function clone2D(M){return M.map(r=>r.slice())}
+function augHTML(A,b){
+  const n=A.length,m=A[0].length;
+  let html='<div class="augwrap"><div class="matrix cols-'+m+'">';
+  for(let i=0;i<n;i++){for(let j=0;j<m;j++){html+=`<div class="cell">${fmt(A[i][j],3)}</div>`}}
+  html+='</div><div class="sep"></div><div class="matrix cols-1">';
+  for(let i=0;i<n;i++){html+=`<div class="cell">${fmt(b[i],3)}</div>`}
+  html+='</div></div>'; return html;
+}
+function downloadFile(content, filename, mimeType='text/plain'){
+  const blob=new Blob([content],{type:mimeType+';charset=utf-8'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download=filename;a.click(); URL.revokeObjectURL(url);
+}
+
+// ====== tabs ======
+(function bindTabs(){
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(t=>t.addEventListener('click',()=>{
+    tabs.forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tabp').forEach(p=>p.classList.remove('active'));
+    t.classList.add('active'); const id='p-'+t.dataset.t; $(id).classList.add('active');
+  }));
+})();
+
+// ====== 2×2: solve, steps, draw ======
+function solve2x2(){
+  const a1=valNum('a1',2),b1=valNum('b1',1),c1=valNum('c1',5),
+        a2=valNum('a2',-1),b2=valNum('b2',2),c2=valNum('c2',1);
+  const D=a1*b2-a2*b1, D1=c1*b2-c2*b1, D2=a1*c2-a2*c1;
+  let status='', sol=null;
+  const steps=[];
+  steps.push(`<div class="step"><b>1)</b> Determinantlar: D = a₁b₂−a₂b₁ = ${fmt(a1)}·${fmt(b2)} − ${fmt(a2)}·${fmt(b1)} = <b>${fmt(D,6)}</b><br>
+    D₁ = c₁b₂−c₂b₁ = ${fmt(c1)}·${fmt(b2)} − ${fmt(c2)}·${fmt(b1)} = ${fmt(D1,6)}<br>
+    D₂ = a₁c₂−a₂c₁ = ${fmt(a1)}·${fmt(c2)} − ${fmt(a2)}·${fmt(c1)} = ${fmt(D2,6)}</div>`);
+  if(Math.abs(D)<1e-10){
+    if(Math.abs(D1)<1e-10 && Math.abs(D2)<1e-10){
+      status='Cheksiz yechim (ustma-ust chiziqlar: mutanosib koeffitsiyentlar)';
+      steps.push(`<div class="step"><b>2)</b> D=0, D₁=0, D₂=0 ⇒ <b>cheksiz</b> yechimlar (bir xil chiziq).</div>`);
+    }else{
+      status='Yechim yo‘q (parallel chiziqlar)';
+      steps.push(`<div class="step"><b>2)</b> D=0, ammo D₁ yoki D₂ ≠ 0 ⇒ <b>yechim yo‘q</b> (parallel).</div>`);
+    }
+  }else{
+    const x=D1/D, y=D2/D; sol={x,y};
+    status=`Yagona yechim: x=${fmt(x)}, y=${fmt(y)} (D=${fmt(D)})`;
+    steps.push(`<div class="step"><b>2)</b> D ≠ 0 ⇒ Cramer:  x = D₁/D = ${fmt(D1)}/${fmt(D)} = <b>${fmt(x)}</b>, 
+      y = D₂/D = ${fmt(D2)}/${fmt(D)} = <b>${fmt(y)}</b>.</div>`);
+    // optional elimination view
+    steps.push(`<div class="step"><b>3)</b> Eliminarish qarashi (ko‘rinish):
+      <div class="augwrap"><div class="matrix cols-3">
+        <div class="cell">${fmt(a1)}</div><div class="cell">${fmt(b1)}</div><div class="cell">${fmt(c1)}</div>
+        <div class="cell">${fmt(a2)}</div><div class="cell">${fmt(b2)}</div><div class="cell">${fmt(c2)}</div>
+      </div><span class="smallnote" style="margin-left:6px">[a b | c] shaklida</span></div>
+      </div>`);
+  }
+  setHTML('kpi2',
+    `<div class="box">D=${fmt(D)}</div>
+     <div class="box">D₁=${fmt(D1)}</div>
+     <div class="box">D₂=${fmt(D2)}</div>
+     ${sol?`<div class="box">x=${fmt(sol.x)}</div><div class="box">y=${fmt(sol.y)}</div>`:''}
+     <div class="box">${status}</div>`);
+  setHTML('log2steps',steps.join(''));
+  draw2D(a1,b1,c1,a2,b2,c2,sol);
+  genMatlab2(a1,b1,c1,a2,b2,c2);
+}
+function draw2D(a1,b1,c1,a2,b2,c2,sol){
+  const node=$('cv2d'); const {ctx,w,h}=dprCanvas(node);
+  const R=valNum('r2',10), G=valNum('g2',1), LW=valNum('lw2',2.5), PR=valNum('pr2',6);
+  const xmin=-R,xmax=R,ymin=-R,ymax=R;
+  const toC=(x,y)=>({X:(x-xmin)/(xmax-xmin)*w, Y:h-(y-ymin)/(ymax-ymin)*h});
+  // grid
+  ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=1;
+  for(let gx=Math.ceil(xmin); gx<=xmax; gx+=G){const p=toC(gx,0); ctx.beginPath(); ctx.moveTo(p.X,0); ctx.lineTo(p.X,h); ctx.stroke();}
+  for(let gy=Math.ceil(ymin); gy<=ymax; gy+=G){const p=toC(0,gy); ctx.beginPath(); ctx.moveTo(0,p.Y); ctx.lineTo(w,p.Y); ctx.stroke();}
+  // axes
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; const o=toC(0,0);
+  ctx.beginPath(); ctx.moveTo(0,o.Y); ctx.lineTo(w,o.Y); ctx.moveTo(o.X,0); ctx.lineTo(o.X,h); ctx.stroke();
+  // line drawer
+  function drawLine(a,b,c,color){
+    ctx.strokeStyle=color; ctx.lineWidth=LW; ctx.beginPath();
+    if(Math.abs(b)>1e-12){
+      const y1=(c-a*xmin)/b, y2=(c-a*xmax)/b; const p1=toC(xmin,y1), p2=toC(xmax,y2);
+      ctx.moveTo(p1.X,p1.Y); ctx.lineTo(p2.X,p2.Y);
+    }else{
+      const x=c/a; const p1=toC(x,ymin), p2=toC(x,ymax);
+      ctx.moveTo(p1.X,p1.Y); ctx.lineTo(p2.X,p2.Y);
+    }
+    ctx.stroke();
+  }
+  drawLine(a1,b1,c1,'#2563eb'); drawLine(a2,b2,c2,'#dc2626');
+  if(sol){
+    const p=toC(sol.x,sol.y); ctx.fillStyle='#38a169'; ctx.beginPath(); ctx.arc(p.X,p.Y,PR,0,2*Math.PI); ctx.fill();
+  }
+}
+function genMatlab2(a1,b1,c1,a2,b2,c2){
+  const R=valNum('r2',10);
+  const code = `%% L5 — 2x2 chiziqli tenglamalar (masala, qadam-baqadam)
+% Masala: a1*x + b1*y = c1;  a2*x + b2*y = c2.
+a1=${a1}; b1=${b1}; c1=${c1};
+a2=${a2}; b2=${b2}; c2=${c2};
+A=[a1 b1; a2 b2]; b=[c1; c2];
+
+%% 1) Cramer determinantlari
+D  = a1*b2 - a2*b1;
+D1 = c1*b2 - c2*b1;
+D2 = a1*c2 - a2*c1;
+
+if abs(D)>1e-12
+    x = D1/D; y = D2/D;
+    disp('Yagona yechim (Cramer):'); fprintf('x=%.6f, y=%.6f\\n',x,y);
+else
+    if abs(D1)<1e-12 && abs(D2)<1e-12
+        disp('Cheksiz yechim: chiziqlar ustma-ust.');
+    else
+        disp('Yechim yo''q: parallel chiziqlar.');
+    end
+end
+
+%% 2) Grafik
+figure; hold on; grid on; axis equal
+rng=[-${R} ${R} -${R} ${R}];
+fimplicit(@(x,y) a1*x + b1*y - c1, rng, 'LineWidth', 2);
+fimplicit(@(x,y) a2*x + b2*y - c2, rng, 'LineWidth', 2);
+if abs(D)>1e-12, plot(x,y,'o','MarkerFaceColor','g'), end
+legend('1-chiziq','2-chiziq','Yechim','Location','best');
+title('2x2 — chiziqlar kesishuvi');`;
+  setHTML('mat2',code.replace(/</g,'&lt;'));
+}
+
+// ====== 3×3: det, rank, Gauss–Jordan steps, 3D draw ======
+function det3(A){
+  return A[0][0]*(A[1][1]*A[2][2]-A[1][2]*A[2][1])
+       - A[0][1]*(A[1][0]*A[2][2]-A[1][2]*A[2][0])
+       + A[0][2]*(A[1][0]*A[2][1]-A[1][1]*A[2][0]);
+}
+
+// Gauss-Jordan with detailed log
+function gaussJordanSteps(Ain,bin){
+  const A=clone2D(Ain), b=bin.slice();
+  const M=[ [A[0][0],A[0][1],A[0][2],b[0]],
+            [A[1][0],A[1][1],A[1][2],b[1]],
+            [A[2][0],A[2][1],A[2][2],b[2]] ];
+  const steps=[];
+  const tol=1e-10; let r=0;
+  steps.push(`<div class="step"><b>Boshlang'ich [A|b]:</b><br>${augHTML(A,b)}</div>`);
+  for(let c=0;c<3;c++){
+    // pivot select
+    let piv=r; for(let i=r;i<3;i++){ if(Math.abs(M[i][c])>Math.abs(M[piv][c])) piv=i; }
+    if(Math.abs(M[piv][c])<tol){ steps.push(`<div class="step"><b>${c+1})</b> Ustun ${c+1}: asosiy element topilmadi (≈0), o‘tiladi.</div>`); continue; }
+    if(piv!==r){ const t=M[piv]; M[piv]=M[r]; M[r]=t; steps.push(`<div class="step"><b>${c+1})</b> R${piv+1} ↔ R${r+1} (pivot yuqoriga ko‘tarildi)<br>${matrixFromAug(M)}</div>`); }
+    // scale
+    const pv=M[r][c]; for(let j=c;j<=3;j++) M[r][j]/=pv;
+    steps.push(`<div class="step">R${r+1} := R${r+1}/${fmt(pv,6)} (pivotni 1 ga keltirish)<br>${matrixFromAug(M)}</div>`);
+    // eliminate others
+    for(let i=0;i<3;i++){
+      if(i===r) continue; const f=M[i][c];
+      if(Math.abs(f)<tol) continue;
+      for(let j=c;j<=3;j++) M[i][j]-=f*M[r][j];
+      steps.push(`<div class="step">R${i+1} := R${i+1} − (${fmt(f,6)})·R${r+1}<br>${matrixFromAug(M)}</div>`);
+    }
+    r++;
+  }
+  // ranks
+  let rankA=0, rankAb=0;
+  for(let i=0;i<3;i++){
+    const sA=Math.abs(M[i][0])+Math.abs(M[i][1])+Math.abs(M[i][2]);
+    const sAb=sA+Math.abs(M[i][3]); if(sA>tol) rankA++; if(sAb>tol) rankAb++;
+  }
+  const x = (rankA===3)? [M[0][3],M[1][3],M[2][3]] : null;
+  return {x,rankA,rankAb,steps};
+}
+function matrixFromAug(M){
+  const A=[[M[0][0],M[0][1],M[0][2]],
+           [M[1][0],M[1][1],M[1][2]],
+           [M[2][0],M[2][1],M[2][2]]];
+  const b=[M[0][3],M[1][3],M[2][3]];
+  return augHTML(A,b);
+}
+
+function readA(){return [
+  [valNum('a11',1),valNum('a12',-2),valNum('a13',1)],
+  [valNum('a21',2),valNum('a22',1),valNum('a23',-1)],
+  [valNum('a31',-1),valNum('a32',1),valNum('a33',2)]
+];}
+function readb(){return [valNum('b1_',4),valNum('b2_',1),valNum('b3_',-1)];}
+
+function solve3x3(){
+  const A=readA(), b=readb();
+  const D = det3(A);
+  const gj = gaussJordanSteps(A,b);
+  const {x,rankA,rankAb,steps}=gj;
+  let msg='';
+  if(Math.abs(D)>1e-9){
+    msg=`Yagona yechim: x=${fmt(x[0])}, y=${fmt(x[1])}, z=${fmt(x[2])} (det=${fmt(D)})`;
+  }else{
+    msg = (rankA===rankAb)?'Cheksiz yechim (det=0, rank(A)=rank([A|b]))':'Yechim yo‘q (rank farq qiladi)';
+  }
+  setHTML('kpi3',
+    `<div class="box">det(A)=${fmt(D)}</div>
+     <div class="box">rank(A)=${rankA}</div>
+     <div class="box">rank([A|b])=${rankAb}</div>
+     ${x?`<div class="box">x=${fmt(x[0])}</div><div class="box">y=${fmt(x[1])}</div><div class="box">z=${fmt(x[2])}</div>`:''}
+     <div class="box">${msg}</div>`);
+  setHTML('log3steps',steps.join(''));
+  draw3D(A,b,x);
+  genMatlab3(A,b);
+}
+
+function draw3D(A,b,sol){
+  const node=$('cv3d'); const {ctx,w,h}=dprCanvas(node);
+  const r=valNum('r3',6), step=Math.max(0.25, valNum('step3',1));
+  const yaw=valNum('yaw',30)*Math.PI/180, pitch=valNum('pitch',25)*Math.PI/180;
+  function rot(p){let [x,y,z]=p; const cy=Math.cos(yaw), sy=Math.sin(yaw), cp=Math.cos(pitch), sp=Math.sin(pitch);
+    let x1=cy*x - sy*y, y1=sy*x + cy*y, z1=z; let x2=x1, y2=cp*y1 - sp*z1, z2=sp*y1 + cp*z1; return [x2,y2,z2];}
+  function proj(p){const [x,y]=rot(p); const s=18; return [w/2 + x*s, h/2 - y*s];}
+  // axes
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.2; ctx.font='12px Segoe UI';
+  function axis(a,b,color,label){ctx.strokeStyle=color; ctx.beginPath(); const A=proj(a), B=proj(b); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke(); ctx.fillStyle=color; ctx.fillText(label,B[0]+4,B[1]+4);}
+  axis([-r,0,0],[r,0,0],'#1f6feb','x'); axis([0,-r,0],[0,r,0],'#d97706','y'); axis([0,0,-r],[0,0,r],'#059669','z');
+  // base grid (z=0)
+  ctx.strokeStyle='rgba(0,0,0,0.08)';
+  for(let x=-r;x<=r;x+=step){let A=proj([x,-r,0]), B=proj([x,r,0]); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();}
+  for(let y=-r;y<=r;y+=step){let A=proj([-r,y,0]), B=proj([r,y,0]); ctx.beginPath(); ctx.moveTo(A[0],A[1]); ctx.lineTo(B[0],B[1]); ctx.stroke();}
+
+  function drawPlane(eq,color){
+    const [a,b_,c,d]=eq; ctx.strokeStyle=color; ctx.lineWidth=1.5; const S=step;
+    if(Math.abs(c)>1e-12){
+      for(let x=-r;x<=r;x+=S){ctx.beginPath(); let first=true; for(let y=-r;y<=r;y+=S){const z=(d-a*x-b_*y)/c; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+      for(let y=-r;y<=r;y+=S){ctx.beginPath(); let first=true; for(let x=-r;x<=r;x+=S){const z=(d-a*x-b_*y)/c; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+    } else if(Math.abs(b_)>1e-12){
+      for(let x=-r;x<=r;x+=S){ctx.beginPath(); let first=true; for(let z=-r;z<=r;z+=S){const y=(d-a*x-c*z)/b_; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+      for(let z=-r;z<=r;z+=S){ctx.beginPath(); let first=true; for(let x=-r;x<=r;x+=S){const y=(d-a*x-c*z)/b_; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+    } else {
+      for(let y=-r;y<=r;y+=S){ctx.beginPath(); let first=true; for(let z=-r;z<=r;z+=S){const x=(d-b_*y-c*z)/a; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+      for(let z=-r;z<=r;z+=S){ctx.beginPath(); let first=true; for(let y=-r;y<=r;y+=S){const x=(d-b_*y-c*z)/a; const P=proj([x,y,z]); if(first){ctx.moveTo(P[0],P[1]); first=false;} else ctx.lineTo(P[0],P[1]);} ctx.stroke();}
+    }
+  }
+  const eq1=[A[0][0],A[0][1],A[0][2],b[0]],
+        eq2=[A[1][0],A[1][1],A[1][2],b[1]],
+        eq3=[A[2][0],A[2][1],A[2][2],b[2]];
+  drawPlane(eq1,'#2563eb'); drawPlane(eq2,'#dc2626'); drawPlane(eq3,'#059669');
+  if(sol){const P=proj(sol); ctx.fillStyle='#111827'; ctx.beginPath(); ctx.arc(P[0],P[1],5,0,2*Math.PI); ctx.fill();}
+}
+
+function genMatlab3(A,b){
+  const r=valNum('r3',6);
+  const code = `%% L5 — 3x3 sistema (masala, qadam-baqadam)
+% Masala: A*x = b;  A — 3×3, b — 3×1.
+A=[${A[0].join(' ')}; ${A[1].join(' ')}; ${A[2].join(' ')}];
+b=[${b.join('; ')}];
+
+%% 1) Determinant va tasnif
+d = det(A);
+fprintf('det(A) = %.6f\\n', d);
+
+%% 2) Ranklar va Gauss-Jordan (rref)
+Aug = [A b];
+[R, piv] = rref(Aug);
+rankA  = rank(A);
+rankAb = rank(Aug);
+fprintf('rank(A)=%d, rank([A|b])=%d\\n',rankA,rankAb);
+
+if abs(d)>1e-12
+    x = A\\b; disp('Yagona yechim (A\\b):');
+    fprintf('x=%.6f, y=%.6f, z=%.6f\\n',x(1),x(2),x(3));
+elseif rankA==rankAb
+    disp('Cheksiz yechim: det=0 va ranklar teng.');
+else
+    disp('Yechim yo''q: rank farq qiladi.');
+end
+
+%% 3) 3D vizualizatsiya
+figure; hold on; r=${r}; box=[-r r -r r -r r];
+fimplicit3(@(x,y,z) A(1,1)*x + A(1,2)*y + A(1,3)*z - b(1), box)
+fimplicit3(@(x,y,z) A(2,1)*x + A(2,2)*y + A(2,3)*z - b(2), box)
+fimplicit3(@(x,y,z) A(3,1)*x + A(3,2)*y + A(3,3)*z - b(3), box)
+if abs(d)>1e-12, plot3(x(1),x(2),x(3),'o','MarkerFaceColor','r'); end
+grid on; axis vis3d; title('3x3 — tekisliklar kesishuvi');`;
+  setHTML('mat3',code.replace(/</g,'&lt;'));
+}
+
+// ====== Contour (z = const) ======
+function drawContour(zfix){
+  const A=readA(), b=readb();
+  const node=$('cvContour'); const {ctx,w,h}=dprCanvas(node);
+  const R=valNum('rc',8), G=valNum('gc',1);
+  const xmin=-R,xmax=R,ymin=-R,ymax=R;
+  const toC=(x,y)=>({X:(x-xmin)/(xmax-xmin)*w, Y:h-(y-ymin)/(ymax-ymin)*h});
+  ctx.clearRect(0,0,w,h);
+  // grid
+  ctx.strokeStyle='rgba(0,0,0,0.08)'; ctx.lineWidth=1;
+  for(let gx=Math.ceil(xmin);gx<=xmax;gx+=G){const p=toC(gx,0); ctx.beginPath(); ctx.moveTo(p.X,0); ctx.lineTo(p.X,h); ctx.stroke();}
+  for(let gy=Math.ceil(ymin);gy<=ymax;gy+=G){const p=toC(0,gy); ctx.beginPath(); ctx.moveTo(0,p.Y); ctx.lineTo(w,p.Y); ctx.stroke();}
+  // axes
+  ctx.strokeStyle='#4a5568'; ctx.lineWidth=1.5; const o=toC(0,0);
+  ctx.beginPath(); ctx.moveTo(0,o.Y); ctx.lineTo(w,o.Y); ctx.moveTo(o.X,0); ctx.lineTo(o.X,h); ctx.stroke();
+
+  function lineFromPlane(a,b_,c,d,z0,color){
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.beginPath(); const C=d-c*z0;
+    if(Math.abs(b_)>1e-12){const y1=(C-a*xmin)/b_, y2=(C-a*xmax)/b_; const p1=toC(xmin,y1), p2=toC(xmax,y2); ctx.moveTo(p1.X,p1.Y); ctx.lineTo(p2.X,p2.Y);}
+    else{const x=C/a; const p1=toC(x,ymin), p2=toC(x,ymax); ctx.moveTo(p1.X,p1.Y); ctx.lineTo(p2.X,p2.Y);}
+    ctx.stroke();
+  }
+  lineFromPlane(A[0][0],A[0][1],A[0][2],b[0],zfix,'#2563eb');
+  lineFromPlane(A[1][0],A[1][1],A[1][2],b[1],zfix,'#dc2626');
+  lineFromPlane(A[2][0],A[2][1],A[2][2],b[2],zfix,'#059669');
+}
+function genMatlabContour(z0){
+  const A=readA(), b=readb(); const R=valNum('rc',8);
+  const code = `%% L5 — Contour: z = ${z0}
+A=[${A[0].join(' ')}; ${A[1].join(' ')}; ${A[2].join(' ')}]; b=[${b.join('; ')}]; z0=${z0};
+C = b - A(:,3)*z0;  % a*x + b*y = C
+figure; hold on; grid on; axis equal; box on; rng=[-${R} ${R} -${R} ${R}];
+fimplicit(@(x,y) A(1,1)*x + A(1,2)*y - C(1), rng, 'LineWidth',2)
+fimplicit(@(x,y) A(2,1)*x + A(2,2)*y - C(2), rng, 'LineWidth',2)
+fimplicit(@(x,y) A(3,1)*x + A(3,2)*y - C(3), rng, 'LineWidth',2)
+title(sprintf('z = %.3f kesimi — tarmoqli chizmalar'), z0);`;
+  setHTML('matC',code.replace(/</g,'&lt;'));
+}
+function drawContourFromUI(){const z0=valNum('z0',0); drawContour(z0); genMatlabContour(z0);}
+
+// ====== MATLAB bundle (hammasini yig'ish) ======
+function buildBundle(){
+  const a1=valNum('a1'),b1=valNum('b1'),c1=valNum('c1'),a2=valNum('a2'),b2=valNum('b2'),c2=valNum('c2');
+  const A=readA(), b=readb(), z0=valNum('z0',0);
+  const r2=valNum('r2',10);
+  const header = `%% L5 — Matlabda tenglama sistemalari (to'liq skript)
+% Ushbu skript 2x2 va 3x3 sistemalarni hal qiladi, tasniflaydi va
+% 2D/3D grafiklarni chizadi; shuningdek z=z0 kesimida konturlarni ko'rsatadi.
+
+`;
+  const part2 = `%% --- 2x2 bo'limi ---
+a1=${a1}; b1=${b1}; c1=${c1};  a2=${a2}; b2=${b2}; c2=${c2};
+A2=[a1 b1; a2 b2]; b2v=[c1; c2];
+D  = a1*b2 - a2*b1; D1 = c1*b2 - c2*b1; D2 = a1*c2 - a2*c1;
+fprintf('\\n[2x2] D=%.6f, D1=%.6f, D2=%.6f\\n',D,D1,D2);
+if abs(D)>1e-12
+    x = D1/D; y = D2/D; fprintf('[2x2] x=%.6f, y=%.6f\\n',x,y);
+else
+    if abs(D1)<1e-12 && abs(D2)<1e-12
+        disp('[2x2] Cheksiz yechim');
+    else
+        disp('[2x2] Yechim yo''q');
+    end
+end
+figure; hold on; grid on; axis equal; rng=[-${r2} ${r2} -${r2} ${r2}];
+fimplicit(@(x,y) a1*x + b1*y - c1, rng, 'LineWidth',2)
+fimplicit(@(x,y) a2*x + b2*y - c2, rng, 'LineWidth',2)
+if abs(D)>1e-12, plot(x,y,'o','MarkerFaceColor','g'), end
+title('2x2 — chiziqlar'); legend('1','2','yechim');
+
+`;
+  const part3 = `%% --- 3x3 bo'limi ---
+A=[${A[0].join(' ')}; ${A[1].join(' ')}; ${A[2].join(' ')}];
+b=[${b.join('; ')}];
+d = det(A); Aug=[A b]; [R,~]=rref(Aug);
+fprintf('\\n[3x3] det(A)=%.6f, rank(A)=%d, rank([A|b])=%d\\n', d, rank(A), rank(Aug));
+if abs(d)>1e-12
+    x3 = A\\b; fprintf('[3x3] x=%.6f, y=%.6f, z=%.6f\\n',x3(1),x3(2),x3(3));
+else
+    if rank(A)==rank(Aug), disp('[3x3] Cheksiz yechim'); else, disp('[3x3] Yechim yo''q'); end
+end
+figure; hold on; r=6; box=[-r r -r r -r r];
+fimplicit3(@(x,y,z) A(1,1)*x + A(1,2)*y + A(1,3)*z - b(1), box)
+fimplicit3(@(x,y,z) A(2,1)*x + A(2,2)*y + A(2,3)*z - b(2), box)
+fimplicit3(@(x,y,z) A(3,1)*x + A(3,2)*y + A(3,3)*z - b(3), box)
+if abs(d)>1e-12, plot3(x3(1),x3(2),x3(3),'o','MarkerFaceColor','r'); end
+grid on; axis vis3d; title('3x3 — tekisliklar');
+
+`;
+  const partC = `%% --- Contour (z = z0) ---
+z0=${z0}; C = b - A(:,3)*z0;
+figure; hold on; grid on; axis equal; box on; rng=[-8 8 -8 8];
+fimplicit(@(x,y) A(1,1)*x + A(1,2)*y - C(1), rng, 'LineWidth',2)
+fimplicit(@(x,y) A(2,1)*x + A(2,2)*y - C(2), rng, 'LineWidth',2)
+fimplicit(@(x,y) A(3,1)*x + A(3,2)*y - C(3), rng, 'LineWidth',2)
+title(sprintf('z = %.3f kesimi — tarmoqli chizmalar'), z0);
+`;
+  return header+part2+part3+partC;
+}
+function refreshBundle(){ setHTML('bundle', buildBundle().replace(/</g,'&lt;')); }
+
+// ====== events ======
+$('solve2').addEventListener('click',solve2x2);
+$('code2').addEventListener('click',solve2x2);
+$('steps2').addEventListener('click',()=>{ const node=$('log2'); node.style.display = (node.style.display==='none' || node.style.display==='')?'block':'none'; });
+
+$('solve3').addEventListener('click',solve3x3);
+$('code3').addEventListener('click',solve3x3);
+$('steps3').addEventListener('click',()=>{ const node=$('log3'); node.style.display = (node.style.display==='none' || node.style.display==='')?'block':'none'; });
+['yaw','pitch','r3','step3'].forEach(id=>$(id).addEventListener('input',solve3x3));
+
+$('drawC').addEventListener('click',drawContourFromUI);
+$('codeC').addEventListener('click',drawContourFromUI);
+$('goSolZ').addEventListener('click',()=>{const A=readA(), b=readb(); const gj=gaussJordanSteps(A,b); if(gj.x){$('z0').value=fmt(gj.x[2],4); drawContourFromUI();}});
+
+$('copyAll').addEventListener('click',()=>{navigator.clipboard.writeText(buildBundle()).then(()=>alert('MATLAB skript nusxalandi!'))});
+$('dlAll').addEventListener('click',()=>downloadFile(buildBundle(),'L5_linear_systems_full.m','text/x-matlab'));
+
+// ====== init ======
+function init(){
+  solve2x2(); solve3x3(); drawContourFromUI(); refreshBundle();
+  // har qanday kiritishlar bundle’ni ham yangilab tursin
+  ['a1','b1','c1','a2','b2','c2','a11','a12','a13','a21','a22','a23','a31','a32','a33','b1_','b2_','b3_','z0']
+  .forEach(id=>$(id).addEventListener('input',refreshBundle));
+}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
