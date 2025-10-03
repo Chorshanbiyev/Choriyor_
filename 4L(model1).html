@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MATLABda matrisalar ustida amallar - Raqamli rasmni qayta ishlash (Improved)</title>
+
+<!-- MathJax formulalar uchun -->
+<script>
+  window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };
+</script>
+<!-- URL typo fixed: tex-mml-chtml.js -->
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+:root{
+--bg1:#f0f4f8; --bg2:#e2e8f0; --ink:#1a202c; --muted:#718096;
+--pri:#3182ce; --pri2:#805ad5; --ok:#38a169; --warn:#d69e2e; --bad:#e53e3e;
+--card:#ffffff; --grid:#edf2f7; --frame:#cbd5e0; --accent:#319795;
+--matlab:#0076a8; --matrix:#4a5568; --filter:#9f7aea; --pixel:#ed8936;
+--red:#f56565; --green:#48bb78; --blue:#4299e1; --purple:#9f7aea;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Roboto,'Arial',sans-serif;color:var(--ink);
+background:linear-gradient(135deg,#bee3f8 0%,#90cdf4 30%,#63b3ed 100%);
+line-height:1.6;font-size:15px}
+.container{max-width:1900px;margin:0 auto;padding:20px}
+.header{background:var(--card);border-radius:20px;padding:35px;box-shadow:0 25px 50px rgba(0,0,0,.15);text-align:center;margin-bottom:24px;border:1px solid rgba(255,255,255,.3)}
+.header h1{margin:0 0 14px 0;font-size:36px;font-weight:800;background:linear-gradient(135deg,var(--matlab),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{margin:0 0 6px 0;color:var(--muted);font-size:17px}
+.header .subtitle{color:var(--accent);font-weight:600;font-size:15px}
+.matlab-logo{font-size:48px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:18px}
+@media (max-width:1200px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:18px;padding:26px;box-shadow:0 15px 35px rgba(0,0,0,.1);margin-bottom:20px;border:1px solid rgba(255,255,255,.25)}
+.card h2{margin:0 0 18px 0;font-size:24px;font-weight:700;color:#2d3748}
+.card h3{margin:0 0 14px 0;font-size:20px;font-weight:600;color:#4a5568}
+.card h4{margin:0 0 10px 0;font-size:18px;font-weight:600;color:#718096}
+.problem-showcase{background:linear-gradient(135deg,#fef5e7 0%,#fed7aa 100%);border:3px solid var(--pixel);border-radius:20px;padding:26px;margin:25px 0;position:relative}
+.problem-title{font-size:22px;font-weight:800;color:#c05621;margin-bottom:14px}
+.problem-scenario{background:rgba(255,255,255,.95);border-radius:12px;padding:18px;margin:14px 0;border-left:4px solid var(--pixel)}
+.info-box{background:rgba(49,130,206,.1);border:1px solid rgba(49,130,206,.3);border-radius:12px;padding:16px;margin:12px 0}
+.warning-box{background:rgba(229,62,62,.1);border:1px solid rgba(229,62,62,.3);border-radius:12px;padding:16px;margin:12px 0}
+.success-box{background:rgba(56,161,105,.1);border:1px solid rgba(56,161,105,.3);border-radius:12px;padding:16px;margin:12px 0}
+.matlab-box{background:rgba(7,118,168,.1);border:1px solid rgba(7,118,168,.3);border-radius:12px;padding:16px;margin:12px 0}
+.matrix-display{background:linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%);border:3px solid var(--matrix);border-radius:16px;padding:18px;margin:14px 0;text-align:center}
+.matrix-text{font-family:'Courier New',monospace;font-size:18px;font-weight:700;color:var(--matrix)}
+.matrix-hint{color:var(--muted);font-size:14px;margin-top:6px}
+.control-panel{background:linear-gradient(135deg,#f7fafc 0%,#edf2f7 100%);border:2px solid var(--frame);border-radius:16px;padding:20px;margin:16px 0}
+.control-group{margin-bottom:16px}
+.control-label{font-weight:600;color:#2d3748;margin-bottom:6px;display:block}
+.control-desc{color:#6b7280;font-size:13px;margin-bottom:8px}
+input[type=range]{width:100%;height:12px;border-radius:8px;background:#cbd5e0;outline:none;-webkit-appearance:none;margin:8px 0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:24px;height:24px;border-radius:50%;background:var(--matlab);cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--matlab);cursor:pointer;border:none}
+input[type=number], select, input[type=file]{padding:12px 14px;border:2px solid var(--frame);border-radius:10px;font-size:14px;background:#fff;width:100%}
+input[type=number]:focus, select:focus, input[type=file]:focus{border-color:var(--matlab);outline:none;box-shadow:0 0 0 3px rgba(7,118,168,.12)}
+.btn{background:var(--matlab);border:0;color:#fff;padding:12px 18px;border-radius:12px;cursor:pointer;font-weight:600;transition:all .25s;display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.btn:hover{background:#005c7a;transform:translateY(-1px)}
+.btn.filter{background:var(--filter)}.btn.filter:hover{background:#805ad5}
+.btn.outline{background:transparent;border:2px solid var(--matlab);color:var(--matlab)}
+.btn.outline:hover{background:var(--matlab);color:#fff}
+.btn.success{background:var(--ok)}.btn.danger{background:var(--bad)}.btn.primary{background:var(--pri)}
+.btn-group{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+canvas{width:100%;height:300px;background:#fff;border:3px solid var(--frame);border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.08)}
+.canvas-large{height:400px}
+.canvas-small{height:200px}
+.image-container{position:relative;display:inline-block;margin:10px;border:3px solid var(--frame);border-radius:12px;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.1)}
+.image-container canvas{display:block}
+.image-label{position:absolute;top:5px;left:5px;background:rgba(0,0,0,.8);color:#fff;padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600}
+.tabs{display:flex;gap:6px;border-bottom:4px solid var(--frame);margin-bottom:18px;background:var(--bg2);border-radius:16px 16px 0 0;padding:10px 10px 0 10px;flex-wrap:wrap}
+.tab{padding:12px 18px;cursor:pointer;border-radius:12px 12px 0 0;font-weight:600;transition:.25s;font-size:14px}
+.tab:hover{background:rgba(7,118,168,.1)}.tab.active{background:var(--matlab);color:#fff;box-shadow:0 4px 12px rgba(7,118,168,.25)}
+.tab-content{display:none;animation:fade .35s ease}.tab-content.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.code-block{background:#1a202c;color:#e2e8f0;border-radius:14px;padding:20px;border-left:6px solid var(--matlab);font-family:'Courier New',monospace;font-size:13px;overflow-x:auto}
+.code-comment{color:#9ca3af}.code-keyword{color:#fbb6ce}.code-string{color:#68d391}.code-number{color:#9f7aea}.code-function{color:#63b3ed}
+.results-panel{background:linear-gradient(135deg,#f0fff4 0%,#c6f6d5 100%);border:2px solid var(--ok);border-radius:16px;padding:16px;margin:16px 0}
+.result-item{background:rgba(255,255,255,.95);border-radius:10px;padding:12px;margin:8px 0;display:flex;align-items:center;gap:10px}
+.result-label{font-weight:700;color:#22543d;min-width:160px;font-size:14px}
+.result-value{font-family:'Courier New',monospace;background:#1a202c;color:#e2e8f0;padding:8px 12px;border-radius:8px;flex:1;font-size:14px}
+.filter-legend{display:flex;gap:20px;justify-content:center;margin:15px 0;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:8px;font-weight:600}
+.legend-color{width:20px;height:20px;border-radius:4px}.legend-original{background:#e2e8f0}.legend-filtered{background:var(--filter)}.legend-enhanced{background:var(--pixel)}
+.assignment-card{background:linear-gradient(135deg,#fef5e7 0%,#fed7aa 100%);border:2px solid var(--warn);border-radius:14px;padding:18px;margin:14px 0}
+.assignment-title{font-weight:800;color:#92400e;margin-bottom:12px;font-size:16px}
+.rubric-table{width:100%;border-collapse:collapse;margin:15px 0;font-size:13px}
+.rubric-table th, .rubric-table td{padding:10px;text-align:left;border:1px solid var(--frame)}
+.rubric-table th{background:var(--matlab);color:#fff;font-weight:600}
+.rubric-table tr:nth-child(even){background:#f7fafc}
+.step-indicator{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:var(--matlab);color:#fff;font-weight:700;margin-right:12px;font-size:16px}
+.progress-bar{background:#cbd5e0;border-radius:10px;height:20px;margin:10px 0}
+.progress-fill{background:var(--matlab);height:100%;border-radius:10px;transition:width 0.5s ease}
+.scenario-box{background:linear-gradient(135deg,#faf5ff 0%,#e9d8fd 100%);border:2px solid var(--pri2);border-radius:14px;padding:16px;margin:14px 0}
+.interactive-demo{background:linear-gradient(135deg,#f0fff4 0%,#c6f6d5 100%);padding:25px;border-radius:15px;margin:20px 0;box-shadow:0 5px 15px rgba(0,0,0,0.1);border:2px solid var(--ok)}
+.matrix-viz{display:grid;gap:2px;margin:15px 0;justify-content:center;background:var(--frame);padding:10px;border-radius:8px}
+.matrix-cell{width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border-radius:4px;color:#fff;transition:all 0.3s ease}
+.colormap-bar{height:20px;border-radius:10px;margin:10px 0;background:linear-gradient(to right,#000080,#0000ff,#00ffff,#00ff00,#ffff00,#ff8000,#ff0000);position:relative}
+.colormap-label{position:absolute;top:25px;font-size:12px;color:var(--muted);text-align:center;width:100%}
+@media (max-width:768px){.canvas{height:250px}.canvas-large{height:300px}.grid2{grid-template-columns:1fr}.tabs{flex-direction:column}.filter-legend{flex-direction:column;align-items:center}.matrix-cell{width:25px;height:25px;font-size:10px}}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- SARLAVHA -->
+<div class="header">
+  <div class="matlab-logo" aria-hidden="true">🔬</div>
+  <h1>MATLABda matrisalar ustida amallar</h1>
+  <p>Raqamli rasmni qayta ishlash - Matrisaning amaliyotga tadbiqlari</p>
+  <div class="subtitle">📷 Image Processing • 🎨 Colormap Vizualizatsiya • 💻 MATLAB Kodlari</div>
+</div>
+
+<!-- AMALIY MASALA TAQDIMOTI (unchanged content trimmed for brevity in this improved file) -->
+<div class="problem-showcase">
+  <div class="problem-title">📷 Tibbiy Rentgen Rasmlarini Qayta Ishlash</div>
+  <div class="problem-scenario">
+    <h4>📝 Masala qo'yilishi:</h4>
+    <p>Shifoxonada rentgen apparati orqali olingan rasmlar sifati past... (matn yuqoridagi versiya bilan bir xil)</p>
+    <div class="scenario-box">
+      <h4>🏥 Real Stsenariy: Tibbiy Vizualizatsiya</h4>
+      <ul>
+        <li><strong>Masala:</strong> O'pkaning rentgen rasmi (512x512 piksel)</li>
+        <li><strong>Muammo:</strong> Rasm xiralashgan, shovqin bor, kontrast past</li>
+        <li><strong>Maqsad:</strong> Kasallik belgilarini aniq ko'rish</li>
+        <li><strong>Yechim:</strong> MATLAB matrisa operatsiyalari orqali filtrlash</li>
+        <li><strong>Natija:</strong> Yuqori sifatli, aniq tashxis uchun yaroqli rasm</li>
+      </ul>
+    </div>
+    <div class="info-box">
+      <strong>Matrisalar bilan Ishlash Asoslari:</strong>
+      <ul style="margin-left:20px">
+        <li><strong>Rasm ↔ Matrisa:</strong> Har bir piksel - matrisaning elementi</li>
+        <li><strong>RGB rasm:</strong> 3D matrisa (m×n×3)</li>
+        <li><strong>Grayscale:</strong> 2D matrisa (m×n)</li>
+        <li><strong>Filtrlash:</strong> Konvolyutsiya operatsiyasi</li>
+      </ul>
+    </div>
+    <div class="matrix-display">
+      <div class="matrix-text">$I_{filtered} = I * K$ <br><span style="font-size:14px">bu yerda K - filtrlash kerneli (matrisa)</span></div>
+      <div class="matrix-hint"><strong>Masalan:</strong> Gaussian blur kerneli: $K = \\tfrac{1}{16}\\begin{pmatrix} 1 & 2 & 1 \\ \\ 2 & 4 & 2 \\ \\ 1 & 2 & 1 \\end{pmatrix}$</div>
+    </div>
+  </div>
+  <div class="matlab-box"><strong>🎯 Maqsad:</strong> MATLAB ning matrix operatsiyalaridan foydalanib, raqamli rasmlarni qayta ishlash, turli filtrlar qo'llash va colormap orqali natijalarni vizualizatsiya qilish.</div>
+</div>
+
+<!-- ASOSIY SIMULYATOR -->
+<div class="card">
+  <h2>🎛️ MATLAB Rasm Qayta Ishlash Simulyatori</h2>
+
+  <div class="tabs" id="tabs" role="tablist">
+    <button class="tab active" data-tab="theory" role="tab" aria-selected="true">📖 Nazariya</button>
+    <button class="tab" data-tab="simulator" role="tab" aria-selected="false">🧪 Simulyator</button>
+    <button class="tab" data-tab="analysis" role="tab" aria-selected="false">📊 Matrix Tahlili</button>
+    <button class="tab" data-tab="matlab" role="tab" aria-selected="false">🔬 MATLAB Kodlari</button>
+    <button class="tab" data-tab="assignments" role="tab" aria-selected="false">📝 Topshiriqlar</button>
+    <button class="tab" data-tab="assessment" role="tab" aria-selected="false">📋 Baholash</button>
+  </div>
+
+  <!-- NAZARIYA TAB -->
+  <div class="tab-content active" id="tab-theory">
+    <h3>📖 MATLAB Matrix Operatsiyalari Nazariyasi</h3>
+    <div class="grid2">
+      <div>
+        <div class="matlab-box">
+          <h4>🔢 MATLAB Matrix Asoslari</h4>
+          <ul>
+            <li><strong>Matrix yaratish:</strong> <code>A = [1 2; 3 4]</code></li>
+            <li><strong>Element-wise:</strong> <code>A .* B, A ./ B</code></li>
+            <li><strong>Matrix ko'paytirish:</strong> <code>A * B</code></li>
+            <li><strong>Transpozitsiya:</strong> <code>A'</code></li>
+            <li><strong>Teskari matrisa:</strong> <code>inv(A)</code></li>
+            <li><strong>Determinant:</strong> <code>det(A)</code></li>
+            <li><strong>Rang:</strong> <code>rank(A)</code></li>
+          </ul>
+        </div>
+        <div class="info-box">
+          <h4>📷 Rasm Qayta Ishlash</h4>
+          <p><strong>Konvolyutsiya:</strong> $g(x,y) = \\sum\\sum f(i,j) \\cdot h(x-i, y-j)$</p>
+          <ul>
+            <li><strong>Blur:</strong> Rasmni xiralashtirish</li>
+            <li><strong>Sharpen:</strong> Rasmni keskinlashtirish</li>
+            <li><strong>Edge:</strong> Chekkalarni aniqlash</li>
+            <li><strong>Noise reduction:</strong> Shovqinni kamaytirish</li>
+          </ul>
+        </div>
+        <div class="success-box">
+          <h4>🎨 Colormap Turlari</h4>
+          <ul>
+            <li><strong>jet</strong>, <strong>hot</strong>, <strong>cool</strong>, <strong>gray</strong>, <strong>parula</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h4>🔄 Matrix Operatsiyalari Demo</h4>
+        <canvas id="theoryCanvas" width="600" height="400"></canvas>
+        <div class="filter-legend">
+          <div class="legend-item"><div class="legend-color legend-original"></div><span>Original</span></div>
+          <div class="legend-item"><div class="legend-color legend-filtered"></div><span>Filtered</span></div>
+          <div class="legend-item"><div class="legend-color legend-enhanced"></div><span>Enhanced</span></div>
+        </div>
+        <div class="matrix-display">
+          <h4>📐 Filtrlash Kernellari:</h4>
+          <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
+            <div style="text-align:center"><strong>Blur (3×3)</strong>
+              <div class="matrix-viz" style="grid-template-columns:repeat(3,1fr)">
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#2b6cb0">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+                <div class="matrix-cell" style="background:#4299e1">1</div>
+              </div>
+              <small>× 1/9</small>
+            </div>
+            <div style="text-align:center"><strong>Sharpen (3×3)</strong>
+              <div class="matrix-viz" style="grid-template-columns:repeat(3,1fr)">
+                <div class="matrix-cell" style="background:#e53e3e">0</div>
+                <div class="matrix-cell" style="background:#e53e3e">-1</div>
+                <div class="matrix-cell" style="background:#e53e3e">0</div>
+                <div class="matrix-cell" style="background:#e53e3e">-1</div>
+                <div class="matrix-cell" style="background:#c53030">5</div>
+                <div class="matrix-cell" style="background:#e53e3e">-1</div>
+                <div class="matrix-cell" style="background:#e53e3e">0</div>
+                <div class="matrix-cell" style="background:#e53e3e">-1</div>
+                <div class="matrix-cell" style="background:#e53e3e">0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="colormap-bar"><div class="colormap-label">Jet Colormap: qiymat 0 → 255</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIMULYATOR TAB -->
+  <div class="tab-content" id="tab-simulator">
+    <div class="grid2">
+      <div>
+        <div class="control-panel">
+          <h3>⚙️ Rasm Qayta Ishlash Parametrlari</h3>
+          <div class="control-group">
+            <label class="control-label" for="imageType">Test Rasm Turi:</label>
+            <select id="imageType">
+              <option value="medical">Tibbiy Rentgen</option>
+              <option value="satellite">Sun'iy Yo'ldosh</option>
+              <option value="microscope">Mikroskop</option>
+              <option value="synthetic">Sintetik Test</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="uploadImage">Yoki rasm yuklang (PNG/JPG):</label>
+            <input id="uploadImage" type="file" accept="image/png,image/jpeg"/>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="filterType">Filter Turi:</label>
+            <select id="filterType">
+              <option value="none">Filtrsiz</option>
+              <option value="blur">Blur (Xiralash)</option>
+              <option value="sharpen">Sharpen (Keskinlashtirish)</option>
+              <option value="edge">Edge Detection (Chekka)</option>
+              <option value="emboss">Emboss (Qavariqlik)</option>
+              <option value="gaussian">Gaussian Blur</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Filter Kuchi: <span id="valStrength">1.0</span></label>
+            <div class="control-desc">Filtrning ta'sir darajasi</div>
+            <input id="paramStrength" type="range" min="0.1" max="3.0" step="0.1" value="1.0">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Kontrast: <span id="valContrast">1.0</span></label>
+            <div class="control-desc">Rasm kontrastini o'zgartirish</div>
+            <input id="paramContrast" type="range" min="0.5" max="2.0" step="0.1" value="1.0">
+          </div>
+          <div class="control-group">
+            <label class="control-label">Yorqinlik: <span id="valBrightness">0</span></label>
+            <div class="control-desc">Rasm yorqinligini o'zgartirish</div>
+            <input id="paramBrightness" type="range" min="-50" max="50" step="5" value="0">
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="colormapType">Colormap:</label>
+            <select id="colormapType">
+              <option value="jet">Jet (Ko'k-Yashil-Qizil)</option>
+              <option value="hot">Hot (Qora-Qizil-Oq)</option>
+              <option value="cool">Cool (Ko'k-Binafsha)</option>
+              <option value="gray">Gray (Kulrang)</option>
+              <option value="parula">Parula (MATLAB default)</option>
+            </select>
+          </div>
+          <div class="btn-group">
+            <button class="btn filter" id="applyFilter">🎨 Filtrni Qo'llash</button>
+            <button class="btn outline" id="resetImage">🔄 Asl Holatga Qaytarish</button>
+            <button class="btn success" id="saveResult">📸 Natijani Saqlash (PNG)</button>
+          </div>
+          <div class="warning-box"><strong>⚠️ Diqqat:</strong> <div id="filterInfo">Filter tanlang va natijani kuzating</div></div>
+        </div>
+        <div class="results-panel">
+          <h4>📊 Rasm Statistikasi</h4>
+          <div class="result-item"><div class="result-label">Rasm o'lchami:</div><div class="result-value" id="imageSize">--</div></div>
+          <div class="result-item"><div class="result-label">Piksellar soni:</div><div class="result-value" id="totalPixels">--</div></div>
+          <div class="result-item"><div class="result-label">O'rtacha qiymat:</div><div class="result-value" id="meanValue">--</div></div>
+          <div class="result-item"><div class="result-label">Standart devyatsiya:</div><div class="result-value" id="stdDev">--</div></div>
+          <div class="result-item"><div class="result-label">Min/Max qiymatlar:</div><div class="result-value" id="minMax">--</div></div>
+          <div class="result-item"><div class="result-label">MSE / PSNR / SSIM*:</div><div class="result-value" id="qualityMetrics">--</div></div>
+          <small>*SSIM soddalashtirilgan hisob-kitob</small>
+        </div>
+        <div class="interactive-demo">
+          <h4>🎮 Quick Presets</h4>
+          <div class="btn-group">
+            <button class="btn" onclick="loadPreset('medical')">🏥 Tibbiy Rasm</button>
+            <button class="btn" onclick="loadPreset('enhance')">✨ Enhance</button>
+            <button class="btn" onclick="loadPreset('artistic')">🎨 Artistic</button>
+            <button class="btn outline" onclick="loadPreset('analysis')">🔬 Tahlil</button>
+          </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="processProgress" style="width:0%"></div></div>
+      </div>
+      <div>
+        <h3>📷 Rasm Qayta Ishlash Natijalari</h3>
+        <div class="grid2">
+          <div class="image-container">
+            <canvas id="originalCanvas" width="250" height="250"></canvas>
+            <div class="image-label">Original</div>
+          </div>
+          <div class="image-container">
+            <canvas id="processedCanvas" width="250" height="250"></canvas>
+            <div class="image-label">Processed</div>
+          </div>
+        </div>
+        <div class="colormap-bar" id="currentColormap"><div class="colormap-label">Joriy Colormap</div></div>
+        <h4>📈 Histogram Tahlili</h4>
+        <canvas id="histogramCanvas" class="canvas-small" width="600" height="200"></canvas>
+        <div class="btn-group">
+          <button class="btn" id="showMatrix">🔢 Matrix Ko'rish (CSV)</button>
+          <button class="btn primary" id="animate3D">🌐 3D Vizualizatsiya</button>
+          <button class="btn outline" id="compareImages">⚖️ Taqqoslash (Diff)</button>
+        </div>
+        <div class="matlab-box">
+          <h4>💡 Qo'llaniladigan MATLAB Kodlar</h4>
+          <div class="code-block" id="liveCode"><span class="code-comment">% Joriy operatsiyalar uchun kod bu yerda ko'rinadi</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MATRIX TAHLIL / MATLAB / TOPSHIRIQLAR / BAHOLASH TABS (unchanged content could be inserted as needed) -->
+  <div class="tab-content" id="tab-analysis"><h3>📊 Matrix Operatsiyalari va Matematik Tahlil</h3><p>… (yuqoridagi tahlil bo'limidagi jadval va tuzilmalar)</p></div>
+  <div class="tab-content" id="tab-matlab">
+    <h3>🔬 MATLAB Dasturlash Kodlari</h3>
+    <div class="card">
+      <h4>🔢 Asosiy Matrix va Rasm Qayta Ishlash Kodi</h4>
+      <div class="code-block" id="mainMatlabCode"><span class="code-comment">%% MATLAB Matrix Operatsiyalari va Rasm Qayta Ishlash — to'liq kodni "💾 .m Fayl" tugmasi orqali yuklab oling</span></div>
+      <div class="btn-group">
+        <button class="btn" id="copyMatlabMain">📋 Asosiy Kodni Nusxalash</button>
+        <button class="btn success" id="downloadMatlabMain">💾 .m Fayl Yuklab Olish</button>
+        <button class="btn outline" id="updateMatlabCode">🔄 Parametrlarni Yangilash</button>
+      </div>
+    </div>
+  </div>
+  <div class="tab-content" id="tab-assignments"><h3>📝 Amaliy Topshiriqlar</h3><p>…</p></div>
+  <div class="tab-content" id="tab-assessment"><h3>📋 Baholash</h3><p>…</p></div>
+</div>
+
+</div>
+
+<!-- ===== JAVASCRIPT: SIMULYATOR LOGIKASI ===== -->
+<script>
+// ======== HELPERS ========
+function $(id){return document.getElementById(id);} 
+function downloadFile(content, filename, mimeType='text/plain'){const blob=new Blob([content],{type:mimeType+';charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);} 
+
+// ======== STATE ========
+let imageState={imageType:'medical',filterType:'none',strength:1.0,contrast:1.0,brightness:0,colormap:'jet',originalImage:null,processedImage:null,userLoaded:false};
+
+// ======== CANVAS INIT ========
+function setupCanvas(canvasId){const canvas=$(canvasId);if(!canvas) return null;const ctx=canvas.getContext('2d');const dpr=window.devicePixelRatio||1;const rect=canvas.getBoundingClientRect();canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);return {canvas,ctx,w:rect.width,h:rect.height};}
+
+// ======== TEST IMAGE GENERATORS ========
+function generateTestImage(type){const size=256;const data=new Float32Array(size*size);const clamp=v=>Math.max(0,Math.min(255,v));
+  for(let y=0;y<size;y++){
+    for(let x=0;x<size;x++){
+      const i=y*size+x;let v=0;
+      if(type==='medical'){
+        const cx=size/2,cy=size/2;const dx=x-cx,dy=y-cy;const r=Math.hypot(dx,dy);
+        v=128+40*Math.exp(-(r*r)/2200)+20*Math.sin(x/15)+15*Math.cos(y/20)+10*(Math.random()-0.5);
+      }else if(type==='satellite'){
+        v=100+50*Math.sin((x+y)/20)+30*Math.cos(y/10)*Math.sin(x/12)+20*Math.random();
+      }else if(type==='microscope'){
+        v=80;for(let k=0;k<8;k++){const cx=Math.sin(k*0.8)*60+size/2;const cy=Math.cos(k*0.8)*60+size/2;const r=(x-cx)**2+(y-cy)**2;v+=60*Math.exp(-r/900);} v+=15*Math.random();
+      }else{ // synthetic
+        v=128+50*Math.sin(2*Math.PI*y/32)*Math.cos(2*Math.PI*x/32)+30*Math.random();
+      }
+      data[i]=clamp(v);
+    }
+  }
+  return {data,width:size,height:size};
+}
+
+// ======== FILTERS ========
+function getFilterKernel(type,strength=1){const k={
+  blur:{k:[[1,2,1],[2,4,2],[1,2,1]],d:16,desc:'Gaussian Blur — rasmni xiralashtirish'},
+  sharpen:{k:[[0,-1,0],[-1,5,-1],[0,-1,0]],d:1,desc:'Sharpen — rasmni keskinlashtirish'},
+  edge:{k:[[-1,-1,-1],[-1,8,-1],[-1,-1,-1]],d:1,desc:'Edge Detection — chekkalarni aniqlash'},
+  emboss:{k:[[-2,-1,0],[-1,1,1],[0,1,2]],d:1,desc:'Emboss — qavariqlik effekti'},
+  gaussian:{k:[[1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]],d:273,desc:'Gaussian Blur (5×5) — yumshoq xiralash'}
+};
+  const base=k[type]||k.blur;const adj=base.k.map(r=>r.map(v=>v*strength));return {kernel:adj,divisor:base.d,description:base.desc};
+}
+
+// ======== CONV2 (valid for grayscale) ========
+function applyConvolution(img,kernel,divisor=1){const {data,width,height}=img;const out=new Float32Array(data.length);const K=kernel.length,off=Math.floor(K/2);
+  for(let y=0;y<height;y++){
+    for(let x=0;x<width;x++){
+      let sum=0;
+      for(let ky=0;ky<K;ky++){
+        for(let kx=0;kx<K;kx++){
+          const sy=Math.min(height-1,Math.max(0,y+ky-off));
+          const sx=Math.min(width-1,Math.max(0,x+kx-off));
+          sum+=data[sy*width+sx]*kernel[ky][kx];
+        }
+      }
+      out[y*width+x]=sum/divisor;
+    }
+  }
+  return {data:out,width,height};
+}
+
+// ======== ADJUST ========
+function applyImageAdjustments(img,contrast,brightness){const {data,width,height}=img;const out=new Float32Array(data.length);
+  for(let i=0;i<data.length;i++){let v=data[i]*contrast+brightness;out[i]=Math.max(0,Math.min(255,v));}
+  return {data:out,width,height};
+}
+
+// ======== COLORMAPS ========
+function toRGB(val,cm){const t=val/255;const clamp=v=>Math.max(0,Math.min(1,v));
+  function jet(t){const r=clamp(1.5-Math.abs(2*t-1)),g=clamp(1.5-Math.abs(2*t-0.5)),b=clamp(1.5-Math.abs(2*t));return [r*255,g*255,b*255];}
+  function hot(t){const r=Math.min(1,t*3),g=clamp(t*3-1),b=clamp(t*3-2);return [r*255,g*255,b*255];}
+  function cool(t){return [t*255,(1-t)*255,255];}
+  function parula(t){const r=0.2+0.8*Math.sin(Math.PI*t),g=0.1+0.9*Math.sin(Math.PI*t+Math.PI/3),b=0.3+0.7*Math.cos(Math.PI*t);return [r*255,g*255,b*255];}
+  if(cm==='gray')return [val,val,val]; if(cm==='hot')return hot(t); if(cm==='cool')return cool(t); if(cm==='parula')return parula(t); return jet(t);
+}
+
+// ======== DRAW IMAGE ========
+function drawImageToCanvas(canvasId,img,colormap='gray'){const s=setupCanvas(canvasId);if(!s) return;const {ctx,w,h}=s;ctx.clearRect(0,0,w,h);if(!img){ctx.fillStyle='#f0f0f0';ctx.fillRect(0,0,w,h);ctx.fillStyle='#666';ctx.font='16px Arial';ctx.textAlign='center';ctx.fillText('Rasm mavjud emas',w/2,h/2);return;}
+  const {data,width,height}=img;const imageDataObj=new ImageData(width,height);
+  for(let i=0;i<data.length;i++){const [r,g,b]=toRGB(data[i],colormap);const idx=i*4;imageDataObj.data[idx]=r|0;imageDataObj.data[idx+1]=g|0;imageDataObj.data[idx+2]=b|0;imageDataObj.data[idx+3]=255;}
+  const tmp=document.createElement('canvas');tmp.width=width;tmp.height=height;const tctx=tmp.getContext('2d');tctx.putImageData(imageDataObj,0,0);ctx.imageSmoothingEnabled=false;ctx.drawImage(tmp,0,0,width,height,0,0,w,h);
+}
+
+// ======== STATS & HISTOGRAM ========
+function calcStats(img){if(!img) return null;const {data,width,height}=img;let sum=0,min=255,max=0;for(let v of data){sum+=v;if(v<min)min=v;if(v>max)max=v;}const mean=sum/data.length;let s2=0;for(let v of data){s2+=(v-mean)*(v-mean);}const std=Math.sqrt(s2/data.length);return {size:`${width}×${height}`,px:data.length,mean:mean.toFixed(2),std:std.toFixed(2),min:min.toFixed(0),max:max.toFixed(0)};}
+function drawHistogram(img){const s=setupCanvas('histogramCanvas');if(!s||!img) return;const {ctx,w,h}=s;ctx.clearRect(0,0,w,h);const bins=new Uint32Array(256);for(let v of img.data){bins[Math.max(0,Math.min(255,Math.floor(v)))]++;}const max=Math.max(...bins);const bw=w/256;ctx.fillStyle='#3182ce';for(let i=0;i<256;i++){const bh=(bins[i]/max)*(h-40);ctx.fillRect(i*bw,h-bh-20,bw-1,bh);}ctx.strokeStyle='#4a5568';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,h-20);ctx.lineTo(w,h-20);ctx.moveTo(0,20);ctx.lineTo(0,h-20);ctx.stroke();ctx.fillStyle='#4a5568';ctx.font='12px Arial';ctx.textAlign='center';ctx.fillText('0',10,h-5);ctx.fillText('255',w-10,h-5);ctx.save();ctx.translate(15,h/2);ctx.rotate(-Math.PI/2);ctx.fillText('Chastota',0,0);ctx.restore();ctx.fillText('Pixel Intensity',w/2,h-5);}
+
+// ======== QUALITY METRICS ========
+function mse(ref,cmp){const n=ref.data.length;let e=0;for(let i=0;i<n;i++){const d=ref.data[i]-cmp.data[i];e+=d*d;}return e/n;}
+function psnr(ref,cmp){const m=mse(ref,cmp);if(m===0) return 99.99;const MAX=255;return 10*Math.log10((MAX*MAX)/m);} 
+// Simple SSIM (very rough approximation; windowless)
+function ssimApprox(ref,cmp){const r=ref.data, c=cmp.data;const n=r.length;let mr=0, mc=0;for(let i=0;i<n;i++){mr+=r[i];mc+=c[i];}mr/=n;mc/=n;let vr=0,vc=0,crc=0;for(let i=0;i<n;i++){const dr=r[i]-mr, dc=c[i]-mc;vr+=dr*dr;vc+=dc*dc;crc+=dr*dc;}vr/=n;vc/=n;crc/=n;const C1=6.5025,C2=58.5225;return ((2*mr*mc+C1)*(2*crc+C2))/((mr*mr+mc*mc+C1)*(vr+vc+C2));}
+
+// ======== COLORMAP BAR ========
+function updateColormapBar(){const bar=$('currentColormap');if(!bar) return;let g='linear-gradient(to right,#352a87,#0f5cdd,#00b2a9,#5ac864,#fde725)';const type=imageState.colormap; if(type==='jet') g='linear-gradient(to right,#000080,#0000ff,#00ffff,#00ff00,#ffff00,#ff8000,#ff0000)'; else if(type==='hot') g='linear-gradient(to right,#000000,#ff0000,#ffff00,#ffffff)'; else if(type==='cool') g='linear-gradient(to right,#00ffff,#ff00ff)'; else if(type==='gray') g='linear-gradient(to right,#000000,#ffffff)'; bar.style.background=g;bar.querySelector('.colormap-label').textContent=`${type.toUpperCase()} Colormap`;}
+
+// ======== MATLAB CODE (LIVE) ========
+function syntaxHighlight(code){return code.replace(/(%.*$)/gm,'<span class="code-comment">$1<\/span>')
+  .replace(/\b(function|if|else|elseif|end|for|while|switch|case|otherwise|return)\b/g,'<span class="code-keyword">$1<\/span>')
+  .replace(/\b(conv2|imshow|colormap|figure|subplot|title|xlabel|ylabel|mesh|surf|colorbar|imagesc)\b/g,'<span class="code-function">$1<\/span>')
+  .replace(/(\d+\.?\d*)/g,'<span class="code-number">$1<\/span>')
+  .replace(/('.*?')/g,'<span class="code-string">$1<\/span>');}
+function matlabKernelLiteral(arr){return '['+arr.map(r=>'['+r.join(' ')+']').join('; ')+']';}
+function generateMatlabCode(){const f=getFilterKernel(imageState.filterType,imageState.strength);
+return `% Parametrlar\ncm = '${imageState.colormap}';\ncontrast = ${imageState.contrast}; brightness = ${imageState.brightness};\n% Test rasm (synthetic/medical)\n[Ih,Iw] = deal(256,256);\n[X,Y] = meshgrid(1:Iw,1:Ih);\nimg = 128 + 40*sin(X/20) + 30*cos(Y/15) + 20*randn(Ih,Iw);\n% Kernel\nkernel = ${matlabKernelLiteral(f.kernel)}; divisor = ${f.divisor};\nfiltered = conv2(img, kernel, 'same') / divisor;\nadj = filtered*contrast + brightness;\nfigure; subplot(1,2,1); imagesc(img); axis image off; colormap('gray'); title('Original');\nsubplot(1,2,2); imagesc(adj); axis image off; colormap(cm); title('Processed');`;}
+function updateLiveCode(){$('liveCode').innerHTML=syntaxHighlight(generateMatlabCode());}
+
+// ======== PROCESSING PIPELINE ========
+function processImage(){if(!imageState.originalImage){imageState.originalImage=generateTestImage(imageState.imageType);} let processed=imageState.originalImage;
+  if(imageState.filterType!=='none'){const info=getFilterKernel(imageState.filterType,imageState.strength);processed=applyConvolution(processed,info.kernel,info.divisor);$('filterInfo').textContent=info.description;}
+  processed=applyImageAdjustments(processed,imageState.contrast,imageState.brightness); imageState.processedImage=processed;
+  drawImageToCanvas('originalCanvas',imageState.originalImage,'gray');
+  drawImageToCanvas('processedCanvas',processed,imageState.colormap);
+  drawHistogram(processed);
+  const st=calcStats(processed); if(st){$('imageSize').textContent=st.size;$('totalPixels').textContent=st.px.toLocaleString();$('meanValue').textContent=st.mean;$('stdDev').textContent=st.std;$('minMax').textContent=`${st.min} / ${st.max}`;}
+  // Quality vs original
+  if(imageState.originalImage){const m=mse(imageState.originalImage,processed);const p=psnr(imageState.originalImage,processed).toFixed(2);const s=ssimApprox(imageState.originalImage,processed).toFixed(4);$('qualityMetrics').textContent=`${m.toFixed(2)} / ${p} dB / ${s}`;}
+  updateColormapBar(); updateLiveCode();}
+
+// ======== PRESETS ========
+function loadPreset(type){if(type==='medical'){imageState.imageType='medical';imageState.filterType='gaussian';imageState.strength=1.2;imageState.contrast=1.3;imageState.brightness=10;imageState.colormap='hot';}
+  else if(type==='enhance'){imageState.filterType='sharpen';imageState.strength=2.0;imageState.contrast=1.4;imageState.brightness=5;imageState.colormap='jet';}
+  else if(type==='artistic'){imageState.filterType='emboss';imageState.strength=1.5;imageState.contrast=1.2;imageState.brightness=20;imageState.colormap='cool';}
+  else {imageState.filterType='edge';imageState.strength=1.0;imageState.contrast=1.0;imageState.brightness=0;imageState.colormap='parula';}
+  updateUIControls(); simulateProgress(()=>processImage());}
+
+// ======== UI BINDINGS & COMPLETIONS ========
+function updateUIControls(){
+  $('imageType').value=imageState.imageType;
+  $('filterType').value=imageState.filterType;
+  $('paramStrength').value=imageState.strength; $('valStrength').textContent=imageState.strength.toFixed(1);
+  $('paramContrast').value=imageState.contrast; $('valContrast').textContent=imageState.contrast.toFixed(1);
+  $('paramBrightness').value=imageState.brightness; $('valBrightness').textContent=imageState.brightness;
+  $('colormapType').value=imageState.colormap;
+}
+
+function bindEvents(){
+  // Tabs
+  document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-selected','false');});
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    const id='tab-'+btn.dataset.tab; const pane=$(id); if(pane) pane.classList.add('active');
+  }));
+  // Controls
+  $('imageType').addEventListener('change',e=>{imageState.imageType=e.target.value;imageState.userLoaded=false;imageState.originalImage=null;simulateProgress(()=>processImage());});
+  $('uploadImage').addEventListener('change',handleFileUpload);
+  $('filterType').addEventListener('change',e=>{imageState.filterType=e.target.value;processImage();});
+  $('paramStrength').addEventListener('input',e=>{imageState.strength=parseFloat(e.target.value);$('valStrength').textContent=imageState.strength.toFixed(1);processImage();});
+  $('paramContrast').addEventListener('input',e=>{imageState.contrast=parseFloat(e.target.value);$('valContrast').textContent=imageState.contrast.toFixed(1);processImage();});
+  $('paramBrightness').addEventListener('input',e=>{imageState.brightness=parseFloat(e.target.value);$('valBrightness').textContent=imageState.brightness;processImage();});
+  $('colormapType').addEventListener('change',e=>{imageState.colormap=e.target.value;processImage();});
+  // Buttons
+  $('applyFilter').addEventListener('click',()=>processImage());
+  $('resetImage').addEventListener('click',()=>{imageState.originalImage=null;imageState.userLoaded=false;updateUIControls();processImage();});
+  $('saveResult').addEventListener('click',saveProcessedPNG);
+  $('showMatrix').addEventListener('click',exportCSV);
+  $('animate3D').addEventListener('click',animate3D);
+  $('compareImages').addEventListener('click',showDiff);
+  $('copyMatlabMain').addEventListener('click',copyMainMatlab);
+  $('downloadMatlabMain').addEventListener('click',downloadMainMatlab);
+  $('updateMatlabCode').addEventListener('click',updateLiveCode);
+}
+
+// ======== FILE UPLOAD ========
+function handleFileUpload(ev){const file=ev.target.files[0]; if(!file) return; const fr=new FileReader(); fr.onload=e=>{const img=new Image(); img.onload=()=>{const sz=256; const tmp=document.createElement('canvas'); tmp.width=sz; tmp.height=sz; const tctx=tmp.getContext('2d'); tctx.drawImage(img,0,0,sz,sz); const id=tctx.getImageData(0,0,sz,sz); const g=new Float32Array(sz*sz); for(let i=0;i<sz*sz;i++){const r=id.data[i*4],gch=id.data[i*4+1],b=id.data[i*4+2]; g[i]=0.299*r+0.587*gch+0.114*b;} imageState.originalImage={data:g,width:sz,height:sz}; imageState.userLoaded=true; simulateProgress(()=>processImage());}; img.src=e.target.result; }; fr.readAsDataURL(file);}
+
+// ======== SAVE PNG ========
+function saveProcessedPNG(){const canvas=setupCanvas('processedCanvas');if(!canvas) return;const node=document.getElementById('processedCanvas');node.toBlob? node.toBlob(b=>{const url=URL.createObjectURL(b);const a=document.createElement('a');a.href=url; a.download='processed.png'; a.click(); URL.revokeObjectURL(url);},'image/png'):downloadFile(node.toDataURL('image/png'),'processed.png','application/octet-stream');}
+
+// ======== CSV EXPORT ========
+function exportCSV(){const img=imageState.processedImage||imageState.originalImage; if(!img) return; const {data,width,height}=img; let csv=''; for(let y=0;y<height;y++){const row=[]; for(let x=0;x<width;x++){row.push(data[y*width+x].toFixed(0));} csv+=row.join(',')+'\n';} downloadFile(csv,'matrix.csv','text/csv');}
+
+// ======== DIFF VIEW ========
+function showDiff(){if(!imageState.originalImage||!imageState.processedImage) return; const {width,height}=imageState.originalImage; const diff={data:new Float32Array(width*height),width,height}; for(let i=0;i<diff.data.length;i++){diff.data[i]=Math.abs(imageState.originalImage.data[i]-imageState.processedImage.data[i]);} drawImageToCanvas('processedCanvas',diff,'hot'); $('filterInfo').textContent='Diff map (|original - processed|)'; drawHistogram(diff);}
+
+// ======== 3D ANIMATION (height-map) ========
+function animate3D(){const img=imageState.processedImage||imageState.originalImage; if(!img) return; const win=window.open('','_blank','width=820,height=640'); win.document.write('<title>3D Height Map</title><canvas id="c" width="800" height="600" style="width:800px;height:600px;background:#111;border:2px solid #444;border-radius:8px"></canvas>'); win.document.close(); const c=win.document.getElementById('c'); const ctx=c.getContext('2d'); const W=c.width,H=c.height; const scale=2; let angle=0; function frame(){ctx.clearRect(0,0,W,H); ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(angle); const step=4; for(let y=0;y<img.height;y+=step){ for(let x=0;x<img.width;x+=step){ const z=img.data[y*img.width+x]/4; const px=(x-img.width/2)*scale, py=(y-img.height/2)*scale; ctx.fillStyle=`hsl(${(z*1.4)|0},80%,60%)`; ctx.fillRect(px,py-z,step,step); } } ctx.restore(); angle+=0.01; win.requestAnimationFrame(frame);} frame();}
+
+// ======== LIVE MATLAB MAIN FILE ========
+function buildMainMatlabFile(){return `%% L4 — MATLABda Matrisalar Ustida Amallar va Rasm Qayta Ishlash\nclear all; close all; clc;\n%% 1) Sintetik test rasm\n[Ih,Iw]=deal(256,256); [X,Y]=meshgrid(1:Iw,1:Ih);\noriginal = 128 + 50*sin(X/20) + 30*cos(Y/15) + 20*randn(Ih,Iw);\n%% 2) Filtrlash\n${generateMatlabCode()}\n%% 3) Metrikalar\nmse_val = mean((original(:)-adj(:)).^2);\npsnr_val = 10*log10(255^2/mse_val);\nfprintf('MSE: %.2f\\nPSNR: %.2f dB\\n', mse_val, psnr_val);\n%% 4) Saqlash\nsave('image_processing_results.mat','original','adj');\n`;}
+function copyMainMatlab(){const text=buildMainMatlabFile(); navigator.clipboard.writeText(text).then(()=>{alert('MATLAB kod nusxalandi!');});}
+function downloadMainMatlab(){const text=buildMainMatlabFile(); downloadFile(text,'l4_image_processing.m','text/x-matlab');}
+
+// ======== PROGRESS SIMULATION ========
+function simulateProgress(done){const bar=$('processProgress');let p=0;bar.style.width='0%';const t=setInterval(()=>{p=Math.min(100,p+10+Math.random()*10);bar.style.width=p.toFixed(0)+'%';if(p>=100){clearInterval(t);done&&done(); setTimeout(()=>bar.style.width='0%',700);} },80);}
+
+// ======== INIT ========
+function init(){updateUIControls();bindEvents();imageState.originalImage=generateTestImage(imageState.imageType);processImage();}
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
