@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT3 — Mapleda Student kutubxonasi</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for interactive plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plotly for 3D graphs -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { --bg: #0b1220; --card: #0f172a; --ink:#e5e7eb; --muted:#9ca3af; --brand:#06b6d4; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1220 0%, #0b1220 60%, #0c1426 100%); color: var(--ink); }
+    .glass { background: rgba(15,23,42,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #0ea5e9; color: white; box-shadow: 0 6px 20px rgba(14,165,233,.25); transition: all 0.3s; }
+    .btn:hover { @apply scale-105; box-shadow: 0 8px 25px rgba(14,165,233,.35); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.1); color: var(--ink); transition: all 0.3s; }
+    .btn-ghost:hover { background: rgba(148,163,184,0.2); }
+    .btn-success { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.25); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(94,234,212,0.1); color:#5eead4; border:1px solid rgba(94,234,212,0.25); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #0b1020; border: 1px solid rgba(148,163,184,.2); }
+    .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold; }
+    .step-active { background: #06b6d4; color: white; }
+    .step-completed { background: #10b981; color: white; }
+    .step-pending { background: rgba(148,163,184,0.2); color: var(--muted); }
+    .slider-container { @apply relative mt-2; }
+    .slider { @apply w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer; }
+    .slider::-webkit-slider-thumb { @apply appearance-none w-5 h-5 bg-cyan-400 rounded-full cursor-pointer; }
+    .tutorialBox { @apply glass rounded-xl p-4 border-l-4; border-left-color: #06b6d4; }
+    .moduleCard { @apply glass rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
+        <span class="font-semibold">MT3 · Student Kutubxonasi</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">Paketlar & Kod</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modullar</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Refleksiya</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Mapleda <span class="text-green-300">Student kutubxonasi</span> bilan ishlash</h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip">Interaktiv o'quv modullar</span> · Asosiy paketlar: <span class="chip">Calculus1</span> <span class="chip">LinearAlgebra</span> <span class="chip">Statistics</span></p>
+        <p class="mt-4 text-slate-400">Student kutubxonasi — o'quvchilar uchun mo'ljallangan maxsus paketlar to'plami. Bosqichma-bosqich yechimlar, interaktiv tutoriallar va vizual ko'rsatmalar orqali matematik tushunchalarni o'rganish uchun.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o'tish</a>
+          <a href="#examples" class="btn-ghost">Paket namunalari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300 mb-4">Student packages offer focused learning environments in which students can explore and reinforce fundamental concepts[[2]](https://www.maplesoft.com/products/maple/features/Student_Packages.aspx) — Student paketlar Clickable Math xususiyatlari bilan birga step-by-step yechim imkoniyatini taqdim etadi[[2]](https://www.maplesoft.com/products/maple/features/Student_Packages.aspx).</p>
+        
+        <div class="space-y-4">
+          <div class="tutorialBox">
+            <h3 class="font-semibold mb-2">Student paketlar tuzilishi:</h3>
+            <ul class="text-slate-300 space-y-1 text-sm">
+              <li>• <code class="code px-2 py-1 rounded">Student[Calculus1]</code> — differensial va integral hisob</li>
+              <li>• <code class="code px-2 py-1 rounded">Student[LinearAlgebra]</code> — chiziqli algebra</li>
+              <li>• <code class="code px-2 py-1 rounded">Student[Statistics]</code> — statistika va ehtimollar</li>
+              <li>• <code class="code px-2 py-1 rounded">Student[MultivariateCalculus]</code> — ko'p o'zgaruvchili hisob</li>
+            </ul>
+          </div>
+
+          <div class="text-slate-300">
+            <p><strong>Interaktiv tutoriallar:</strong> Integration Tutor kabi vositalar talabaga har bir qadamda qaysi qoidani qo'llashni tanlash imkonini beradi[[2]](https://www.maplesoft.com/products/maple/features/Student_Packages.aspx). Maple maslahat beradi yoki keyingi qadamni ko'rsatadi, bu esa haqiqiy o'rganish muhitini yaratadi[[2]](https://www.maplesoft.com/products/maple/features/Student_Packages.aspx).</p>
+          </div>
+        </div>
+      </div>
+      
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Student paketlarini yuklash va ishlatish</li>
+          <li>Interaktiv tutoriallar bilan ishlash</li>
+          <li>Bosqichma-bosqich yechimlarni tahlil qilish</li>
+          <li>Slayder va tugmalar yordamida parametrlarni o'zgartirish</li>
+        </ul>
+        <div class="mt-4"><span class="chip">Interaktiv</span> <span class="chip">Bosqichli</span> <span class="chip">Vizual</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & Maple code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Paket namunalari & Maple kod</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Student[Calculus1] - Hosila topish</h3>
+        <p class="text-slate-300 text-sm">Bosqichma-bosqich hosila topish:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(Student[Calculus1]):
+DerivativeTutor(x^3 + sin(x));</code></pre>
+        
+        <h4 class="mt-3 font-semibold">Aniq integrallar:</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(Student[Calculus1]):
+IntTutor(x^2*cos(x), x=0..Pi);</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Student[LinearAlgebra] - Matritsalar</h3>
+        <p class="text-slate-300 text-sm">Matritsalar bilan ishlash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(Student[LinearAlgebra]):
+A := Matrix([[1,2],[3,4]]);
+GaussianEliminationTutor(A);</code></pre>
+        
+        <h4 class="mt-3 font-semibold">Xos qiymatlar:</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>EigenvaluesTutor(A);</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Student[Statistics] - Taqsimotlar</h3>
+        <p class="text-slate-300 text-sm">Interaktiv taqsimot o'rganish:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(Student[Statistics]):
+ExploreRV(Normal(mu, sigma));</code></pre>
+        
+        <h4 class="mt-3 font-semibold">Gipoteza testlari:</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>data := [12,15,18,16,17,14,13,16,15,17];
+OneSampleTTest(data, 15, alpha=0.05);</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) MultivariateCalculus - Gradient</h3>
+        <p class="text-slate-300 text-sm">Ko'p o'zgaruvchili funksiyalar:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(Student[MultivariateCalculus]):
+GradientTutor(x^2 + y^2, [x,y]);</code></pre>
+        
+        <h4 class="mt-3 font-semibold">Integrallash:</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>MultiInt(x*y, x=0..1, y=0..2);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Interaktiv modullar</h2>
+          <p class="text-slate-300">Turli Student paketlarining imkoniyatlarini real vaqtda sinab ko'ring. Har bir modul bosqichma-bosqich o'rganish imkonini beradi.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnReset" class="btn-ghost">Reset</button>
+          <button id="btnNext" class="btn">Keyingisi</button>
+        </div>
+      </div>
+
+      <!-- Module selector -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="moduleCard" data-module="calculus">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📊</div>
+            <h3 class="font-semibold text-sm">Calculus</h3>
+            <p class="text-xs text-slate-400">Hosila va integral</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-module="linear">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🔢</div>
+            <h3 class="font-semibold text-sm">LinearAlgebra</h3>
+            <p class="text-xs text-slate-400">Matritsalar</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-module="stats">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-purple-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📈</div>
+            <h3 class="font-semibold text-sm">Statistics</h3>
+            <p class="text-xs text-slate-400">Taqsimot va test</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-module="multi">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🌐</div>
+            <h3 class="font-semibold text-sm">Multivariate</h3>
+            <p class="text-xs text-slate-400">Ko'p o'zgaruvchi</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Controls -->
+        <div class="lg:col-span-1 space-y-4">
+          
+          <!-- Calculus Module -->
+          <div id="calculus-controls" class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">1</div>
+              Calculus Tutorial
+            </h4>
+            
+            <div class="mb-4">
+              <label class="block text-sm text-slate-300 mb-2">Funksiya</label>
+              <select id="funcSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-sm">
+                <option value="polynomial">x³ - 2x² + x</option>
+                <option value="trigonometric">sin(x) · cos(x)</option>
+                <option value="exponential">e^x · x²</option>
+                <option value="logarithmic">ln(x) · x</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm text-slate-300 mb-2">Interval: [a, b]</label>
+              <div class="grid grid-cols-2 gap-2">
+                <input id="rangeA" type="number" value="-2" class="bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-sm">
+                <input id="rangeB" type="number" value="2" class="bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-sm">
+              </div>
+            </div>
+
+            <button id="btnDerivative" class="btn w-full mb-2">Hosila ko'rsatish</button>
+            <button id="btnIntegral" class="btn-ghost w-full">Integral hisoblash</button>
+
+            <div class="mt-4 p-3 bg-slate-900/40 rounded-lg">
+              <h5 class="font-semibold text-sm mb-2">Maple kod:</h5>
+              <pre class="text-xs overflow-auto"><code id="calculusCode">with(Student[Calculus1]):
+f := x^3 - 2*x^2 + x;
+DerivativeTutor(f);</code></pre>
+            </div>
+          </div>
+
+          <!-- Statistics Module -->
+          <div id="stats-controls" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">2</div>
+              Statistics Explorer
+            </h4>
+            
+            <div class="mb-4">
+              <label class="block text-sm text-slate-300 mb-2">Taqsimot turi</label>
+              <select id="distSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-sm">
+                <option value="normal">Normal taqsimot</option>
+                <option value="binomial">Binomial taqsimot</option>
+                <option value="poisson">Poisson taqsimot</option>
+              </select>
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm text-slate-300 mb-2">Parametr 1: <span id="param1Label">μ</span> = <span id="param1Value">0</span></label>
+              <input id="param1Slider" type="range" min="-3" max="3" step="0.1" value="0" class="slider w-full">
+            </div>
+
+            <div class="mb-4">
+              <label class="block text-sm text-slate-300 mb-2">Parametr 2: <span id="param2Label">σ</span> = <span id="param2Value">1</span></label>
+              <input id="param2Slider" type="range" min="0.1" max="3" step="0.1" value="1" class="slider w-full">
+            </div>
+
+            <button id="btnShowPDF" class="btn w-full mb-2">PDF ko'rsatish</button>
+            <button id="btnShowCDF" class="btn-ghost w-full">CDF ko'rsatish</button>
+
+            <div class="mt-4 p-3 bg-slate-900/40 rounded-lg">
+              <h5 class="font-semibold text-sm mb-2">Statistik xususiyatlar:</h5>
+              <div class="text-xs space-y-1">
+                <div>O'rtacha: <span id="statMean">0</span></div>
+                <div>Dispersiya: <span id="statVar">1</span></div>
+                <div>Standart og'ish: <span id="statStd">1</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Visualization area -->
+        <div class="lg:col-span-2 glass rounded-2xl p-4">
+          <div class="mb-4 flex justify-between items-center">
+            <h3 id="plotTitle" class="font-semibold">Funksiya va uning hosilasi</h3>
+            <div class="flex gap-2">
+              <span class="chip text-xs" id="currentModule">Calculus1</span>
+              <span class="chip text-xs" id="stepIndicator">Qadam 1/3</span>
+            </div>
+          </div>
+          <div id="labPlot" class="w-full h-[500px] bg-slate-900/20 rounded-xl flex items-center justify-center">
+            <canvas id="plotCanvas" class="w-full h-full"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Mustaqil ishlar va masalalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Student[Calculus1] paketini yuklang va <code>f(x) = x² + 3x</code> uchun DerivativeTutor ishlatib ko'ring.</li>
+          <li>Student[LinearAlgebra] da 2×2 matritsaning determinantini GaussianEliminationTutor yordamida toping.</li>
+          <li>Student[Statistics] da Normal(0,1) taqsimotini ExploreRV bilan o'rganing.</li>
+          <li>Har bir tutorialda qadamlarni kuzating va natijalarni yozing.</li>
+        </ol>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rta va yuqori daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Student[Calculus1] da murakkab funksiya uchun IntTutor ishlatib, har qadamni tahlil qiling.</li>
+          <li>Student[LinearAlgebra] da 3×3 matritsaning xos qiymatlarini EigenvaluesTutor orqali toping.</li>
+          <li>Student[Statistics] da bir nechta gipoteza testini o'tkazing va natijalarni taqqoslang.</li>
+          <li>Student[MultivariateCalculus] da GradientTutor yordamida gradient tushunchasini o'rganing.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlar va maslahatlar</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <div class="tutorialBox">
+          <p><strong>1-masala:</strong> <code>with(Student[Calculus1]): DerivativeTutor(x^2+3*x)</code></p>
+          <p>Tutor oynasida "Show Step" tugmasini bosib, har qadamni ko'ring.</p>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>2-masala:</strong> <code>with(Student[LinearAlgebra]): A:=Matrix([[a,b],[c,d]]): GaussianEliminationTutor(A)</code></p>
+          <p>Determinant = ad - bc formulasini kuzating.</p>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>3-masala:</strong> <code>with(Student[Statistics]): ExploreRV(Normal(0,1))</code></p>
+          <p>Parametrlarni o'zgartirib, PDF va CDF grafiklaridagi o'zgarishlarni kuzating.</p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Reflection -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold mb-4">Tezkor baholash va refleksiya</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Mini quiz</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">1. Student paketlarning asosiy maqsadi nimada?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="a"> Tezroq hisoblash</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="b"> Bosqichma-bosqich o'rganish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="c"> Faqat vizualizatsiya</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">2. DerivativeTutor nimani amalga oshiradi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="a"> Faqat javob beradi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="b"> Har qadamni ko'rsatadi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="c"> Grafik chizadi</label>
+              </div>
+            </div>
+            
+            <button id="btnCheckAnswers" class="btn-success w-full">Javoblarni tekshirish</button>
+          </div>
+        </div>
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Refleksiya savollari</h3>
+          <div class="space-y-3 text-sm text-slate-300">
+            <div>
+              <p class="mb-2">Bugun qaysi Student paket eng foydali bo'ldi?</p>
+              <textarea class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-xs" rows="2" placeholder="Sizning fikringiz..."></textarea>
+            </div>
+            
+            <div>
+              <p class="mb-2">Interaktiv tutoriallarning afzalliklari nimada?</p>
+              <textarea class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-xs" rows="2" placeholder="Sizning fikringiz..."></textarea>
+            </div>
+            
+            <div>
+              <p class="mb-2">Qaysi qism qiyin bo'ldi va nima yordam berdi?</p>
+              <textarea class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2 text-xs" rows="2" placeholder="Sizning fikringiz..."></textarea>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div id="quizResults" class="hidden mt-4 p-4 glass rounded-xl">
+        <h4 class="font-semibold mb-2">Natijalar:</h4>
+        <p id="quizScore" class="text-slate-300"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Adabiyotlar va qo'shimcha manbalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Rasmiy hujjatlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Maple Student Edition User Guide, Maplesoft Inc., 2023</li>
+          <li>Student Package Documentation - Online Help</li>
+          <li>Interactive Math with Student Packages Tutorial</li>
+        </ul>
+      </div>
+      
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Mahalliy adabiyotlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Tolipov O'. "Kompyuter algebra tizimlari", Toshkent, 2022</li>
+          <li>Usmonov A. "Raqamli ta'lim texnologiyalari", 2021</li>
+          <li>Begimqulov U. "Interaktiv ta'lim metodlari", Samarqand, 2020</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Interaktiv ta'lim modeli: "Ko'rsat → Amal qil → Refleksiya qil" metodikasi asosida.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Utility functions
+    function createChart(canvasId, type, data, options) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      return new Chart(ctx, { type, data, options });
+    }
+
+    // Global variables
+    let currentModule = 'calculus';
+    let currentChart = null;
+
+    // Initialize hero visualization
+    function initHero() {
+      const x = [];
+      const y = [];
+      for (let i = -10; i <= 10; i += 0.5) {
+        x.push(i);
+        y.push(Math.sin(i) * Math.exp(-Math.abs(i)/5));
+      }
+      
+      const data = [{
+        type: 'scatter',
+        x: x,
+        y: y,
+        mode: 'lines',
+        name: 'f(x) = sin(x)·e^(-|x|/5)',
+        line: { color: '#06b6d4', width: 3 }
+      }];
+      
+      const layout = {
+        margin: { l: 30, r: 30, b: 30, t: 30 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: { color: '#9ca3af', gridcolor: '#374151' },
+        yaxis: { color: '#9ca3af', gridcolor: '#374151' }
+      };
+      
+      Plotly.newPlot('heroPlot', data, layout, { displayModeBar: false, responsive: true });
+    }
+
+    // Mathematical functions
+    function evaluateFunction(funcType, x) {
+      switch(funcType) {
+        case 'polynomial': return x*x*x - 2*x*x + x;
+        case 'trigonometric': return Math.sin(x) * Math.cos(x);
+        case 'exponential': return Math.exp(x) * x*x;
+        case 'logarithmic': return x > 0 ? Math.log(x) * x : 0;
+        default: return x*x*x - 2*x*x + x;
+      }
+    }
+
+    function evaluateDerivative(funcType, x) {
+      const h = 0.001;
+      return (evaluateFunction(funcType, x + h) - evaluateFunction(funcType, x - h)) / (2 * h);
+    }
+
+    function normalPDF(x, mu, sigma) {
+      return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+    }
+
+    function normalCDF(x, mu, sigma) {
+      return 0.5 * (1 + erf((x - mu) / (sigma * Math.sqrt(2))));
+    }
+
+    function erf(x) {
+      // Approximation of error function
+      const a1 =  0.254829592;
+      const a2 = -0.284496736;
+      const a3 =  1.421413741;
+      const a4 = -1.453152027;
+      const a5 =  1.061405429;
+      const p  =  0.3275911;
+
+      const sign = x < 0 ? -1 : 1;
+      x = Math.abs(x);
+
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+      return sign * y;
+    }
+
+    // Chart creation functions
+    function createCalculusChart() {
+      const funcType = document.getElementById('funcSelect').value;
+      const a = parseFloat(document.getElementById('rangeA').value);
+      const b = parseFloat(document.getElementById('rangeB').value);
+      
+      const xValues = [];
+      const yValues = [];
+      const dyValues = [];
+      
+      for (let x = a; x <= b; x += (b - a) / 100) {
+        xValues.push(x);
+        yValues.push(evaluateFunction(funcType, x));
+        dyValues.push(evaluateDerivative(funcType, x));
+      }
+
+      if (currentChart) currentChart.destroy();
+      
+      currentChart = createChart('plotCanvas', 'line', {
+        labels: xValues,
+        datasets: [{
+          label: 'f(x)',
+          data: yValues,
+          borderColor: '#06b6d4',
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          fill: false,
+          tension: 0.4
+        }, {
+          label: "f'(x)",
+          data: dyValues,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          fill: false,
+          tension: 0.4
+        }]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#e5e7eb' } }
+        },
+        scales: {
+          x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+          y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+        }
+      });
+    }
+
+    function createStatisticsChart() {
+      const distType = document.getElementById('distSelect').value;
+      const param1 = parseFloat(document.getElementById('param1Slider').value);
+      const param2 = parseFloat(document.getElementById('param2Slider').value);
+      
+      const xValues = [];
+      const pdfValues = [];
+      
+      for (let x = -5; x <= 5; x += 0.1) {
+        xValues.push(x);
+        if (distType === 'normal') {
+          pdfValues.push(normalPDF(x, param1, param2));
+        } else {
+          pdfValues.push(normalPDF(x, 0, 1)); // fallback
+        }
+      }
+
+      if (currentChart) currentChart.destroy();
+      
+      currentChart = createChart('plotCanvas', 'line', {
+        labels: xValues,
+        datasets: [{
+          label: 'PDF',
+          data: pdfValues,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          fill: true,
+          tension: 0.4
+        }]
+      }, {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#e5e7eb' } }
+        },
+        scales: {
+          x: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } },
+          y: { ticks: { color: '#9ca3af' }, grid: { color: '#374151' } }
+        }
+      });
+
+      // Update statistics
+      if (distType === 'normal') {
+        document.getElementById('statMean').textContent = param1.toFixed(2);
+        document.getElementById('statVar').textContent = (param2 * param2).toFixed(2);
+        document.getElementById('statStd').textContent = param2.toFixed(2);
+      }
+    }
+
+    // Event handlers
+    function updateCalculusCode() {
+      const funcType = document.getElementById('funcSelect').value;
+      let funcStr = '';
+      switch(funcType) {
+        case 'polynomial': funcStr = 'x^3 - 2*x^2 + x'; break;
+        case 'trigonometric': funcStr = 'sin(x)*cos(x)'; break;
+        case 'exponential': funcStr = 'exp(x)*x^2'; break;
+        case 'logarithmic': funcStr = 'ln(x)*x'; break;
+      }
+      
+      document.getElementById('calculusCode').textContent = `with(Student[Calculus1]):
+f := ${funcStr};
+DerivativeTutor(f);`;
+    }
+
+    function updateStatisticsLabels() {
+      const distType = document.getElementById('distSelect').value;
+      if (distType === 'normal') {
+        document.getElementById('param1Label').textContent = 'μ';
+        document.getElementById('param2Label').textContent = 'σ';
+      }
+    }
+
+    function switchModule(moduleName) {
+      currentModule = moduleName;
+      
+      // Hide all control panels
+      document.getElementById('calculus-controls').classList.add('hidden');
+      document.getElementById('stats-controls').classList.add('hidden');
+      
+      // Show selected module
+      if (moduleName === 'calculus') {
+        document.getElementById('calculus-controls').classList.remove('hidden');
+        document.getElementById('currentModule').textContent = 'Calculus1';
+        document.getElementById('plotTitle').textContent = 'Funksiya va uning hosilasi';
+        createCalculusChart();
+      } else if (moduleName === 'stats') {
+        document.getElementById('stats-controls').classList.remove('hidden');
+        document.getElementById('currentModule').textContent = 'Statistics';
+        document.getElementById('plotTitle').textContent = 'Ehtimollik taqsimoti (PDF)';
+        createStatisticsChart();
+      }
+    }
+
+    // Quiz functionality
+    function checkQuizAnswers() {
+      let score = 0;
+      const total = 2;
+      
+      // Question 1 - correct answer is 'b'
+      const q1Answer = document.querySelector('input[name="q1"]:checked');
+      if (q1Answer && q1Answer.value === 'b') score++;
+      
+      // Question 2 - correct answer is 'b'
+      const q2Answer = document.querySelector('input[name="q2"]:checked');
+      if (q2Answer && q2Answer.value === 'b') score++;
+      
+      const percentage = Math.round((score / total) * 100);
+      document.getElementById('quizScore').textContent = `Sizning natijangiz: ${score}/${total} (${percentage}%)`;
+      document.getElementById('quizResults').classList.remove('hidden');
+      
+      if (percentage >= 80) {
+        document.getElementById('quizResults').classList.add('border-l-4', 'border-green-400');
+      } else {
+        document.getElementById('quizResults').classList.add('border-l-4', 'border-yellow-400');
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initHero();
+      createCalculusChart();
+
+      // Module selector cards
+      document.querySelectorAll('.moduleCard').forEach(card => {
+        card.addEventListener('click', function() {
+          const module = this.dataset.module;
+          switchModule(module);
+          
+          // Update active state
+          document.querySelectorAll('.moduleCard').forEach(c => c.classList.remove('ring-2', 'ring-cyan-400'));
+          this.classList.add('ring-2', 'ring-cyan-400');
+        });
+      });
+
+      // Calculus controls
+      document.getElementById('funcSelect').addEventListener('change', function() {
+        createCalculusChart();
+        updateCalculusCode();
+      });
+
+      document.getElementById('rangeA').addEventListener('input', createCalculusChart);
+      document.getElementById('rangeB').addEventListener('input', createCalculusChart);
+
+      document.getElementById('btnDerivative').addEventListener('click', createCalculusChart);
+      
+      // Statistics controls
+      document.getElementById('param1Slider').addEventListener('input', function() {
+        document.getElementById('param1Value').textContent = this.value;
+        createStatisticsChart();
+      });
+
+      document.getElementById('param2Slider').addEventListener('input', function() {
+        document.getElementById('param2Value').textContent = this.value;
+        createStatisticsChart();
+      });
+
+      document.getElementById('distSelect').addEventListener('change', function() {
+        updateStatisticsLabels();
+        createStatisticsChart();
+      });
+
+      document.getElementById('btnShowPDF').addEventListener('click', createStatisticsChart);
+
+      // Quiz button
+      document.getElementById('btnCheckAnswers').addEventListener('click', checkQuizAnswers);
+
+      // Initialize code display
+      updateCalculusCode();
+    });
+  </script>
+</body>
+</html>
