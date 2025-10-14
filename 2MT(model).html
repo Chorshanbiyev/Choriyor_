@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT2 — MATLABda Simulink bilan tizim modellash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- D3.js for block diagrams -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root { --bg: #0b1220; --card: #0f172a; --ink:#e5e7eb; --muted:#9ca3af; --brand:#f97316; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1220 0%, #0b1220 60%, #0c1426 100%); color: var(--ink); }
+    .glass { background: rgba(15,23,42,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #f97316; color: white; box-shadow: 0 6px 20px rgba(249,115,22,.25); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.1); color: var(--ink); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(251,146,60,0.1); color:#fb923c; border:1px solid rgba(251,146,60,0.25); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #0b1020; border: 1px solid rgba(148,163,184,.2); }
+    .block-rect { fill: #1e293b; stroke: #fb923c; stroke-width: 2; rx: 8; }
+    .block-text { fill: #e5e7eb; font-size: 12px; text-anchor: middle; }
+    .connection { stroke: #06b6d4; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+    .signal-line { stroke: #10b981; stroke-width: 2; fill: none; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-orange-400 animate-pulse"></div>
+        <span class="font-semibold">MT2 · MATLAB Simulink</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">Misollar & Kod</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Refleksiya</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">MATLABda <span class="text-orange-300">Simulink</span> bilan tizim modellash</h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip">Real tizim modellari</span> · Asosiy vositalar: <span class="chip">Block Library</span> <span class="chip">Animation</span></p>
+        <p class="mt-4 text-slate-400">Simulink — grafik muhitda blok diagrammalar orqali dinamik tizimlarni modellash va simulyatsiya qilish vositasi. Boshqaruv tizimlari, signal ishlov berish va real vaqt animatsiyasi.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Blok diagramma quruvchi</a>
+          <a href="#examples" class="btn-ghost">Kod namunalari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]">
+          <svg width="100%" height="100%" viewBox="0 0 400 300">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#06b6d4" />
+              </marker>
+            </defs>
+            <!-- Input block -->
+            <rect class="block-rect" x="20" y="120" width="80" height="40"></rect>
+            <text class="block-text" x="60" y="145">Step Input</text>
+            <!-- Transfer function -->
+            <rect class="block-rect" x="150" y="120" width="80" height="40"></rect>
+            <text class="block-text" x="190" y="145">Transfer Fcn</text>
+            <!-- Output block -->
+            <rect class="block-rect" x="300" y="120" width="80" height="40"></rect>
+            <text class="block-text" x="340" y="145">Scope</text>
+            <!-- Connections -->
+            <line class="connection" x1="100" y1="140" x2="150" y2="140"></line>
+            <line class="connection" x1="230" y1="140" x2="300" y2="140"></line>
+            <!-- Animated signal -->
+            <circle r="4" fill="#10b981">
+              <animateMotion dur="2s" repeatCount="indefinite">
+                <path d="M 100 140 L 150 140 L 230 140 L 300 140"/>
+              </animateMotion>
+            </circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300">Simulink — MATLABning grafik muhiti bo'lib, blok diagrammalar orqali dinamik tizimlarni modellash imkonini beradi. Har bir blok matematik funksiya yoki operatsiyani ifodalaydi. Tizim kirish signali, ishlov berish bloklari va chiqish natijasidan iborat.</p>
+        <div class="mt-4 text-slate-300 space-y-2">
+          <p><strong>Asosiy bloklar:</strong> Sources (Signal Generator, Step), Math Operations (Sum, Gain), Sinks (Scope, To Workspace).</p>
+          <p><strong>Transfer funksiya:</strong> $H(s) = \frac{Y(s)}{X(s)}$ — kirish va chiqish signallari orasidagi bog'liqlik Laplas sohasida.</p>
+          <p><strong>Animatsiya:</strong> Simulyatsiya jarayonida signal o'zgarishini real vaqtda kuzatish. <code>sim()</code> buyrug'i orqali modelni ishga tushirish.</p>
+        </div>
+      </div>
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1">
+          <li>Simulink muhitida blok diagramma qurish.</li>
+          <li>Transfer funksiyalar va boshqaruv tizimlarini modellashtirish.</li>
+          <li>Real vaqt animatsiyasi va natijalarni tahlil qilish.</li>
+          <li>Signal ishlov berish va dinamik tizim xatti-harakati.</li>
+        </ul>
+        <div class="mt-4"><span class="chip">Grafik modellashtirish</span> <span class="chip">Simulyatsiya</span> <span class="chip">Real vaqt</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & MATLAB code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Misollar & MATLAB/Simulink kod namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Oddiy RC zanjir modeli</h3>
+        <p class="text-slate-300">Transfer funksiya: $H(s) = \frac{1}{RCs + 1}$</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% MATLAB kodi
+s = tf('s');
+R = 1000; C = 1e-6;
+H = 1/(R*C*s + 1);
+step(H);
+grid on;
+title('RC zanjir javobi');</code></pre>
+        <h4 class="mt-3 font-semibold">Simulink modeli:</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Bloklar: Step Input → Transfer Fcn → Scope
+% Transfer Fcn parametri: [1] va [1e-3, 1]
+sim('rc_model.slx');</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) PID boshqaruvchi</h3>
+        <p class="text-slate-300">PID: $C(s) = K_p + \frac{K_i}{s} + K_d s$</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% PID sozlash
+Kp = 1; Ki = 0.1; Kd = 0.01;
+C = pid(Kp, Ki, Kd);
+
+% Tizim
+Plant = tf([1], [1, 2, 1]);
+T = feedback(C*Plant, 1);
+step(T);</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Sinus signal generatori</h3>
+        <p class="text-slate-300">Sinus to'lqin va spektral tahlil:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Simulink: Sine Wave → FFT → Spectrum Analyzer
+% Chastota: 50 Hz, Amplituda: 5V
+% Animatsiya: real vaqtda to'lqin ko'rish</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Avtomatik animatsiya</h3>
+        <p class="text-slate-300">Model ishga tushirish va natijalarni saqlash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Simulyatsiya va animatsiya
+simOut = sim('model_name.slx');
+t = simOut.tout;
+y = simOut.yout;
+plot(t, y);
+animatedline('Color', 'r');</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold">Interaktiv blok diagramma quruvchi</h2>
+          <p class="text-slate-300">Quyidagi parametrlarni sozlab, Simulink g'oyasini browser muhitida sinab ko'ring. Real Simulinkdagi blok tizimni taqlid qiladi.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnRun" class="btn">Simulyatsiyani boshlash</button>
+          <button id="btnStop" class="btn-ghost">To'xtatish</button>
+          <button id="btnReset" class="btn-ghost">Qayta tiklash</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6 mt-6">
+        <!-- Controls -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <label class="block text-sm text-slate-300 mb-1">Tizim turi</label>
+            <select id="systemSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2">
+              <option value="rc">RC zanjir (1-tartibli)</option>
+              <option value="rlc">RLC zanjir (2-tartibli)</option>
+              <option value="pid">PID boshqaruv</option>
+              <option value="sine">Sinus signal generatori</option>
+            </select>
+          </div>
+
+          <div id="groupRC" class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">RC zanjir parametrlari</h4>
+            <div class="mb-3">
+              <div class="flex items-center justify-between"><label class="text-sm">R (kΩ)</label><span id="lblR" class="kbd">1.0</span></div>
+              <input id="rangeR" type="range" min="0.1" max="10" step="0.1" value="1" class="w-full">
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><label class="text-sm">C (μF)</label><span id="lblC" class="kbd">1.0</span></div>
+              <input id="rangeC" type="range" min="0.1" max="10" step="0.1" value="1" class="w-full">
+            </div>
+          </div>
+
+          <div id="groupRLC" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-2">RLC zanjir parametrlari</h4>
+            <div class="mb-2">
+              <div class="flex items-center justify-between"><label class="text-sm">R (Ω)</label><span id="lblR2" class="kbd">1</span></div>
+              <input id="rangeR2" type="range" min="0.1" max="5" step="0.1" value="1" class="w-full">
+            </div>
+            <div class="mb-2">
+              <div class="flex items-center justify-between"><label class="text-sm">L (H)</label><span id="lblL" class="kbd">1</span></div>
+              <input id="rangeL" type="range" min="0.1" max="3" step="0.1" value="1" class="w-full">
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><label class="text-sm">C (F)</label><span id="lblC2" class="kbd">1</span></div>
+              <input id="rangeC2" type="range" min="0.1" max="3" step="0.1" value="1" class="w-full">
+            </div>
+          </div>
+
+          <div id="groupPID" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-2">PID parametrlari</h4>
+            <div class="mb-2">
+              <div class="flex items-center justify-between"><label class="text-sm">Kp</label><span id="lblKp" class="kbd">1.0</span></div>
+              <input id="rangeKp" type="range" min="0" max="5" step="0.1" value="1" class="w-full">
+            </div>
+            <div class="mb-2">
+              <div class="flex items-center justify-between"><label class="text-sm">Ki</label><span id="lblKi" class="kbd">0.1</span></div>
+              <input id="rangeKi" type="range" min="0" max="2" step="0.05" value="0.1" class="w-full">
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><label class="text-sm">Kd</label><span id="lblKd" class="kbd">0.01</span></div>
+              <input id="rangeKd" type="range" min="0" max="1" step="0.01" value="0.01" class="w-full">
+            </div>
+          </div>
+
+          <div id="groupSine" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-2">Sinus generatori</h4>
+            <div class="mb-3">
+              <div class="flex items-center justify-between"><label class="text-sm">Chastota (Hz)</label><span id="lblFreq" class="kbd">1</span></div>
+              <input id="rangeFreq" type="range" min="0.1" max="5" step="0.1" value="1" class="w-full">
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><label class="text-sm">Amplituda</label><span id="lblAmp" class="kbd">1</span></div>
+              <input id="rangeAmp" type="range" min="0.1" max="3" step="0.1" value="1" class="w-full">
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">MATLAB/Simulink g'oyasi</h4>
+            <pre class="code p-3 rounded text-xs overflow-auto"><code id="codeExample">% RC zanjir
+s = tf('s');
+R = 1000; C = 1e-6;
+H = 1/(R*C*s + 1);
+step(H);
+
+% Simulink: Step → Transfer Fcn → Scope</code></pre>
+          </div>
+        </div>
+
+        <!-- Block Diagram + Plot area -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Block Diagram -->
+          <div class="glass rounded-2xl p-4">
+            <h3 class="font-semibold mb-2">Blok diagramma</h3>
+            <div id="blockDiagram" class="w-full h-[200px]">
+              <svg width="100%" height="100%" viewBox="0 0 600 180">
+                <defs>
+                  <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#06b6d4" />
+                  </marker>
+                </defs>
+                <!-- Will be populated by JS -->
+              </svg>
+            </div>
+          </div>
+          <!-- Response plot -->
+          <div class="glass rounded-2xl p-4">
+            <h3 class="font-semibold mb-2">Tizim javobi</h3>
+            <div id="responsePlot" class="w-full h-[300px]">
+              <canvas width="600" height="280" style="background: #0b1020; border-radius: 8px;"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Masalalar (mustaqil ish)</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>Oddiy RC zanjir modelini Simulinkda quring va step javobni oling.</li>
+          <li>Sinus signal generatorini Scope bilan ulang va to'lqin shakli ko'ring.</li>
+          <li>Transfer funksiya $H(s)=\frac{5}{s+2}$ uchun blok diagramma tuzing.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rtacha & Murakkab</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>RLC zanjir uchun $H(s)=\frac{\omega_n^2}{s^2+2\zeta\omega_n s+\omega_n^2}$ modelini quring.</li>
+          <li>PID boshqaruvchini sozlang va overshoot 10% dan oshmasligi uchun parametrlarni toping.</li>
+          <li>Animatsiya rejimida signal o'zgarishini real vaqtda kuzating va natijalarni Workspace ga saqlang.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlarga yo'l-yo'riq (ko'rish uchun bosing)</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <p><strong>1‑masala:</strong> Step Input → Transfer Fcn ([1], [R*C, 1]) → Scope</p>
+        <p><strong>2‑masala:</strong> Sine Wave → Scope. Amplitude = 1, Frequency = 1 Hz</p>
+        <p><strong>3‑masala:</strong> Transfer Fcn: Numerator [5], Denominator [1, 2]</p>
+        <p><strong>4‑masala:</strong> Damping ratio $\zeta$ va natural frequency $\omega_n$ ni hisoblang</p>
+        <p><strong>5‑masala:</strong> PID Controller blockini ishlatib, tuning usuli bilan sozlang</p>
+        <p><strong>6‑masala:</strong> To Workspace blokini qo'shing, variable name: 'simdata'</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Reflection -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold">Tezkor baholash & refleksiya</h2>
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Mini‑quiz</h3>
+          <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+            <li>Simulinkda bloklar qanday ullanadi?</li>
+            <li>Transfer funksiya blocki qaysi parametrlarni oladi?</li>
+            <li>PID boshqaruvchida qaysi parametr barqarorlikka ta'sir qiladi?</li>
+            <li><code>sim()</code> buyrug'ining vazifasi nima?</li>
+          </ol>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Refleksiya</h3>
+          <p class="text-slate-300 text-sm">Bugun men qanday tizimlarni modellashtirdim? Blok diagramma qurishda qaysi qadamlar qiyin bo'ldi? Real tizim va model o'rtasida qanday farq bor?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Foydalanilgan adabiyotlar</h2>
+    <ul class="list-disc list-inside text-slate-300 space-y-1">
+      <li>MathWorks. <em>Simulink User's Guide</em>, R2023b.</li>
+      <li>Ogata K. <em>Modern Control Engineering</em>, 5th Edition, Pearson, 2010.</li>
+      <li>Franklin G.F., Powell J.D., Emami-Naeini A. <em>Feedback Control of Dynamic Systems</em>, 7th Edition.</li>
+      <li>MathWorks Documentation: Simulink Getting Started Guide.</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Dars modeli: "Ko'rsat → Bajar → Tahlil" — MATLAB Simulink tizim modellash.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Simulation State ----------
+    let isRunning = false;
+    let simulationTimer = null;
+    let currentTime = 0;
+    let maxTime = 10;
+    let dt = 0.05;
+
+    // ---------- System parameters ----------
+    let systemType = 'rc';
+    let systemParams = { R: 1, C: 1 };
+
+    // ---------- Canvas setup ----------
+    let canvas, ctx;
+
+    // ---------- Utilities ----------
+    function stepResponse(t, H) {
+      // Simplified step response calculation
+      if (systemType === 'rc') {
+        const tau = systemParams.R * systemParams.C * 1e-3; // time constant
+        return 1 - Math.exp(-t / tau);
+      }
+      if (systemType === 'rlc') {
+        const { R, L, C } = systemParams;
+        const wn = 1 / Math.sqrt(L * C);
+        const zeta = R / (2 * Math.sqrt(L / C));
+        if (zeta < 1) {
+          const wd = wn * Math.sqrt(1 - zeta * zeta);
+          return 1 - Math.exp(-zeta * wn * t) * (Math.cos(wd * t) + (zeta * wn / wd) * Math.sin(wd * t));
+        } else {
+          return 1 - Math.exp(-wn * t);
+        }
+      }
+      if (systemType === 'pid') {
+        // Simplified closed-loop response
+        return 1 - Math.exp(-2 * t) * Math.cos(3 * t + Math.PI / 4);
+      }
+      if (systemType === 'sine') {
+        return systemParams.amp * Math.sin(2 * Math.PI * systemParams.freq * t);
+      }
+      return 0;
+    }
+
+    function drawBlockDiagram() {
+      const svg = document.querySelector('#blockDiagram svg');
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#06b6d4" />
+          </marker>
+        </defs>
+      `;
+
+      if (systemType === 'rc' || systemType === 'rlc') {
+        // Step → Transfer Function → Scope
+        svg.innerHTML += `
+          <rect class="block-rect" x="50" y="70" width="80" height="40"></rect>
+          <text class="block-text" x="90" y="95">Step Input</text>
+          
+          <rect class="block-rect" x="220" y="70" width="100" height="40"></rect>
+          <text class="block-text" x="270" y="95">Transfer Fcn</text>
+          
+          <rect class="block-rect" x="420" y="70" width="80" height="40"></rect>
+          <text class="block-text" x="460" y="95">Scope</text>
+          
+          <line class="connection" x1="130" y1="90" x2="220" y2="90" marker-end="url(#arrow)"></line>
+          <line class="connection" x1="320" y1="90" x2="420" y2="90" marker-end="url(#arrow)"></line>
+        `;
+      } else if (systemType === 'pid') {
+        // Reference → Sum → PID → Plant → Scope
+        svg.innerHTML += `
+          <rect class="block-rect" x="20" y="70" width="60" height="40"></rect>
+          <text class="block-text" x="50" y="95">Ref</text>
+          
+          <circle cx="120" cy="90" r="20" fill="none" stroke="#fb923c" stroke-width="2"></circle>
+          <text class="block-text" x="120" y="95">+</text>
+          
+          <rect class="block-rect" x="180" y="70" width="60" height="40"></rect>
+          <text class="block-text" x="210" y="95">PID</text>
+          
+          <rect class="block-rect" x="280" y="70" width="60" height="40"></rect>
+          <text class="block-text" x="310" y="95">Plant</text>
+          
+          <rect class="block-rect" x="380" y="70" width="60" height="40"></rect>
+          <text class="block-text" x="410" y="95">Scope</text>
+          
+          <line class="connection" x1="80" y1="90" x2="100" y2="90" marker-end="url(#arrow)"></line>
+          <line class="connection" x1="140" y1="90" x2="180" y2="90" marker-end="url(#arrow)"></line>
+          <line class="connection" x1="240" y1="90" x2="280" y2="90" marker-end="url(#arrow)"></line>
+          <line class="connection" x1="340" y1="90" x2="380" y2="90" marker-end="url(#arrow)"></line>
+          
+          <!-- Feedback line -->
+          <path d="M 320 110 L 320 140 L 120 140 L 120 110" stroke="#fb923c" stroke-width="2" fill="none" marker-end="url(#arrow)"></path>
+          <text class="block-text" x="170" y="135">-</text>
+        `;
+      } else if (systemType === 'sine') {
+        // Sine Wave → Scope
+        svg.innerHTML += `
+          <rect class="block-rect" x="150" y="70" width="100" height="40"></rect>
+          <text class="block-text" x="200" y="95">Sine Wave</text>
+          
+          <rect class="block-rect" x="350" y="70" width="80" height="40"></rect>
+          <text class="block-text" x="390" y="95">Scope</text>
+          
+          <line class="connection" x1="250" y1="90" x2="350" y2="90" marker-end="url(#arrow)"></line>
+        `;
+      }
+    }
+
+    function drawResponse() {
+      if (!ctx) return;
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Grid
+      ctx.strokeStyle = '#374151';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const x = (canvas.width / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 8; i++) {
+        const y = (canvas.height / 8) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      
+      // Response curve
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      const timeScale = canvas.width / maxTime;
+      const amplitudeScale = canvas.height / 3; // Max amplitude around 2-3
+      const offsetY = canvas.height / 2;
+      
+      for (let t = 0; t <= maxTime; t += 0.1) {
+        const x = t * timeScale;
+        const y = offsetY - stepResponse(t) * amplitudeScale;
+        
+        if (t === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      
+      // Current time indicator
+      if (isRunning) {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        const currentX = currentTime * timeScale;
+        ctx.beginPath();
+        ctx.moveTo(currentX, 0);
+        ctx.lineTo(currentX, canvas.height);
+        ctx.stroke();
+      }
+    }
+
+    function runSimulation() {
+      if (!isRunning) return;
+      
+      currentTime += dt;
+      if (currentTime >= maxTime) {
+        currentTime = 0;
+      }
+      
+      drawResponse();
+    }
+
+    function startSimulation() {
+      if (isRunning) return;
+      isRunning = true;
+      currentTime = 0;
+      simulationTimer = setInterval(runSimulation, 50);
+      document.getElementById('btnRun').textContent = 'Ishlamoqda...';
+    }
+
+    function stopSimulation() {
+      isRunning = false;
+      if (simulationTimer) {
+        clearInterval(simulationTimer);
+        simulationTimer = null;
+      }
+      document.getElementById('btnRun').textContent = 'Simulyatsiyani boshlash';
+    }
+
+    function resetSimulation() {
+      stopSimulation();
+      currentTime = 0;
+      drawResponse();
+    }
+
+    function updateCodeExample() {
+      const codeElement = document.getElementById('codeExample');
+      let code = '';
+      
+      if (systemType === 'rc') {
+        code = `% RC zanjir
+s = tf('s');
+R = ${systemParams.R * 1000}; C = ${systemParams.C}e-6;
+H = 1/(R*C*s + 1);
+step(H);
+
+% Simulink: Step → Transfer Fcn → Scope`;
+      } else if (systemType === 'rlc') {
+        code = `% RLC zanjir  
+s = tf('s');
+R = ${systemParams.R}; L = ${systemParams.L}; C = ${systemParams.C};
+H = 1/(L*C*s^2 + R*C*s + 1);
+step(H);`;
+      } else if (systemType === 'pid') {
+        code = `% PID boshqaruv
+Kp = ${systemParams.Kp}; Ki = ${systemParams.Ki}; Kd = ${systemParams.Kd};
+C = pid(Kp, Ki, Kd);
+Plant = tf([1], [1, 1]);
+T = feedback(C*Plant, 1);
+step(T);`;
+      } else if (systemType === 'sine') {
+        code = `% Sinus signal
+t = 0:0.01:10;
+f = ${systemParams.freq}; A = ${systemParams.amp};
+y = A*sin(2*pi*f*t);
+plot(t, y);
+
+% Simulink: Sine Wave → Scope`;
+      }
+      
+      codeElement.textContent = code;
+    }
+
+    // ---------- Event listeners ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      canvas = document.querySelector('#responsePlot canvas');
+      ctx = canvas.getContext('2d');
+      canvas.width = 560;
+      canvas.height = 260;
+
+      drawBlockDiagram();
+      drawResponse();
+      updateCodeExample();
+
+      // System type selection
+      document.getElementById('systemSelect').addEventListener('change', (e) => {
+        stopSimulation();
+        systemType = e.target.value;
+        
+        // Show/hide parameter groups
+        document.getElementById('groupRC').classList.toggle('hidden', systemType !== 'rc');
+        document.getElementById('groupRLC').classList.toggle('hidden', systemType !== 'rlc');
+        document.getElementById('groupPID').classList.toggle('hidden', systemType !== 'pid');
+        document.getElementById('groupSine').classList.toggle('hidden', systemType !== 'sine');
+        
+        // Update parameters
+        if (systemType === 'rc') {
+          systemParams = { R: parseFloat(document.getElementById('rangeR').value), C: parseFloat(document.getElementById('rangeC').value) };
+        } else if (systemType === 'rlc') {
+          systemParams = { 
+            R: parseFloat(document.getElementById('rangeR2').value),
+            L: parseFloat(document.getElementById('rangeL').value),
+            C: parseFloat(document.getElementById('rangeC2').value)
+          };
+        } else if (systemType === 'pid') {
+          systemParams = {
+            Kp: parseFloat(document.getElementById('rangeKp').value),
+            Ki: parseFloat(document.getElementById('rangeKi').value),
+            Kd: parseFloat(document.getElementById('rangeKd').value)
+          };
+        } else if (systemType === 'sine') {
+          systemParams = {
+            freq: parseFloat(document.getElementById('rangeFreq').value),
+            amp: parseFloat(document.getElementById('rangeAmp').value)
+          };
+        }
+        
+        drawBlockDiagram();
+        drawResponse();
+        updateCodeExample();
+      });
+
+      // RC parameters
+      document.getElementById('rangeR').addEventListener('input', (e) => {
+        systemParams.R = parseFloat(e.target.value);
+        document.getElementById('lblR').textContent = e.target.value;
+        drawResponse();
+        updateCodeExample();
+      });
+      
+      document.getElementById('rangeC').addEventListener('input', (e) => {
+        systemParams.C = parseFloat(e.target.value);
+        document.getElementById('lblC').textContent = e.target.value;
+        drawResponse();
+        updateCodeExample();
+      });
+
+      // RLC parameters
+      ['R2', 'L', 'C2'].forEach(param => {
+        document.getElementById(`range${param}`).addEventListener('input', (e) => {
+          const key = param === 'R2' ? 'R' : param === 'C2' ? 'C' : param;
+          systemParams[key] = parseFloat(e.target.value);
+          document.getElementById(`lbl${param}`).textContent = e.target.value;
+          drawResponse();
+          updateCodeExample();
+        });
+      });
+
+      // PID parameters
+      ['Kp', 'Ki', 'Kd'].forEach(param => {
+        document.getElementById(`range${param}`).addEventListener('input', (e) => {
+          systemParams[param] = parseFloat(e.target.value);
+          document.getElementById(`lbl${param}`).textContent = e.target.value;
+          drawResponse();
+          updateCodeExample();
+        });
+      });
+
+      // Sine parameters
+      document.getElementById('rangeFreq').addEventListener('input', (e) => {
+        systemParams.freq = parseFloat(e.target.value);
+        document.getElementById('lblFreq').textContent = e.target.value;
+        drawResponse();
+        updateCodeExample();
+      });
+      
+      document.getElementById('rangeAmp').addEventListener('input', (e) => {
+        systemParams.amp = parseFloat(e.target.value);
+        document.getElementById('lblAmp').textContent = e.target.value;
+        drawResponse();
+        updateCodeExample();
+      });
+
+      // Control buttons
+      document.getElementById('btnRun').addEventListener('click', startSimulation);
+      document.getElementById('btnStop').addEventListener('click', stopSimulation);
+      document.getElementById('btnReset').addEventListener('click', resetSimulation);
+    });
+  </script>
+</body>
+</html>
