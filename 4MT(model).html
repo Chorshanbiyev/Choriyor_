@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT4 — MATLAB'da visual dasturlash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Plotly for GUI mockups -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { 
+      --bg: #1a2332; 
+      --card: #243447; 
+      --ink: #ffffff; 
+      --muted: #94a3b8; 
+      --matlab-orange: #ff6600;
+      --matlab-blue: #0076a8;
+      --matlab-light-blue: #4dbeee;
+      --matlab-dark-blue: #0072bd;
+    }
+    html { scroll-behavior: smooth; }
+    body { 
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; 
+      background: linear-gradient(135deg, #1a2332 0%, #243447 50%, #1e2a3a 100%); 
+      color: var(--ink); 
+    }
+    .glass { 
+      background: rgba(36,52,71,0.8); 
+      backdrop-filter: blur(12px); 
+      border: 1px solid rgba(255,255,255,0.1); 
+    }
+    .btn { 
+      @apply px-4 py-2 rounded-2xl; 
+      background: linear-gradient(45deg, var(--matlab-orange), #ff8533); 
+      color: white; 
+      box-shadow: 0 6px 20px rgba(255,102,0,.3); 
+    }
+    .btn-ghost { 
+      @apply px-3 py-2 rounded-xl; 
+      background: rgba(77,190,238,0.15); 
+      color: var(--matlab-light-blue); 
+      border: 1px solid rgba(77,190,238,0.3);
+    }
+    .chip { 
+      @apply px-3 py-1 rounded-full text-xs; 
+      background: rgba(0,118,168,0.2); 
+      color: var(--matlab-light-blue); 
+      border: 1px solid rgba(0,118,168,0.4); 
+    }
+    .kbd { 
+      @apply px-2 py-0.5 rounded border; 
+      border-color: rgba(148,163,184,.4); 
+      background: rgba(0,118,168,0.1);
+      color: var(--matlab-light-blue); 
+    }
+    .code { 
+      background: #0d1117; 
+      border: 1px solid rgba(0,118,168,.3); 
+      color: #e6edf3;
+    }
+    .gui-button {
+      background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+      border: 1px solid #a0a0a0;
+      border-radius: 4px;
+      color: #333;
+      padding: 8px 16px;
+      margin: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .gui-panel {
+      background: #f5f5f5;
+      border: 2px solid #d0d0d0;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 8px;
+    }
+    .gui-slider {
+      width: 200px;
+      margin: 8px;
+    }
+    .gui-axes {
+      background: white;
+      border: 1px solid #ccc;
+      width: 300px;
+      height: 200px;
+      margin: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></div>
+        <span class="font-semibold">MT4 · MATLAB GUI</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">App Designer</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Refleksiya</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">MATLAB'da <span style="color: var(--matlab-orange)">visual dasturlash</span></h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip">GUI interfeyslar</span> · Asosiy vosita: <span class="chip">App Designer</span> <span class="chip">uicontrol</span></p>
+        <p class="mt-4 text-slate-400">Ushbu sahifa MATLAB App Designer asoslari, GUI komponentlari, interaktiv ilovalar yaratish, masalalar va tezkor baholash bo'limlarini o'z ichiga oladi. "Ko'rsat → Bajar → Tahlil" metodikasi asosida.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">GUI Simulatorga o'tish</a>
+          <a href="#examples" class="btn-ghost">App Designer kodi</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroGUI" class="w-full h-[320px] bg-gray-100 rounded-2xl flex items-center justify-center">
+          <div class="text-center">
+            <div class="gui-panel">
+              <h3 class="text-lg font-bold text-gray-700 mb-4">MATLAB GUI namunasi</h3>
+              <div class="flex flex-col items-center gap-4">
+                <div class="gui-button">Button</div>
+                <input class="gui-slider" type="range" min="0" max="100" value="50">
+                <div class="gui-axes bg-blue-50 flex items-center justify-center text-gray-600">
+                  Grafik maydoni
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300 mb-4">Grafik foydalanuvchi interfeyslar (GUI) ilovalar uchun nuqta va bosish boshqaruvini ta'minlaydi[[5]](https://www.mathworks.com/discovery/matlab-gui.html), bu esa boshqalarga til o'rganish yoki dastur ishlatish uchun buyruqlar kiritish zaruratini yo'q qiladi.</p>
+        <div class="mt-4 text-slate-300 space-y-2">
+          <p><strong>App Designer:</strong> App Designer bu interaktiv muhit bo'lib, ilova maketini yaratish va uning xatti-harakatlarini dasturlashni birlashtiradi. U MATLAB editorining to'liq integratsiya qilingan versiyasini va katta interaktiv UI komponentlar to'plamini taqdim etadi.[[3]](https://www.mathworks.com/help/matlab/app-designer.html)</p>
+          <p><strong>Asosiy komponentlar:</strong> Button, Slider, Drop-down, Tree kabi interaktiv komponentlar va grafiklarni yaratish uchun Axes.[[2]](https://www.mathworks.com/help/matlab/creating_guis/choose-components-for-your-app-designer-app.html)</p>
+          <p><strong>Callback funksiyalar:</strong> Komponentga callback qo'shganda, App Designer callback funksiyasini yaratadi va kursorni shu funksiya korpusiga joylashtiradi. App Designer avtomatik ravishda ilova obyektini callback funksiyasining birinchi argumenti sifatida uzatadi.[[4]](https://www.mathworks.com/help/matlab/creating_guis/create-a-simple-app-or-gui-using-app-designer.html)</p>
+        </div>
+      </div>
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1">
+          <li>MATLAB App Designer bilan GUI yaratish.</li>
+          <li>UI komponentlari bilan ishlash (Button, Slider, Axes).</li>
+          <li>Callback funksiyalarini yozish va bog'lash.</li>
+          <li>Interaktiv ilovalar yaratish va sinovdan o'tkazish.</li>
+        </ul>
+        <div class="mt-4"><span class="chip">Visual yondashuv</span> <span class="chip">Interaktiv</span> <span class="chip">Amaliy</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & App Designer code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">App Designer misollar & kod</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Sodda GUI yaratish</h3>
+        <p class="text-slate-300">Asosiy komponentlar bilan GUI:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% App Designer'da yangi loyiha ochish
+% Design View'da komponentlar qo'shish:
+% - Button (name: ClickButton)
+% - Slider (name: AmplitudeSlider) 
+% - Axes (name: UIAxes)
+
+% Button callback funksiyasi
+function ClickButtonPushed(app, event)
+    amplitude = app.AmplitudeSlider.Value;
+    x = 0:0.1:10;
+    y = amplitude * sin(x);
+    plot(app.UIAxes, x, y);
+    title(app.UIAxes, 'Sinus grafigi');
+end</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Slider bilan real-vaqt yangilanish</h3>
+        <p class="text-slate-300">Slider qiymati o'zgarishi bilan grafik yangilanishi:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Slider callback funksiyasi
+function AmplitudeSliderValueChanged(app, event)
+    value = app.AmplitudeSlider.Value;
+    
+    % Grafik ma'lumotlarini yangilash
+    x = linspace(0, 2*pi, 100);
+    y = value * sin(x);
+    
+    plot(app.UIAxes, x, y, 'LineWidth', 2);
+    xlabel(app.UIAxes, 'x');
+    ylabel(app.UIAxes, 'y');
+    title(app.UIAxes, sprintf('Amplituda = %.2f', value));
+    grid(app.UIAxes, 'on');
+end</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Dropdown menu bilan tanlov</h3>
+        <p class="text-slate-300">Turli funksiyalar o'rtasida tanlov:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Dropdown callback
+function FunctionDropDownValueChanged(app, event)
+    selectedFunction = app.FunctionDropDown.Value;
+    amplitude = app.AmplitudeSlider.Value;
+    
+    x = linspace(0, 4*pi, 200);
+    
+    switch selectedFunction
+        case 'Sin'
+            y = amplitude * sin(x);
+        case 'Cos' 
+            y = amplitude * cos(x);
+        case 'Tan'
+            y = amplitude * tan(x);
+    end
+    
+    plot(app.UIAxes, x, y);
+    title(app.UIAxes, [selectedFunction ' funksiyasi']);
+end</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Properties va startup funksiya</h3>
+        <p class="text-slate-300">Ilova xossalari va boshlang'ich sozlash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>properties (Access = private)
+    currentData % Joriy ma'lumotlar
+    plotColor = [0 0.4470 0.7410] % MATLAB rang
+end
+
+% Startup funksiyasi
+function startupFcn(app)
+    % Dastlabki qiymatlar
+    app.AmplitudeSlider.Value = 1;
+    app.FunctionDropDown.Value = 'Sin';
+    
+    % Dastlabki grafik
+    x = linspace(0, 2*pi, 100);
+    y = sin(x);
+    plot(app.UIAxes, x, y, 'Color', app.plotColor);
+    title(app.UIAxes, 'Sinus funksiyasi');
+end</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold">GUI Simulator</h2>
+          <p class="text-slate-300">MATLAB App Designer interfeysi simulyatsiyasi. Haqiqiy MATLAB'da yaratadigan GUI'ga o'xshash komponentlarni sinab ko'ring.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnRun" class="btn">Ilovani ishga tushirish</button>
+          <button id="btnReset" class="btn-ghost">Reset</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6 mt-6">
+        <!-- Design View -->
+        <div class="lg:col-span-1 glass rounded-xl p-4">
+          <h4 class="font-semibold mb-4">Design View</h4>
+          
+          <div class="space-y-4">
+            <div class="glass rounded-xl p-3">
+              <label class="block text-sm text-slate-300 mb-2">Funksiya turi</label>
+              <select id="functionSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2">
+                <option value="sin">Sinus (sin)</option>
+                <option value="cos">Kosinus (cos)</option>
+                <option value="exp">Eksponensial (exp)</option>
+                <option value="log">Logarifm (log)</option>
+              </select>
+            </div>
+
+            <div class="glass rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm text-slate-300">Amplituda</label>
+                <span id="lblAmplitude" class="kbd">1.0</span>
+              </div>
+              <input id="amplitudeSlider" type="range" min="0.1" max="5" step="0.1" value="1" class="w-full">
+            </div>
+
+            <div class="glass rounded-xl p-3">
+              <div class="flex items-center justify-between mb-2">
+                <label class="text-sm text-slate-300">Chastota</label>
+                <span id="lblFrequency" class="kbd">1.0</span>
+              </div>
+              <input id="frequencySlider" type="range" min="0.5" max="3" step="0.1" value="1" class="w-full">
+            </div>
+
+            <div class="space-y-2">
+              <button id="plotBtn" class="w-full gui-button">Graf chizish</button>
+              <button id="clearBtn" class="w-full gui-button">Tozalash</button>
+              <button id="exportBtn" class="w-full gui-button">Eksport</button>
+            </div>
+          </div>
+
+          <div class="mt-4 glass rounded-xl p-3">
+            <h5 class="font-semibold mb-2">MATLAB kodi</h5>
+            <pre class="code p-3 rounded text-xs overflow-auto"><code id="matlabCode">function plotData(app, event)
+  amp = app.AmplitudeSlider.Value;
+  freq = app.FrequencySlider.Value;
+  x = linspace(0, 2*pi, 100);
+  y = amp * sin(freq * x);
+  plot(app.UIAxes, x, y);
+end</code></pre>
+          </div>
+        </div>
+
+        <!-- Running App View -->
+        <div class="lg:col-span-2 glass rounded-2xl p-4">
+          <div class="bg-gray-100 rounded-xl p-4 h-[600px]">
+            <div class="bg-white rounded-lg p-4 h-full">
+              <h3 class="text-gray-800 font-bold mb-4">MATLAB GUI Ilovasi</h3>
+              
+              <!-- Status bar -->
+              <div id="statusBar" class="mb-4 p-2 bg-blue-50 rounded border-l-4 border-blue-400 text-blue-800 text-sm">
+                Ilova ishga tayyor. Parametrlarni o'zgartiring va "Graf chizish" tugmasini bosing.
+              </div>
+
+              <!-- Plot area -->
+              <div class="mb-4">
+                <div id="plotArea" class="w-full h-[320px] border-2 border-gray-300 rounded bg-white"></div>
+              </div>
+
+              <!-- Info panel -->
+              <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 p-3 rounded">
+                  <strong class="text-gray-700">Funksiya:</strong>
+                  <span id="currentFunction" class="text-blue-600">sin(x)</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                  <strong class="text-gray-700">Amplituda:</strong>
+                  <span id="currentAmplitude" class="text-blue-600">1.0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                  <strong class="text-gray-700">Chastota:</strong>
+                  <span id="currentFrequency" class="text-blue-600">1.0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Masalalar (mustaqil ish)</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>App Designer'da yangi loyiha yarating va Button, Slider, Axes komponentlarini joylashtiring.</li>
+          <li>Button bosilganda oddiy sinus funksiyasini chizadigan callback yozing.</li>
+          <li>Slider qiymati o'zgarishi bilan grafik amplitudasini o'zgartiradigan callback yarating.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rtacha & Murakkab</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>Dropdown menu orqali turli matematik funksiyalar (sin, cos, tan, exp) o'rtasida tanlov qiling.</li>
+          <li>Edit Field komponentini qo'shib, foydalanuvchi x oralig'ini kirita oladigan qiling.</li>
+          <li>Panel konteynerlaridan foydalanib, GUI'ni mantiqiy guruhlarga bo'ling.</li>
+          <li>Table komponentini qo'shib, hisoblangan qiymatlarni jadval ko'rinishida ko'rsating.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlarga yo'l-yo'riq (ko'rish uchun bosing)</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <p><strong>1‑masala:</strong> App Designer'da yangi Blank App yarating, komponentlarni drag-and-drop orqali qo'shing.</p>
+        <p><strong>2‑masala:</strong> Button'ning Callback xossasini o'zgartiring: <code>plot(app.UIAxes, 0:0.1:10, sin(0:0.1:10))</code></p>
+        <p><strong>3‑masala:</strong> Slider'ning ValueChangedFcn callback'ida: <code>plot(app.UIAxes, x, app.Slider.Value * sin(x))</code></p>
+        <p><strong>4‑masala:</strong> Dropdown'ning Items xossasiga ['Sin','Cos','Tan','Exp'] qo'shing, callback'da switch operatori ishlatng.</p>
+        <p><strong>5‑masala:</strong> Edit Field'ning ValueChangedFcn'da str2double() orqali matnni raqamga o'tkazing.</p>
+        <p><strong>6‑masala:</strong> Panel komponentlarini Container sifatida ishlating, ichiga boshqa komponentlarni joylashtiring.</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Reflection -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold">Tezkor baholash & refleksiya</h2>
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Mini‑quiz</h3>
+          <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+            <li>App Designer'da GUI yaratishning asosiy bosqichlari qanday?</li>
+            <li>Callback funksiya nima va qanday ishlaydi?</li>
+            <li><code>app.ComponentName.Property</code> sintaksisining maqsadi nimada?</li>
+            <li>Design View va Code View o'rtasidagi farq nima?</li>
+          </ol>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Refleksiya</h3>
+          <p class="text-slate-300 text-sm">Bugun men GUI yaratish bo'yicha nimalarni o'rgandim? Qaysi komponentlar eng foydali bo'ldi? Callback funksiyalari yozishda qanday qiyinchiliklarga duch keldim? Kelajakda qanday murakkab loyihalar ustida ishlashni rejalashtiryapman?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Foydalanilgan adabiyotlar</h2>
+    <ul class="list-disc list-inside text-slate-300 space-y-1">
+      <li>MATLAB App Designer Documentation. MathWorks Inc., 2025.</li>
+      <li>Create and Run a Simple App Using App Designer - MATLAB & Simulink.</li>
+      <li>App Building Components - MATLAB & Simulink Documentation.</li>
+      <li>Tolipov O'., Usmonboyeva M. <em>Pedagogik texnologiyalar nazariyasi va amaliyoti</em>, Toshkent, 2020.</li>
+      <li>Begimqulov U. <em>Raqamli ta'limda interaktiv vositalar</em>, 2022.</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Dars modeli: "Ko'rsat → Bajar → Tahlil" | MATLAB va App Designer - MathWorks Inc. mahsullari.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Utilities ----------
+    function updateMatlabCode(func, amp, freq) {
+      const codeMap = {
+        'sin': `function plotData(app, event)
+  amp = ${amp};
+  freq = ${freq};
+  x = linspace(0, 2*pi, 100);
+  y = amp * sin(freq * x);
+  plot(app.UIAxes, x, y);
+  title(app.UIAxes, 'Sinus grafigi');
+end`,
+        'cos': `function plotData(app, event)
+  amp = ${amp};
+  freq = ${freq};
+  x = linspace(0, 2*pi, 100);
+  y = amp * cos(freq * x);
+  plot(app.UIAxes, x, y);
+  title(app.UIAxes, 'Kosinus grafigi');
+end`,
+        'exp': `function plotData(app, event)
+  amp = ${amp};
+  freq = ${freq};
+  x = linspace(0, 2, 100);
+  y = amp * exp(freq * x);
+  plot(app.UIAxes, x, y);
+  title(app.UIAxes, 'Eksponensial grafigi');
+end`,
+        'log': `function plotData(app, event)
+  amp = ${amp};
+  freq = ${freq};
+  x = linspace(0.1, 5, 100);
+  y = amp * log(freq * x);
+  plot(app.UIAxes, x, y);
+  title(app.UIAxes, 'Logarifm grafigi');
+end`
+      };
+      document.getElementById('matlabCode').textContent = codeMap[func] || codeMap['sin'];
+    }
+
+    function updatePlot() {
+      const func = document.getElementById('functionSelect').value;
+      const amp = parseFloat(document.getElementById('amplitudeSlider').value);
+      const freq = parseFloat(document.getElementById('frequencySlider').value);
+
+      let x, y;
+      
+      if (func === 'sin') {
+        x = Array.from({length: 100}, (_, i) => i * 2 * Math.PI / 99);
+        y = x.map(xi => amp * Math.sin(freq * xi));
+      } else if (func === 'cos') {
+        x = Array.from({length: 100}, (_, i) => i * 2 * Math.PI / 99);
+        y = x.map(xi => amp * Math.cos(freq * xi));
+      } else if (func === 'exp') {
+        x = Array.from({length: 100}, (_, i) => i * 2 / 99);
+        y = x.map(xi => amp * Math.exp(freq * xi));
+      } else if (func === 'log') {
+        x = Array.from({length: 100}, (_, i) => 0.1 + i * 4.9 / 99);
+        y = x.map(xi => amp * Math.log(freq * xi));
+      }
+
+      const data = [{
+        x: x,
+        y: y,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#0076a8', width: 3 },
+        name: func.toUpperCase() + ' funksiyasi'
+      }];
+
+      const layout = {
+        margin: { l: 40, r: 20, b: 40, t: 40 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'white',
+        font: { family: 'Arial', size: 12 },
+        xaxis: { title: 'x', gridcolor: '#eee' },
+        yaxis: { title: 'y', gridcolor: '#eee' },
+        showlegend: false
+      };
+
+      Plotly.newPlot('plotArea', data, layout, { displayModeBar: false, responsive: true });
+      
+      // Update info
+      document.getElementById('currentFunction').textContent = func + '(x)';
+      document.getElementById('currentAmplitude').textContent = amp.toFixed(1);
+      document.getElementById('currentFrequency').textContent = freq.toFixed(1);
+      
+      // Update MATLAB code
+      updateMatlabCode(func, amp, freq);
+    }
+
+    function updateStatus(message, type = 'info') {
+      const statusBar = document.getElementById('statusBar');
+      const colors = {
+        'info': 'bg-blue-50 border-blue-400 text-blue-800',
+        'success': 'bg-green-50 border-green-400 text-green-800',
+        'warning': 'bg-yellow-50 border-yellow-400 text-yellow-800'
+      };
+      statusBar.className = `mb-4 p-2 rounded border-l-4 text-sm ${colors[type]}`;
+      statusBar.textContent = message;
+    }
+
+    // ---------- Event handlers ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      const functionSelect = document.getElementById('functionSelect');
+      const amplitudeSlider = document.getElementById('amplitudeSlider');
+      const frequencySlider = document.getElementById('frequencySlider');
+      const lblAmplitude = document.getElementById('lblAmplitude');
+      const lblFrequency = document.getElementById('lblFrequency');
+      
+      const plotBtn = document.getElementById('plotBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const exportBtn = document.getElementById('exportBtn');
+      const btnRun = document.getElementById('btnRun');
+      const btnReset = document.getElementById('btnReset');
+
+      // Initial setup
+      updatePlot();
+
+      // Event listeners
+      functionSelect.addEventListener('change', () => {
+        updatePlot();
+        updateStatus('Funksiya turi o\'zgartirildi: ' + functionSelect.value.toUpperCase(), 'success');
+      });
+
+      amplitudeSlider.addEventListener('input', () => {
+        lblAmplitude.textContent = parseFloat(amplitudeSlider.value).toFixed(1);
+        updateMatlabCode(functionSelect.value, amplitudeSlider.value, frequencySlider.value);
+      });
+
+      frequencySlider.addEventListener('input', () => {
+        lblFrequency.textContent = parseFloat(frequencySlider.value).toFixed(1);
+        updateMatlabCode(functionSelect.value, amplitudeSlider.value, frequencySlider.value);
+      });
+
+      plotBtn.addEventListener('click', () => {
+        updatePlot();
+        updateStatus('Graf muvaffaqiyatli chizildi!', 'success');
+      });
+
+      clearBtn.addEventListener('click', () => {
+        Plotly.purge('plotArea');
+        updateStatus('Graf tozalandi.', 'warning');
+      });
+
+      exportBtn.addEventListener('click', () => {
+        updateStatus('Eksport funksiyasi: haqiqiy MATLAB\'da Plotly.toImage() ishlatiladi.', 'info');
+      });
+
+      btnRun.addEventListener('click', () => {
+        updatePlot();
+        updateStatus('Ilova ishga tushirildi. Barcha komponentlar faol.', 'success');
+      });
+
+      btnReset.addEventListener('click', () => {
+        functionSelect.value = 'sin';
+        amplitudeSlider.value = '1';
+        frequencySlider.value = '1';
+        lblAmplitude.textContent = '1.0';
+        lblFrequency.textContent = '1.0';
+        updatePlot();
+        updateStatus('Barcha sozlamalar dastlabki holatga qaytarildi.', 'info');
+      });
+    });
+  </script>
+</body>
+</html>
