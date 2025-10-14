@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT1 — Mapleda 3D grafiklar bilan ishlash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Plotly for 3D graphs -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { --bg: #0b1220; --card: #0f172a; --ink:#e5e7eb; --muted:#9ca3af; --brand:#06b6d4; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1220 0%, #0b1220 60%, #0c1426 100%); color: var(--ink); }
+    .glass { background: rgba(15,23,42,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #0ea5e9; color: white; box-shadow: 0 6px 20px rgba(14,165,233,.25); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.1); color: var(--ink); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(94,234,212,0.1); color:#5eead4; border:1px solid rgba(94,234,212,0.25); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #0b1020; border: 1px solid rgba(148,163,184,.2); }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></div>
+        <span class="font-semibold">MT1 · Maple 3D</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">Misollar & Kod</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Refleksiya</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Mapleda <span class="text-cyan-300">3D grafiklar</span> bilan ishlash</h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip">Fazoviy tushunchalarni shakllantirish</span> · Asosiy funksiyalar: <span class="chip">rotate3d</span> <span class="chip">animate</span></p>
+        <p class="mt-4 text-slate-400">Ushbu sahifa nazariya, Maple kod namunalari, interaktiv 3D vizualizatsiya, masalalar, yechimlar va tezkor baholash bo‘limlaridan iborat. “Ko‘rsat → Bajar → Tahlil” metodikasi asosida.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o‘tish</a>
+          <a href="#examples" class="btn-ghost">Kod namunalari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300">3D grafik — $z=f(x,y)$ ko‘rinishidagi sirtni fazoda tasvirlash usuli. Maple’da <code class="code px-2 py-1 rounded">plot3d</code> yordamida sirtlar chiziladi, <code class="code px-2 py-1 rounded">rotate3d</code> esa sirtni aylantirish (transformatsiya) uchun qo‘llanadi. <code class="code px-2 py-1 rounded">animate</code> 3D modelning vaqt bo‘yicha o‘zgarishini (masalan, parametr $t$ ga bog‘liq) ko‘rsatadi.</p>
+        <div class="mt-4 text-slate-300 space-y-2">
+          <p><strong>Misol sirtlar:</strong> Paraboloid $z=x^2+y^2$, sinus sathi $z=\sin x\,\cos y$, konus $z=\sqrt{x^2+y^2}$.</p>
+          <p><strong>Aylanma sathlar:</strong> Agar chiziq $y=f(x)$ bo‘lsa, $x$ o‘q atrofida aylantirilganda hosil bo‘lgan sath parametrik ko‘rinishda ifodalanadi. Maple’da <em>aylanish</em> effektini vizual ko‘rsatish uchun <code>rotate3d</code> qulay.</p>
+        </div>
+      </div>
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1">
+          <li>Maple’da 3D sirtlarni chiza olish.</li>
+          <li><code>rotate3d</code> va <code>animate</code> bilan ishlash.</li>
+          <li>Fazoviy tahlil: sirt shakli va parametr ta’sirini baholash.</li>
+        </ul>
+        <div class="mt-4"><span class="chip">Vizual yondashuv</span> <span class="chip">Faol ishtirok</span> <span class="chip">Refleksiya</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & Maple code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Misollar & Maple kod namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Paraboloid</h3>
+        <p class="text-slate-300">$z=x^2+y^2$ sirtini chizish:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>plot3d(x^2 + y^2, x=-3..3, y=-3..3, axes=boxed, grid=[60,60]);</code></pre>
+        <h4 class="mt-3 font-semibold">Aylantirish (rotate3d):</h4>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(plots):
+rotate3d(plot3d(x^2+y^2, x=-3..3, y=-3..3), Pi/6, Pi/4, Pi/12);</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Sinus sathi</h3>
+        <p class="text-slate-300">$z=\sin x \cdot \cos y$ sirtini chizish va animatsiya:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(plots):
+plot3d(sin(x)*cos(y), x=-Pi..Pi, y=-Pi..Pi, grid=[60,60]);
+animate(plot3d, [sin(a*x)*cos(y), x=-Pi..Pi, y=-Pi..Pi], a=0.5..2.0);</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Konus</h3>
+        <p class="text-slate-300">$z=\sqrt{x^2+y^2}$:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>plot3d(sqrt(x^2 + y^2), x=-3..3, y=-3..3, grid=[60,60]);</code></pre>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Aylanma sathga misol (parametrli)</h3>
+        <p class="text-slate-300">Aylanish animatsiyasi g‘oyasi:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>with(plots):
+animate3d( (u,v) -> [ v*cos(u), v*sin(u), v^2 ], u=0..2*Pi, v=-2..2, frames=40 );</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold">Interaktiv modul</h2>
+          <p class="text-slate-300">Quyidagi parametrlarni o‘zgartirib, real vaqt rejimida 3D sirtni ko‘ring. Bu modul Mapledagi vizual g‘oyani brauzerda takrorlaydi.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnOrbit" class="btn">Aylantirish (rotate)</button>
+          <button id="btnReset" class="btn-ghost">Reset</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6 mt-6">
+        <!-- Controls -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <label class="block text-sm text-slate-300 mb-1">Sirt turi</label>
+            <select id="surfaceSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2">
+              <option value="paraboloid">Paraboloid (z = x² + y²)</option>
+              <option value="sine">Sinus sathi (z = sin(ax)·cos(by))</option>
+              <option value="cone">Konus (z = √(x²+y²))</option>
+            </select>
+          </div>
+
+          <div id="groupParab" class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">Paraboloid parametrlar</h4>
+            <div class="flex items-center justify-between gap-3">
+              <label class="text-sm text-slate-300">Oraliq: −R..R</label>
+              <span id="lblR" class="chip">R = 3.0</span>
+            </div>
+            <input id="rangeR" type="range" min="1" max="6" step="0.5" value="3" class="w-full">
+          </div>
+
+          <div id="groupSine" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-2">Sinus sathi parametrlar</h4>
+            <div class="mb-3">
+              <div class="flex items-center justify-between"><label class="text-sm">a (x koeff.)</label><span id="lblA" class="kbd">1.0</span></div>
+              <input id="rangeA" type="range" min="0.5" max="3" step="0.1" value="1" class="w-full">
+            </div>
+            <div class="mb-3">
+              <div class="flex items-center justify-between"><label class="text-sm">b (y koeff.)</label><span id="lblB" class="kbd">1.0</span></div>
+              <input id="rangeB" type="range" min="0.5" max="3" step="0.1" value="1" class="w-full">
+            </div>
+            <div>
+              <div class="flex items-center justify-between"><label class="text-sm">Chegara R</label><span id="lblRS" class="kbd">3.14</span></div>
+              <input id="rangeRS" type="range" min="2" max="6" step="0.14" value="3.14" class="w-full">
+            </div>
+          </div>
+
+          <div id="groupCone" class="glass rounded-xl p-4 hidden">
+            <h4 class="font-semibold mb-2">Konus parametri</h4>
+            <div class="flex items-center justify-between gap-3">
+              <label class="text-sm text-slate-300">Oraliq: −R..R</label>
+              <span id="lblRC" class="chip">R = 3.0</span>
+            </div>
+            <input id="rangeRC" type="range" min="1" max="6" step="0.5" value="3" class="w-full">
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">Maple g‘oyasi</h4>
+            <pre class="code p-3 rounded text-xs overflow-auto"><code>with(plots):
+plot3d(sin(a*x)*cos(b*y), x=-R..R, y=-R..R, grid=[60,60]);
+rotate3d(% , Pi/6, Pi/4, 0);
+animate(plot3d, [sin(a*t*x)*cos(b*y), x=-R..R, y=-R..R], t=0.5..2.0);</code></pre>
+          </div>
+        </div>
+
+        <!-- Plot area -->
+        <div class="lg:col-span-2 glass rounded-2xl p-4">
+          <div id="labPlot" class="w-full h-[520px]"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Masalalar (mustaqil ish)</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang‘ich</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>Paraboloid $z=x^2+y^2$ ni $x,y\in[-2,2]$ da chizing.</li>
+          <li>Sinus sathi $z=\sin x\cos y$ uchun $a=b=1$, $x,y\in[-\pi,\pi]$ da chizing.</li>
+          <li>Konus $z=\sqrt{x^2+y^2}$ ni $R=3$ oraliqda chizing.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O‘rtacha & Murakkab</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>$z=\sin(ax)\cos(by)$ da $a$ va $b$ qiymatlarini o‘zgartirib, sirtning o‘zgarishini tahlil qiling.</li>
+          <li>Paraboloidni rotate3d bilan turnaqator burchaklarda aylantirib, eng yaxshi ko‘rish burchagini yozing.</li>
+          <li>Sinus sathi uchun <em>animate</em> orqali $a$ ni vaqtga bog‘lab dinamik vizual hosil qiling.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlarga yo‘l-yo‘riq (ko‘rish uchun bosing)</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <p><strong>1‑masala:</strong> <code>plot3d(x^2 + y^2, x=-2..2, y=-2..2)</code></p>
+        <p><strong>2‑masala:</strong> <code>with(plots): plot3d(sin(x)*cos(y), x=-Pi..Pi, y=-Pi..Pi)</code></p>
+        <p><strong>3‑masala:</strong> <code>plot3d(sqrt(x^2+y^2), x=-3..3, y=-3..3)</code></p>
+        <p><strong>4‑masala:</strong> <code>plot3d(sin(a*x)*cos(b*y), ...)</code> — parametrlarni o‘zgartirib grafiklarni taqqoslang.</p>
+        <p><strong>5‑masala:</strong> <code>with(plots): rotate3d(plot3d(...), Pi/6, Pi/4, 0)</code></p>
+        <p><strong>6‑masala:</strong> <code>animate(plot3d, [sin(a*t*x)*cos(b*y), ...], t=0.5..2.0)</code></p>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Reflection -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold">Tezkor baholash & refleksiya</h2>
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Mini‑quiz</h3>
+          <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+            <li><code>plot3d</code> funksiyasining asosiy roli nima?</li>
+            <li><code>rotate3d</code> bilan <code>animate</code> farqi nimada?</li>
+            <li>Qaysi sirt ko‘rinishi sinus to‘lqinga o‘xshaydi?</li>
+          </ol>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Refleksiya</h3>
+          <p class="text-slate-300 text-sm">Bugun men nimani o‘rgandim? Qaysi parametr sirt shakliga eng kuchli ta’sir qildi? Qaysi ko‘rish burchagi eng qulay bo‘ldi?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Foydalanilgan adabiyotlar</h2>
+    <ul class="list-disc list-inside text-slate-300 space-y-1">
+      <li>Maple User Guide. Maplesoft Inc., 2023.</li>
+      <li>Tolipov O‘., Usmonboyeva M. <em>Pedagogik texnologiyalar nazariyasi va amaliyoti</em>, Toshkent, 2020.</li>
+      <li>Begimqulov U. <em>Raqamli ta’limda vizuallashtirish vositalari</em>, 2022.</li>
+    </ul>
+    <p class="mt-4 text-slate-400 text-sm"></p>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Dars modeli: “Ko‘rsat → Bajar → Tahlil”.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Utilities ----------
+    function linspace(a, b, n) {
+      const arr = []; const step = (b - a) / (n - 1);
+      for (let i = 0; i < n; i++) arr.push(a + step * i);
+      return arr;
+    }
+
+    // ---------- Initial hero plot ----------
+    function renderHero() {
+      const x = linspace(-3, 3, 60);
+      const y = linspace(-3, 3, 60);
+      const z = [];
+      for (let i = 0; i < x.length; i++) {
+        const row = [];
+        for (let j = 0; j < y.length; j++) row.push(Math.sin(x[i]) * Math.cos(y[j]));
+        z.push(row);
+      }
+      const data = [{ type: 'surface', x, y, z }];
+      const layout = {
+        margin: { l: 0, r: 0, b: 0, t: 0 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+        scene: { xaxis:{color:'#9ca3af'}, yaxis:{color:'#9ca3af'}, zaxis:{color:'#9ca3af'} }
+      };
+      Plotly.newPlot('heroPlot', data, layout, { displayModeBar:false, responsive:true });
+    }
+
+    // ---------- Interactive Lab ----------
+    let orbitTimer = null; let theta = 0;
+
+    function buildSurface(kind, params) {
+      if (kind === 'paraboloid') {
+        const R = params.R ?? 3;
+        const x = linspace(-R, R, 70);
+        const y = linspace(-R, R, 70);
+        const z = [];
+        for (let i=0;i<x.length;i++) { const row=[]; for (let j=0;j<y.length;j++) row.push(x[i]*x[i]+y[j]*y[j]); z.push(row); }
+        return [{ type:'surface', x, y, z }];
+      }
+      if (kind === 'sine') {
+        const a = params.a ?? 1, b = params.b ?? 1, R = params.R ?? Math.PI;
+        const x = linspace(-R, R, 80); const y = linspace(-R, R, 80);
+        const z = [];
+        for (let i=0;i<x.length;i++) { const row=[]; for (let j=0;j<y.length;j++) row.push(Math.sin(a*x[i]) * Math.cos(b*y[j])); z.push(row); }
+        return [{ type:'surface', x, y, z }];
+      }
+      if (kind === 'cone') {
+        const R = params.R ?? 3;
+        const x = linspace(-R, R, 80); const y = linspace(-R, R, 80);
+        const z = [];
+        for (let i=0;i<x.length;i++) { const row=[]; for (let j=0;j<y.length;j++) row.push(Math.sqrt(x[i]*x[i]+y[j]*y[j])); z.push(row); }
+        return [{ type:'surface', x, y, z }];
+      }
+      return [];
+    }
+
+    function renderLab(kind, params) {
+      const data = buildSurface(kind, params);
+      const layout = {
+        margin: { l: 0, r: 0, b: 0, t: 0 }, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+        scene: { xaxis:{color:'#9ca3af'}, yaxis:{color:'#9ca3af'}, zaxis:{color:'#9ca3af'}, camera: {eye:{x:1.4,y:1.2,z:0.9}} }
+      };
+      Plotly.newPlot('labPlot', data, layout, { responsive:true });
+    }
+
+    function startOrbit() {
+      if (orbitTimer) return; // already running
+      orbitTimer = setInterval(() => {
+        theta += 0.03;
+        const eye = { x: 1.8*Math.cos(theta), y: 1.8*Math.sin(theta), z: 1.0 };
+        Plotly.relayout('labPlot', { 'scene.camera.eye': eye });
+      }, 40);
+    }
+    function stopOrbit() { if (orbitTimer) { clearInterval(orbitTimer); orbitTimer = null; } }
+
+    // ---------- Event wiring ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHero();
+
+      const surfaceSelect = document.getElementById('surfaceSelect');
+      const btnOrbit = document.getElementById('btnOrbit');
+      const btnReset = document.getElementById('btnReset');
+
+      // groups
+      const gParab = document.getElementById('groupParab');
+      const gSine  = document.getElementById('groupSine');
+      const gCone  = document.getElementById('groupCone');
+
+      // controls
+      const rangeR = document.getElementById('rangeR');
+      const lblR = document.getElementById('lblR');
+
+      const rangeA = document.getElementById('rangeA');
+      const rangeB = document.getElementById('rangeB');
+      const rangeRS = document.getElementById('rangeRS');
+      const lblA = document.getElementById('lblA');
+      const lblB = document.getElementById('lblB');
+      const lblRS = document.getElementById('lblRS');
+
+      const rangeRC = document.getElementById('rangeRC');
+      const lblRC = document.getElementById('lblRC');
+
+      let kind = 'paraboloid';
+      let params = { R: parseFloat(rangeR.value) };
+
+      // initial render
+      renderLab(kind, params);
+
+      surfaceSelect.addEventListener('change', () => {
+        stopOrbit(); theta = 0;
+        kind = surfaceSelect.value;
+        gParab.classList.toggle('hidden', kind !== 'paraboloid');
+        gSine.classList.toggle('hidden', kind !== 'sine');
+        gCone.classList.toggle('hidden', kind !== 'cone');
+        if (kind === 'paraboloid') params = { R: parseFloat(rangeR.value) };
+        if (kind === 'sine') params = { a: parseFloat(rangeA.value), b: parseFloat(rangeB.value), R: parseFloat(rangeRS.value) };
+        if (kind === 'cone') params = { R: parseFloat(rangeRC.value) };
+        renderLab(kind, params);
+      });
+
+      // Paraboloid R
+      rangeR.addEventListener('input', () => {
+        lblR.textContent = `R = ${parseFloat(rangeR.value).toFixed(1)}`;
+        if (kind === 'paraboloid') { params.R = parseFloat(rangeR.value); renderLab(kind, params); }
+      });
+
+      // Sine a, b, R
+      rangeA.addEventListener('input', () => {
+        lblA.textContent = parseFloat(rangeA.value).toFixed(1);
+        if (kind === 'sine') { params.a = parseFloat(rangeA.value); renderLab(kind, params); }
+      });
+      rangeB.addEventListener('input', () => {
+        lblB.textContent = parseFloat(rangeB.value).toFixed(1);
+        if (kind === 'sine') { params.b = parseFloat(rangeB.value); renderLab(kind, params); }
+      });
+      rangeRS.addEventListener('input', () => {
+        lblRS.textContent = parseFloat(rangeRS.value).toFixed(2);
+        if (kind === 'sine') { params.R = parseFloat(rangeRS.value); renderLab(kind, params); }
+      });
+
+      // Cone R
+      rangeRC.addEventListener('input', () => {
+        lblRC.textContent = `R = ${parseFloat(rangeRC.value).toFixed(1)}`;
+        if (kind === 'cone') { params.R = parseFloat(rangeRC.value); renderLab(kind, params); }
+      });
+
+      // Orbit + Reset
+      btnOrbit.addEventListener('click', () => { if (orbitTimer) { stopOrbit(); btnOrbit.textContent='Aylantirish (rotate)'; } else { startOrbit(); btnOrbit.textContent='To‘xtatish'; } });
+      btnReset.addEventListener('click', () => { stopOrbit(); theta=0; Plotly.relayout('labPlot', { 'scene.camera.eye': {x:1.4,y:1.2,z:0.9} }); btnOrbit.textContent='Aylantirish (rotate)'; });
+    });
+  </script>
+</body>
+</html>
