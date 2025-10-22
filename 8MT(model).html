@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT8 — MathCAD'da differensial tenglama yechish</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for interactive plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plotly for solution visualization -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { --bg: #1a2332; --card: #233244; --ink:#f1f5f9; --muted:#94a3b8; --brand:#10b981; --accent:#3b82f6; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #1a2332 0%, #1a2332 60%, #233244 100%); color: var(--ink); }
+    .glass { background: rgba(35,50,68,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(148,163,184,0.2); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.3); transition: all 0.3s; }
+    .btn:hover { @apply scale-105; box-shadow: 0 8px 25px rgba(16,185,129,.4); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.15); color: var(--ink); transition: all 0.3s; }
+    .btn-ghost:hover { background: rgba(148,163,184,0.25); }
+    .btn-success { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+    .btn-run { @apply px-4 py-2 rounded-2xl; background: #f59e0b; color: white; box-shadow: 0 6px 20px rgba(245,158,11,.3); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
+    .chip-mathcad { @apply px-3 py-1 rounded-full text-xs; background: rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3); }
+    .chip-ode { @apply px-3 py-1 rounded-full text-xs; background: rgba(236,72,153,0.15); color:#ec4899; border:1px solid rgba(236,72,153,0.3); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #1a1f2e; border: 1px solid rgba(148,163,184,.3); }
+    .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold; }
+    .step-active { background: #10b981; color: white; }
+    .step-completed { background: #059669; color: white; }
+    .step-pending { background: rgba(148,163,184,0.2); color: var(--muted); }
+    .slider-container { @apply relative mt-2; }
+    .slider { @apply w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer; }
+    .slider::-webkit-slider-thumb { @apply appearance-none w-5 h-5 bg-emerald-400 rounded-full cursor-pointer; }
+    .tutorialBox { @apply glass rounded-xl p-4 border-l-4; border-left-color: #10b981; }
+    .moduleCard { @apply glass rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer; }
+    .output-panel { @apply glass rounded-xl p-4; background: rgba(26,35,50,0.8); }
+    .console { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
+    .equation-preview { @apply glass rounded-xl p-4; height: 350px; }
+    .mathcad-controls { @apply glass rounded-xl p-4 space-y-3; }
+    .mathcad-worksheet { background: #f8fafc; border: 2px solid #e2e8f0; color: #1e293b; padding: 16px; border-radius: 8px; font-family: 'Times New Roman', serif; }
+    .mathcad-input { background: #ffffff; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; font-family: 'Times New Roman', serif; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></div>
+        <span class="font-semibold">MT8 · MathCAD'da differensial tenglama yechish</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">MathCAD ishchi varaqlari</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Baholash</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">MathCAD'da <span class="text-emerald-300">differensial tenglama</span> yechish</h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip-mathcad">rkfixed</span> · <span class="chip-mathcad">odesolve</span> · <span class="chip-ode">Solve Block</span> · <span class="chip">Numerical solving</span></p>
+        <p class="mt-4 text-slate-400">MathCAD — bu muhandislik va ilmiy hisob-kitoblarni bajarish, matematik modellar tuzish, formulalarni tahrirlash va ularni grafik tarzda tasvirlash uchun mo‘ljallangan kompyuter algebra tizimi (CAS) hisoblanadi. Uni dastlab PTC (Parametric Technology Corporation) kompaniyasi ishlab chiqqan. Dastur foydalanuvchilarga matematik ifodalarni tabiiy shaklda — ya’ni qog‘ozda yozilgandek ko‘rinishda kiritish imkonini beradi.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o'tish</a>
+          <a href="#examples" class="btn-ghost">MathCAD ishchi varaqlari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">MathCAD'da differensial tenglamalar</h2>
+        <p class="text-slate-300 mb-4">Asosiy xususiyatlari:
+
+Interaktiv muhit — formulalar, matnlar, grafiklar va jadvallar bitta hujjatda joylashadi, natijalar avtomatik hisoblanadi.
+
+Simvolik va sonli hisoblash — algebraik tenglamalarni yechish, integrallar, differensial tenglamalar, matritsalar bilan ishlash imkonini beradi.
+
+Grafik tasvirlash — 2D va 3D grafiklar chizish, funksiyalarni tahlil qilish hamda natijalarni vizual shaklda taqdim etish mumkin.
+
+O‘zgaruvchan birliklar tizimi — fizik kattaliklarni o‘lchov birliklari bilan birgalikda ishlatish va avtomatik tarzda ularni o‘zgartirish funksiyasi mavjud.
+
+Hujjatga yo‘naltirilgan interfeys — barcha hisob-kitoblar, formulalar, izohlar va natijalar bir sahifada tartibli saqlanadi, bu esa hisobot yoki ilmiy ishlar tayyorlashni osonlashtiradi.</p>
+        
+        <div class="space-y-4">
+          <div class="tutorialBox">
+            <h3 class="font-semibold mb-2">MathCAD’ning o‘quv jarayonidagi ahamiyati. Talabalar murakkab matematik ifodalarni aniq ko‘rinishda yozish va ularning grafik ko‘rinishini olish imkoniga ega bo‘ladi.
+
+Fizika, mexanika, iqtisodiyot, qurilish, axborot texnologiyalari kabi fanlarda modellashtirish, tahlil va loyihalash ishlarini avtomatlashtiradi.
+
+Hisob-kitob natijalari avtomatik yangilanadi, bu esa xatolik ehtimolini kamaytiradi va tahliliy fikrlashni rivojlantiradi.</h3>
+           
+               
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Oddiy differensial tenglamalarni yechish</li>
+          <li>rkfixed va odesolve funksiyalarini qo'llash</li>
+          <li>Solve Block tuzilishini o'zlashtirish</li>
+          <li>Tenglamalar sistemasini yechish</li>
+          <li>Boshlang'ich va chegaraviy shartlarni ishlatish</li>
+          <li>Diagrammali hisob usullarini o'rganish</li>
+        </ul>
+        <div class="mt-4">
+          <span class="chip-mathcad">MathCAD</span> 
+          <span class="chip-ode">ODEs</span> 
+          <span class="chip">Numerical</span>
+          <span class="chip">Runge-Kutta</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & MathCAD worksheets -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">MathCAD ishchi varag'i namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Birinchi tartibli ODE - rkfixed</h3>
+        <p class="text-slate-300 text-sm">first_order_ode.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Differensial tenglama:</strong> dy/dx = -2y + x</div>
+            <div><strong>Boshlang'ich shart:</strong> y(0) = 1</div>
+            <div class="mathcad-input">
+              <div>D(x, y) := -2·y + x</div>
+              <div>x₀ := 0</div>
+              <div>x₁ := 2</div>
+              <div>y₀ := 1</div>
+              <div>N := 100</div>
+            </div>
+            <div><strong>Yechim:</strong></div>
+            <div class="mathcad-input">
+              sol := rkfixed(y₀, x₀, x₁, N, D)
+            </div>
+            <div><em>Natija: 101×2 matritsa (x, y qiymatlari)</em></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Ikkinchi tartibli ODE</h3>
+        <p class="text-slate-300 text-sm">second_order_ode.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Tenglama:</strong> d²y/dx² + 4y = 0</div>
+            <div><strong>Boshlang'ich shartlar:</strong> y(0) = 1, y'(0) = 0</div>
+            <div class="mathcad-input">
+              <div>D(x, Y) := [Y₁, -4·Y₀]</div>
+              <div>x₀ := 0</div>
+              <div>x₁ := π</div>
+              <div>Y₀ := [1, 0]ᵀ</div>
+              <div>N := 200</div>
+            </div>
+            <div><strong>Yechim:</strong></div>
+            <div class="mathcad-input">
+              sol := rkfixed(Y₀, x₀, x₁, N, D)
+            </div>
+            <div><em>Y₀ = y(x), Y₁ = y'(x)</em></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Solve Block bilan ODE</h3>
+        <p class="text-slate-300 text-sm">ode_solve_block.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Boshlang'ich taxmin:</strong></div>
+            <div class="mathcad-input">
+              y(x) := e^(-x)
+            </div>
+            <div><strong>Given bloki:</strong></div>
+            <div class="mathcad-input">
+              <div>Given</div>
+              <div>d/dx y(x) = -y(x) + sin(x)</div>
+              <div>y(0) = 1</div>
+            </div>
+            <div><strong>Yechim:</strong></div>
+            <div class="mathcad-input">
+              Y := odesolve(x, 2)
+            </div>
+            <div><em>Y(x) - yechim funksiyasi</em></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Tenglamalar sistemasi</h3>
+        <p class="text-slate-300 text-sm">system_of_odes.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Sistema:</strong></div>
+            <div>dx/dt = -0.1·x + 0.2·y</div>
+            <div>dy/dt = 0.1·x - 0.2·y</div>
+            <div class="mathcad-input">
+              <div>D(t, Y) := [-0.1·Y₀ + 0.2·Y₁]</div>
+              <div style="margin-left: 3em;">[0.1·Y₀ - 0.2·Y₁]</div>
+              <div>Y₀ := [10, 5]ᵀ</div>
+              <div>t₀ := 0, t₁ := 20, N := 200</div>
+            </div>
+            <div><strong>Yechim:</strong></div>
+            <div class="mathcad-input">
+              sol := rkfixed(Y₀, t₀, t₁, N, D)
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">5) Chegaraviy qiymat masalasi</h3>
+        <p class="text-slate-300 text-sm">boundary_value_problem.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Tenglama:</strong> d²y/dx² - y = x</div>
+            <div><strong>Chegaraviy shartlar:</strong> y(0) = 0, y(1) = 1</div>
+            <div class="mathcad-input">
+              <div>y(x) := x</div>
+            </div>
+            <div><strong>Given bloki:</strong></div>
+            <div class="mathcad-input">
+              <div>Given</div>
+              <div>d²/dx² y(x) - y(x) = x</div>
+              <div>y(0) = 0</div>
+              <div>y(1) = 1</div>
+            </div>
+            <div><strong>Yechim:</strong></div>
+            <div class="mathcad-input">
+              Y := odesolve(x, 1)
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">6) Stiff tenglamalar</h3>
+        <p class="text-slate-300 text-sm">stiff_equations.xmcd</p>
+        <div class="mathcad-worksheet mt-3">
+          <div class="space-y-3">
+            <div><strong>Stiff sistema:</strong></div>
+            <div>dy₁/dt = -1000·y₁ + 1000·y₂</div>
+            <div>dy₂/dt = y₁ - y₂</div>
+            <div class="mathcad-input">
+              <div>D(t, Y) := [-1000·Y₀ + 1000·Y₁]</div>
+              <div style="margin-left: 3em;">[Y₀ - Y₁]</div>
+              <div>Y₀ := [1, 0]ᵀ</div>
+            </div>
+            <div><strong>Stiff yechuvchi:</strong></div>
+            <div class="mathcad-input">
+              sol := Stiffr(Y₀, 0, 0.1, 100, D)
+            </div>
+            <div><em>Stiffr - qattiq tenglamalar uchun</em></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Differensial tenglama yechish simulatori</h2>
+          <p class="text-slate-300">Turli differensial tenglamalarni tanlang va MathCAD usullari bilan yeching. Real vaqtda parametrlarni o'zgartirib natijalarni taqqoslang.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnClear" class="btn-ghost">Tozalash</button>
+          <button id="btnCompare" class="btn-ghost">Taqqoslash</button>
+          <button id="btnSolve" class="btn-run">Yechish</button>
+        </div>
+      </div>
+
+      <!-- ODE Type selector -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="moduleCard" data-type="exponential">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-emerald-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📈</div>
+            <h3 class="font-semibold text-sm">Eksponensial</h3>
+            <p class="text-xs text-slate-400">dy/dx = ky</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="harmonic">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🌊</div>
+            <h3 class="font-semibold text-sm">Garmonik</h3>
+            <p class="text-xs text-slate-400">d²y/dx² + ω²y = 0</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="logistic">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-purple-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📊</div>
+            <h3 class="font-semibold text-sm">Logistik</h3>
+            <p class="text-xs text-slate-400">dy/dx = ry(1-y/K)</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="predator">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🔄</div>
+            <h3 class="font-semibold text-sm">Predator-Prey</h3>
+            <p class="text-xs text-slate-400">Lotka-Volterra</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Controls -->
+        <div class="mathcad-controls">
+          <h4 class="font-semibold mb-3">Parametrlar</h4>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-slate-300">Vaqt oralig'i:</label>
+              <div class="flex gap-2 mt-1">
+                <input type="number" id="tMin" value="0" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">dan</span>
+                <input type="number" id="tMax" value="5" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">gacha</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Boshlang'ich qiymat y₀:</label>
+              <input type="number" id="y0" value="1" step="0.1" class="w-full px-3 py-2 bg-slate-800 rounded text-sm mt-1">
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr k (yoki ω):</label>
+              <input type="range" id="paramK" min="0.1" max="5" value="1" step="0.1" class="slider w-full mt-1">
+              <span id="paramKValue" class="text-xs text-slate-400">1.0</span>
+            </div>
+            
+            <div id="parameterControls" class="space-y-3">
+              <!-- Additional parameters will be added here dynamically -->
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Nuqtalar soni:</label>
+              <input type="range" id="numPoints" min="50" max="500" value="200" class="slider w-full mt-1">
+              <span id="numPointsValue" class="text-xs text-slate-400">200</span>
+            </div>
+            
+            <div>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showAnalytical" class="rounded">
+                <span class="text-slate-300">Analitik yechimni ko'rsatish</span>
+              </label>
+            </div>
+            
+            <div>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showPhasePortrait" class="rounded">
+                <span class="text-slate-300">Faza portretini chizish</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <h5 class="font-semibold text-sm mb-2">Yechish usuli</h5>
+            <div class="grid grid-cols-1 gap-2 text-xs">
+              <button class="method-btn btn-ghost p-2" data-method="rkfixed">rkfixed (Runge-Kutta)</button>
+              <button class="method-btn btn-ghost p-2" data-method="bulstoer">Bulstoer</button>
+              <button class="method-btn btn-ghost p-2" data-method="rkadapt">Rkadapt</button>
+              <button class="method-btn btn-ghost p-2" data-method="odesolve">odesolve (Solve Block)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualization -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Solution Plot -->
+          <div class="equation-preview">
+            <div id="solutionPlot" class="w-full h-full"></div>
+          </div>
+          
+          <!-- Analysis Panel -->
+          <div class="output-panel">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">📊</div>
+              Yechim tahlili
+            </h4>
+            <div id="solutionAnalysis" class="console bg-black/40 rounded-lg p-3 h-[120px] overflow-auto text-emerald-400">
+              <div class="text-slate-400">Tenglama turini tanlab, parametrlarni sozlang...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Examples -->
+      <div class="mt-6 grid md:grid-cols-4 gap-4">
+        <button class="btn-ghost p-3 text-left example-btn" data-example="growth">
+          <div class="font-semibold text-sm">O'sish modeli</div>
+          <div class="text-xs text-slate-400">dy/dx = 0.5y</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left example-btn" data-example="oscillator">
+          <div class="font-semibold text-sm">Oddiy tebranish</div>
+          <div class="text-xs text-slate-400">d²y/dx² + y = 0</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left example-btn" data-example="cooling">
+          <div class="font-semibold text-sm">Nyuton sovitish</div>
+          <div class="text-xs text-slate-400">dT/dt = -k(T-T₀)</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left example-btn" data-example="competition">
+          <div class="font-semibold text-sm">Raqobat modeli</div>
+          <div class="text-xs text-slate-400">Lotka-Volterra</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Mustaqil ishlar va masalalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>$\frac{dy}{dx} = 2y$ tenglamasini rkfixed bilan yeching, $y(0) = 1$.</li>
+          <li>$\frac{dy}{dx} = -y + \sin(x)$ tenglamasini odesolve (Solve Block) bilan yeching.</li>
+          <li>$\frac{d^2y}{dx^2} + 4y = 0$ ikkinchi tartibli tenglamasini yeching, $y(0) = 1, y'(0) = 0$.</li>
+          <li>Logistik o'sish modeli: $\frac{dy}{dx} = 0.1y(1 - \frac{y}{100})$ ni tahlil qiling.</li>
+        </ol>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rta va yuqori daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Predator-Prey sistem modeli: Lotka-Volterra tenglamalarini yeching.</li>
+          <li>Van der Pol osilatatorini ($\ddot{x} - \mu(1-x^2)\dot{x} + x = 0$) o'rganing.</li>
+          <li>Chegaraviy qiymat masalasini Solve Block bilan yeching.</li>
+          <li>Stiff tenglamalar sistemasini Stiffr bilan yeching.</li>
+          <li>Parametrik tahlil: $k$ qiymatining o'zgarishini o'rganing.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlar va maslahatlar</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <div class="tutorialBox">
+          <p><strong>1-masala (eksponensial o'sish):</strong></p>
+          <div class="mathcad-worksheet mt-2">
+            <div>D(x, y) := 2·y</div>
+            <div>sol := rkfixed(1, 0, 2, 100, D)</div>
+            <div><em>Analitik yechim: y = e^(2x)</em></div>
+          </div>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>2-masala (Solve Block):</strong></p>
+          <div class="mathcad-worksheet mt-2">
+            <div>y(x) := e^(-x)</div>
+            <div>Given</div>
+            <div>d/dx y(x) = -y(x) + sin(x)</div>
+            <div>y(0) = 1</div>
+            <div>Y := odesolve(x, 2)</div>
+          </div>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>3-masala (ikkinchi tartib):</strong></p>
+          <div class="mathcad-worksheet mt-2">
+            <div>D(x, Y) := [Y₁, -4·Y₀]</div>
+            <div>Y₀ := [1, 0]ᵀ</div>
+            <div>sol := rkfixed(Y₀, 0, π, 200, D)</div>
+            <div><em>Y₀ = y(x), Y₁ = y'(x)</em></div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Assessment -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold mb-4">MathCAD differensial tenglamalar bo'yicha baholash</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Nazariy savollalar</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">1. rkfixed funksiyasi qanday usulni ishlatadi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="a"> Euler usuli</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="b"> Runge-Kutta usuli</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="c"> Adams usuli</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">2. odesolve qanday tuzilma bilan ishlatiladi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="a"> Function bloki</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="b"> Solve Block</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="c"> Matrix bloki</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">3. Ikkinchi tartibli ODE yechishda nechta boshlang'ich shart kerak?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="a"> 1 ta</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="b"> 2 ta</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="c"> 3 ta</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">4. Stiff tenglamalar uchun qaysi funksiya tavsiya etiladi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="a"> rkfixed</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="b"> Bulstoer</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="c"> Stiffr</label>
+              </div>
+            </div>
+            
+            <button id="btnCheckAnswers" class="btn-success w-full">Javoblarni tekshirish</button>
+          </div>
+        </div>
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">MathCAD kod tahlili</h3>
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi kodning maqsadi nima?</p>
+              <div class="mathcad-worksheet text-xs">
+                <div>D(x, y) := -2·y</div>
+                <div>sol := rkfixed(1, 0, 2, 100, D)</div>
+              </div>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="a"> Integral hisoblash</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="b"> Differensial tenglama yechish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="c"> Matritsa ko'paytirish</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">D(x, Y) := [Y₁, -4·Y₀] qanday tenglamani bildiradi?</p>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="a"> Birinchi tartibli</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="b"> Ikkinchi tartibli</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="c"> Uchinchi tartibli</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Given blokida tenglik uchun qaysi operator ishlatiladi?</p>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="a"> := (Definition)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="b"> = (Boolean equal)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="c"> → (Evaluation)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div id="quizResults" class="hidden mt-4 p-4 glass rounded-xl">
+        <h4 class="font-semibold mb-2">Natijalar:</h4>
+        <p id="quizScore" class="text-slate-300"></p>
+        <div id="detailedResults" class="mt-2 text-sm text-slate-400"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Adabiyotlar va qo'shimcha manbalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">MathCAD rasmiy hujjatlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>PTC MathCAD Prime Help: Solving ODEs</li>
+          <li>MathCAD Differential Equations Tutorial</li>
+          <li>Solve Blocks and odesolve Function Guide</li>
+          <li>Advanced ODE Solving Techniques</li>
+        </ul>
+      </div>
+      
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Mahalliy adabiyotlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Karimov R. "MathCAD bilan differensial tenglamalar", 2023</li>
+          <li>Ergashev O. "Sonli usullar va MathCAD", 2022</li>
+          <li>Nazarov A. "Muhandislik matematikasi", 2021</li>
+          <li>Saidov M. "Matematik modellashtirish", 2020</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© MathCAD ODE Solver: "Modellashtir → Yech → Tahlil qil" orqali differensial tenglamalarni o'rganish.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Global variables
+    let currentODE = 'exponential';
+    let currentMethod = 'rkfixed';
+    let solutionData = null;
+    let analyticalData = null;
+    
+    // ODE function definitions
+    const odeTypes = {
+      exponential: {
+        name: 'Eksponensial o\'sish',
+        equation: 'dy/dx = ky',
+        solve: (t, params) => {
+          const { k, y0 } = params;
+          return y0 * Math.exp(k * t);
+        },
+        numerical: (t, y, params) => {
+          const { k } = params;
+          return k * y;
+        },
+        initialCondition: 1
+      },
+      harmonic: {
+        name: 'Garmonik osilatator',
+        equation: 'd²y/dx² + ω²y = 0',
+        solve: (t, params) => {
+          const { omega, y0, v0 } = params;
+          return y0 * Math.cos(omega * t) + (v0 / omega) * Math.sin(omega * t);
+        },
+        numerical: (t, y, params) => {
+          // For second order, y = [position, velocity]
+          const { omega } = params;
+          return [y[1], -omega * omega * y[0]];
+        },
+        initialCondition: [1, 0], // [position, velocity]
+        secondOrder: true
+      },
+      logistic: {
+        name: 'Logistik o\'sish',
+        equation: 'dy/dx = ry(1-y/K)',
+        solve: (t, params) => {
+          const { r, K, y0 } = params;
+          return K / (1 + ((K - y0) / y0) * Math.exp(-r * t));
+        },
+        numerical: (t, y, params) => {
+          const { r, K } = params;
+          return r * y * (1 - y / K);
+        },
+        initialCondition: 0.1
+      },
+      predator: {
+        name: 'Predator-Prey',
+        equation: 'Lotka-Volterra sistem',
+        solve: null, // No simple analytical solution
+        numerical: (t, y, params) => {
+          const { alpha, beta, gamma, delta } = params;
+          const [prey, predator] = y;
+          return [
+            alpha * prey - beta * prey * predator,
+            delta * prey * predator - gamma * predator
+          ];
+        },
+        initialCondition: [1, 1], // [prey, predator]
+        isSystem: true
+      }
+    };
+
+    // Initialize hero plot
+    function initHero() {
+      const t = [];
+      const y = [];
+      
+      // Simple exponential growth example
+      for (let i = 0; i <= 100; i++) {
+        const time = i * 0.05;
+        t.push(time);
+        y.push(Math.exp(time));
+      }
+      
+      const trace = {
+        x: t,
+        y: y,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#10b981', width: 3 },
+        name: 'dy/dx = y'
+      };
+      
+      const layout = {
+        margin: { l: 40, r: 20, b: 40, t: 20 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: { 
+          title: 'x',
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        },
+        yaxis: { 
+          title: 'y(x)', 
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        },
+        showlegend: false
+      };
+      
+      Plotly.newPlot('heroPlot', [trace], layout, { displayModeBar: false, responsive: true });
+    }
+
+    // Numerical ODE solver (simple RK4 implementation)
+    function rungeKutta4(odeFunc, y0, t0, t1, n, params) {
+      const h = (t1 - t0) / n;
+      const t = [];
+      const y = [];
+      
+      let currentT = t0;
+      let currentY = Array.isArray(y0) ? [...y0] : y0;
+      
+      t.push(currentT);
+      y.push(Array.isArray(currentY) ? [...currentY] : currentY);
+      
+      for (let i = 0; i < n; i++) {
+        const k1 = odeFunc(currentT, currentY, params);
+        const k2 = odeFunc(currentT + h/2, addVectors(currentY, scaleVector(k1, h/2)), params);
+        const k3 = odeFunc(currentT + h/2, addVectors(currentY, scaleVector(k2, h/2)), params);
+        const k4 = odeFunc(currentT + h, addVectors(currentY, scaleVector(k3, h)), params);
+        
+        const deltaY = scaleVector(addVectors(addVectors(k1, scaleVector(k2, 2)), addVectors(scaleVector(k3, 2), k4)), h/6);
+        
+        currentT += h;
+        currentY = addVectors(currentY, deltaY);
+        
+        t.push(currentT);
+        y.push(Array.isArray(currentY) ? [...currentY] : currentY);
+      }
+      
+      return { t, y };
+    }
+
+    // Vector operations for systems of ODEs
+    function addVectors(a, b) {
+      if (typeof a === 'number') return a + b;
+      return a.map((val, i) => val + b[i]);
+    }
+
+    function scaleVector(v, scalar) {
+      if (typeof v === 'number') return v * scalar;
+      return v.map(val => val * scalar);
+    }
+
+    // Update ODE solution
+    function solveDifferentialEquation() {
+      const tMin = parseFloat(document.getElementById('tMin').value);
+      const tMax = parseFloat(document.getElementById('tMax').value);
+      const y0Input = document.getElementById('y0').value;
+      const k = parseFloat(document.getElementById('paramK').value);
+      const numPoints = parseInt(document.getElementById('numPoints').value);
+      const showAnalytical = document.getElementById('showAnalytical').checked;
+      
+      const odeType = odeTypes[currentODE];
+      
+      // Parse initial conditions
+      let y0;
+      if (odeType.secondOrder || odeType.isSystem) {
+        y0 = odeType.initialCondition;
+      } else {
+        y0 = parseFloat(y0Input);
+      }
+      
+      // Set up parameters
+      const params = { k, omega: k, r: k, K: 10, alpha: 1, beta: 0.5, gamma: 1, delta: 0.5, y0, v0: 0 };
+      
+      // Solve numerically
+      solutionData = rungeKutta4(odeType.numerical, y0, tMin, tMax, numPoints, params);
+      
+      // Solve analytically if available
+      analyticalData = null;
+      if (odeType.solve && showAnalytical) {
+        const tAnalytical = [];
+        const yAnalytical = [];
+        for (let i = 0; i <= numPoints; i++) {
+          const t = tMin + (tMax - tMin) * i / numPoints;
+          tAnalytical.push(t);
+          yAnalytical.push(odeType.solve(t, params));
+        }
+        analyticalData = { t: tAnalytical, y: yAnalytical };
+      }
+      
+      updatePlot();
+      updateAnalysis();
+    }
+
+    // Update plot
+    function updatePlot() {
+      const traces = [];
+      
+      // Numerical solution
+      if (solutionData) {
+        if (odeTypes[currentODE].isSystem) {
+          // For systems, plot both components
+          traces.push({
+            x: solutionData.t,
+            y: solutionData.y.map(point => point[0]),
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#10b981', width: 2 },
+            name: `${currentMethod} - Prey`
+          });
+          
+          traces.push({
+            x: solutionData.t,
+            y: solutionData.y.map(point => point[1]),
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#3b82f6', width: 2 },
+            name: `${currentMethod} - Predator`
+          });
+          
+          // Phase portrait if enabled
+          if (document.getElementById('showPhasePortrait').checked) {
+            traces.push({
+              x: solutionData.y.map(point => point[0]),
+              y: solutionData.y.map(point => point[1]),
+              type: 'scatter',
+              mode: 'lines',
+              line: { color: '#ec4899', width: 1 },
+              name: 'Phase Portrait',
+              xaxis: 'x2',
+              yaxis: 'y2'
+            });
+          }
+        } else if (odeTypes[currentODE].secondOrder) {
+          // For second order, plot position and velocity
+          traces.push({
+            x: solutionData.t,
+            y: solutionData.y.map(point => point[0]),
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#10b981', width: 2 },
+            name: `${currentMethod} - Position`
+          });
+          
+          traces.push({
+            x: solutionData.t,
+            y: solutionData.y.map(point => point[1]),
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#f59e0b', width: 2 },
+            name: `${currentMethod} - Velocity`
+          });
+        } else {
+          // First order ODE
+          traces.push({
+            x: solutionData.t,
+            y: solutionData.y,
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: '#10b981', width: 2 },
+            name: `${currentMethod} - Numerical`
+          });
+        }
+      }
+      
+      // Analytical solution
+      if (analyticalData) {
+        traces.push({
+          x: analyticalData.t,
+          y: analyticalData.y,
+          type: 'scatter',
+          mode: 'lines',
+          line: { color: '#ef4444', width: 1, dash: 'dash' },
+          name: 'Analytical'
+        });
+      }
+      
+      const layout = {
+        margin: { l: 50, r: 20, b: 50, t: 20 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(26,35,50,0.3)',
+        xaxis: { 
+          title: 't',
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        },
+        yaxis: { 
+          title: 'y(t)', 
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        },
+        legend: {
+          font: { color: '#94a3b8' }
+        }
+      };
+      
+      // Add phase portrait layout if needed
+      if (document.getElementById('showPhasePortrait').checked && odeTypes[currentODE].isSystem) {
+        layout.xaxis2 = {
+          title: 'Prey',
+          color: '#94a3b8',
+          gridcolor: '#374151',
+          domain: [0.55, 1]
+        };
+        layout.yaxis2 = {
+          title: 'Predator',
+          color: '#94a3b8',
+          gridcolor: '#374151',
+          anchor: 'x2'
+        };
+        layout.xaxis.domain = [0, 0.45];
+      }
+      
+      Plotly.newPlot('solutionPlot', traces, layout, { 
+        displayModeBar: false, 
+        responsive: true 
+      });
+    }
+
+    // Update analysis
+    function updateAnalysis() {
+      const output = document.getElementById('solutionAnalysis');
+      const odeType = odeTypes[currentODE];
+      
+      let analysis = [
+        `Tenglama: ${odeType.name}`,
+        `Formula: ${odeType.equation}`,
+        `Yechish usuli: ${currentMethod}`,
+        `Nuqtalar soni: ${solutionData ? solutionData.t.length : 0}`
+      ];
+      
+      if (solutionData) {
+        const finalValue = Array.isArray(solutionData.y[solutionData.y.length - 1]) 
+          ? solutionData.y[solutionData.y.length - 1][0].toFixed(4)
+          : solutionData.y[solutionData.y.length - 1].toFixed(4);
+        analysis.push(`Oxirgi qiymat: y(${document.getElementById('tMax').value}) = ${finalValue}`);
+      }
+      
+      if (analyticalData) {
+        analysis.push('Analitik yechim: Mavjud');
+      }
+      
+      output.innerHTML = analysis.map(a => `<div class="text-emerald-400">&gt;&gt; ${a}</div>`).join('');
+    }
+
+    // Update slider values
+    function updateSliderValues() {
+      document.getElementById('paramKValue').textContent = parseFloat(document.getElementById('paramK').value).toFixed(1);
+      document.getElementById('numPointsValue').textContent = document.getElementById('numPoints').value;
+    }
+
+    // Quiz functionality
+    function checkQuizAnswers() {
+      let score = 0;
+      const total = 7;
+      const details = [];
+      
+      // Q1 - correct: b
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      if (q1 && q1.value === 'b') {
+        score++;
+        details.push('✓ Q1: To\'g\'ri - rkfixed Runge-Kutta usulini ishlatadi');
+      } else {
+        details.push('✗ Q1: Noto\'g\'ri - rkfixed to\'rtinchi tartibli Runge-Kutta usulini ishlatadi');
+      }
+      
+      // Q2 - correct: b
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      if (q2 && q2.value === 'b') {
+        score++;
+        details.push('✓ Q2: To\'g\'ri - odesolve Solve Block bilan ishlatiladi');
+      } else {
+        details.push('✗ Q2: Noto\'g\'ri - odesolve Given...odesolve (Solve Block) tuzilmasi bilan ishlatiladi');
+      }
+      
+      // Q3 - correct: b
+      const q3 = document.querySelector('input[name="q3"]:checked');
+      if (q3 && q3.value === 'b') {
+        score++;
+        details.push('✓ Q3: To\'g\'ri - Ikkinchi tartibli ODE uchun 2 ta boshlang\'ich shart');
+      } else {
+        details.push('✗ Q3: Noto\'g\'ri - n-tartibli ODE uchun n ta boshlang\'ich shart kerak');
+      }
+      
+      // Q4 - correct: c
+      const q4 = document.querySelector('input[name="q4"]:checked');
+      if (q4 && q4.value === 'c') {
+        score++;
+        details.push('✓ Q4: To\'g\'ri - Stiff tenglamalar uchun Stiffr tavsiya etiladi');
+      } else {
+        details.push('✗ Q4: Noto\'g\'ri - Stiff tenglamalar uchun Stiffr yoki Stiffb funksiyalari ishlatiladi');
+      }
+      
+      // Code1 - correct: b
+      const code1 = document.querySelector('input[name="code1"]:checked');
+      if (code1 && code1.value === 'b') {
+        score++;
+        details.push('✓ Code1: To\'g\'ri - rkfixed differensial tenglama yechish uchun');
+      } else {
+        details.push('✗ Code1: Noto\'g\'ri - rkfixed ODE yechish funksiyasi');
+      }
+      
+      // Code2 - correct: b
+      const code2 = document.querySelector('input[name="code2"]:checked');
+      if (code2 && code2.value === 'b') {
+        score++;
+        details.push('✓ Code2: To\'g\'ri - Vektor forma ikkinchi tartibli tenglamani bildiradi');
+      } else {
+        details.push('✗ Code2: Noto\'g\'ri - [Y₁, -4·Y₀] ikkinchi tartibli ODE ni vektor shaklda yozish');
+      }
+      
+      // Code3 - correct: b
+      const code3 = document.querySelector('input[name="code3"]:checked');
+      if (code3 && code3.value === 'b') {
+        score++;
+        details.push('✓ Code3: To\'g\'ri - Given blokida Boolean equal (=) ishlatiladi');
+      } else {
+        details.push('✗ Code3: Noto\'g\'ri - Given blokida tenglamalar uchun Boolean equal (=) kerak');
+      }
+      
+      const percentage = Math.round((score / total) * 100);
+      document.getElementById('quizScore').textContent = `Sizning natijangiz: ${score}/${total} (${percentage}%)`;
+      document.getElementById('detailedResults').innerHTML = details.join('<br>');
+      document.getElementById('quizResults').classList.remove('hidden');
+      
+      // Add color based on score
+      const resultsDiv = document.getElementById('quizResults');
+      resultsDiv.classList.remove('border-l-4', 'border-green-400', 'border-yellow-400', 'border-red-400');
+      
+      if (percentage >= 80) {
+        resultsDiv.classList.add('border-l-4', 'border-green-400');
+      } else if (percentage >= 60) {
+        resultsDiv.classList.add('border-l-4', 'border-yellow-400');
+      } else {
+        resultsDiv.classList.add('border-l-4', 'border-red-400');
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initHero();
+      updateSliderValues();
+
+      // ODE type selector cards
+      document.querySelectorAll('.moduleCard').forEach(card => {
+        card.addEventListener('click', function() {
+          currentODE = this.dataset.type;
+          
+          // Update active state
+          document.querySelectorAll('.moduleCard').forEach(c => c.classList.remove('ring-2', 'ring-emerald-400'));
+          this.classList.add('ring-2', 'ring-emerald-400');
+          
+          // Update parameter controls based on ODE type
+          updateParameterControls();
+          solveDifferentialEquation();
+        });
+      });
+
+      // Method buttons
+      document.querySelectorAll('.method-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentMethod = this.dataset.method;
+          
+          document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('ring-2', 'ring-emerald-400'));
+          this.classList.add('ring-2', 'ring-emerald-400');
+          solveDifferentialEquation();
+        });
+      });
+
+      // Control inputs
+      ['tMin', 'tMax', 'y0'].forEach(id => {
+        document.getElementById(id).addEventListener('change', solveDifferentialEquation);
+      });
+      
+      ['paramK', 'numPoints'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateSliderValues();
+          solveDifferentialEquation();
+        });
+      });
+      
+      ['showAnalytical', 'showPhasePortrait'].forEach(id => {
+        document.getElementById(id).addEventListener('change', solveDifferentialEquation);
+      });
+
+      // Button events
+      document.getElementById('btnSolve').addEventListener('click', solveDifferentialEquation);
+      document.getElementById('btnCompare').addEventListener('click', () => {
+        document.getElementById('showAnalytical').checked = true;
+        solveDifferentialEquation();
+      });
+      document.getElementById('btnClear').addEventListener('click', () => {
+        // Reset to defaults
+        currentODE = 'exponential';
+        currentMethod = 'rkfixed';
+        document.getElementById('tMin').value = 0;
+        document.getElementById('tMax').value = 5;
+        document.getElementById('y0').value = 1;
+        document.getElementById('paramK').value = 1;
+        document.getElementById('numPoints').value = 200;
+        document.getElementById('showAnalytical').checked = false;
+        document.getElementById('showPhasePortrait').checked = false;
+        
+        updateSliderValues();
+        solveDifferentialEquation();
+        
+        // Clear selections
+        document.querySelectorAll('.moduleCard').forEach(c => c.classList.remove('ring-2', 'ring-emerald-400'));
+        document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('ring-2', 'ring-emerald-400'));
+      });
+
+      // Example buttons
+      document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const example = this.dataset.example;
+          
+          switch(example) {
+            case 'growth':
+              currentODE = 'exponential';
+              document.getElementById('paramK').value = 0.5;
+              break;
+            case 'oscillator':
+              currentODE = 'harmonic';
+              document.getElementById('paramK').value = 1;
+              break;
+            case 'cooling':
+              currentODE = 'exponential';
+              document.getElementById('paramK').value = -0.2;
+              break;
+            case 'competition':
+              currentODE = 'predator';
+              document.getElementById('paramK').value = 1;
+              break;
+          }
+          
+          updateSliderValues();
+          solveDifferentialEquation();
+        });
+      });
+
+      // Quiz button
+      document.getElementById('btnCheckAnswers').addEventListener('click', checkQuizAnswers);
+
+      // Initial setup
+      solveDifferentialEquation();
+      
+      // Select default method
+      document.querySelector('.method-btn[data-method="rkfixed"]').classList.add('ring-2', 'ring-emerald-400');
+    });
+
+    function updateParameterControls() {
+      const controlsDiv = document.getElementById('parameterControls');
+      controlsDiv.innerHTML = '';
+      
+      if (currentODE === 'logistic') {
+        controlsDiv.innerHTML = `
+          <div>
+            <label class="text-sm text-slate-300">Tashish qobiliyati K:</label>
+            <input type="number" id="carryingCapacity" value="10" step="1" class="w-full px-3 py-2 bg-slate-800 rounded text-sm mt-1">
+          </div>
+        `;
+      } else if (currentODE === 'predator') {
+        controlsDiv.innerHTML = `
+          <div>
+            <label class="text-sm text-slate-300">Alpha (prey growth):</label>
+            <input type="number" id="alpha" value="1" step="0.1" class="w-full px-3 py-2 bg-slate-800 rounded text-sm mt-1">
+          </div>
+          <div>
+            <label class="text-sm text-slate-300">Beta (predation):</label>
+            <input type="number" id="beta" value="0.5" step="0.1" class="w-full px-3 py-2 bg-slate-800 rounded text-sm mt-1">
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
