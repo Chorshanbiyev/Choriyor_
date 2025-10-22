@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT10 — Desmos/GeoGebra bilan interaktiv dars</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for interactive plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Function Plot library for real-time graphs -->
+  <script src="https://unpkg.com/function-plot/dist/function-plot.js"></script>
+  <style>
+    :root { --bg: #1e1b3a; --card: #2a253f; --ink:#f1f5f9; --muted:#94a3b8; --brand:#3b82f6; --desmos: #2d70b3; --geogebra: #666666; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #1e1b3a 0%, #1e1b3a 60%, #2a253f 100%); color: var(--ink); }
+    .glass { background: rgba(42,37,63,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(148,163,184,0.2); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #3b82f6; color: white; box-shadow: 0 6px 20px rgba(59,130,246,.3); transition: all 0.3s; }
+    .btn:hover { @apply scale-105; box-shadow: 0 8px 25px rgba(59,130,246,.4); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.15); color: var(--ink); transition: all 0.3s; }
+    .btn-ghost:hover { background: rgba(148,163,184,0.25); }
+    .btn-success { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+    .btn-run { @apply px-4 py-2 rounded-2xl; background: #ef4444; color: white; box-shadow: 0 6px 20px rgba(239,68,68,.3); }
+    .btn-desmos { @apply px-4 py-2 rounded-2xl; background: #2d70b3; color: white; box-shadow: 0 6px 20px rgba(45,112,179,.3); }
+    .btn-geogebra { @apply px-4 py-2 rounded-2xl; background: #666666; color: white; box-shadow: 0 6px 20px rgba(102,102,102,.3); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3); }
+    .chip-desmos { @apply px-3 py-1 rounded-full text-xs; background: rgba(45,112,179,0.15); color:#2d70b3; border:1px solid rgba(45,112,179,0.3); }
+    .chip-geogebra { @apply px-3 py-1 rounded-full text-xs; background: rgba(102,102,102,0.15); color:#666666; border:1px solid rgba(102,102,102,0.3); }
+    .chip-interactive { @apply px-3 py-1 rounded-full text-xs; background: rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #1a1625; border: 1px solid rgba(148,163,184,.3); }
+    .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold; }
+    .step-active { background: #3b82f6; color: white; }
+    .step-completed { background: #10b981; color: white; }
+    .step-pending { background: rgba(148,163,184,0.2); color: var(--muted); }
+    .slider-container { @apply relative mt-2; }
+    .slider { @apply w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer; }
+    .slider::-webkit-slider-thumb { @apply appearance-none w-5 h-5 bg-blue-400 rounded-full cursor-pointer; }
+    .tutorialBox { @apply glass rounded-xl p-4 border-l-4; border-left-color: #3b82f6; }
+    .moduleCard { @apply glass rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer; }
+    .output-panel { @apply glass rounded-xl p-4; background: rgba(20,20,30,0.8); }
+    .console { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
+    .graph-container { @apply glass rounded-xl p-4; height: 400px; position: relative; }
+    .function-input { @apply w-full px-3 py-2 bg-slate-800 rounded-lg text-white border border-slate-600 focus:border-blue-400; }
+    .parameter-control { @apply glass rounded-xl p-4 space-y-3; }
+    .graph-preview { @apply glass rounded-xl p-4; height: 300px; }
+    .tool-tab { @apply px-4 py-2 rounded-t-lg cursor-pointer transition-all; }
+    .tool-tab.active { background: var(--brand); color: white; }
+    .tool-tab.desmos { background: var(--desmos); }
+    .tool-tab.geogebra { background: var(--geogebra); }
+    .expression-list { @apply space-y-2 max-h-40 overflow-y-auto; }
+    .expression-item { @apply flex items-center gap-2 p-2 bg-slate-800/50 rounded; }
+    .color-picker { @apply w-6 h-6 rounded border-none cursor-pointer; }
+    .graph-display { width: 100%; height: 100%; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
+        <span class="font-semibold">MT10 · Desmos/GeoGebra bilan interaktiv dars</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#tools" class="btn-ghost">Vositalar</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#examples" class="btn-ghost">Amaliy mashqlar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Baholash</a>
+        <a href="#resources" class="btn-ghost">Resurslar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Desmos/GeoGebra bilan <span class="text-green-300">interaktiv dars</span></h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip-desmos">Desmos</span> · <span class="chip-geogebra">GeoGebra</span> · <span class="chip-interactive">Real-time</span> · <span class="chip">Browser-based</span></p>
+        <p class="mt-4 text-slate-400">Zamonaviy ta'limda interaktiv grafik vositalar muhim o'rin tutadi. Desmos va GeoGebra - bu matematikani vizual va interaktiv tarzda o'rganish imkonini beruvchi kuchli onlayn platformalardir. 
+
+Bu vositalar yordamida talabalar real vaqtda funksiyalar grafigini chizishlari, parametrlarni o'zgartirishlari va matematik tushunchalarni chuqur tushunshlari mumkin. Browser-based bo'lgani uchun hech qanday dastur o'rnatmasdan foydalanish mumkin.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o'tish</a>
+          <a href="#tools" class="btn-ghost">Vositalarni o'rganish</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroGraph" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Interaktiv matematika vositalari</h2>
+        <p class="text-slate-300 mb-4">Desmos va GeoGebra - bu matematik o'qitishda inqilob yaratgan zamonaviy vositalardir. Ular real vaqtda grafik chizish, dinamik geometriya va interaktiv hisoblash imkoniyatlarini taqdim etadi.</p>
+        
+        <div class="grid md:grid-cols-2 gap-4 mt-6">
+          <div class="tutorialBox border-l-blue-400">
+            <h3 class="font-semibold mb-2">Desmos xususiyatlari</h3>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Real-time funksiya grafiklari</li>
+              <li>• Parametrik tenglamalar</li>
+              <li>• Regressiya tahlili</li>
+              <li>• Animatsiya va slider</li>
+              <li>• 3D grafik qo'llab-quvvatlash</li>
+              <li>• Statistika vositalari</li>
+            </ul>
+          </div>
+          
+          <div class="tutorialBox border-l-gray-400">
+            <h3 class="font-semibold mb-2">GeoGebra imkoniyatlari</h3>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Dinamik geometriya</li>
+              <li>• Algebra va hisoblash</li>
+              <li>• 3D grafika</li>
+              <li>• CAS (Computer Algebra System)</li>
+              <li>• Probabilistik simulyatsiya</li>
+              <li>• Interaktiv materiallar</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Desmos va GeoGebra asoslarini o'rganish</li>
+          <li>Real-time grafik yaratish</li>
+          <li>Interaktiv parametrlar bilan ishlash</li>
+          <li>Animatsiya va slider ishlatish</li>
+          <li>Matematik modellar yaratish</li>
+          <li>Ta'limda qo'llash usullari</li>
+        </ul>
+        <div class="mt-4">
+          <span class="chip-desmos">Desmos</span> 
+          <span class="chip-geogebra">GeoGebra</span> 
+          <span class="chip-interactive">Interactive</span>
+          <span class="chip">Browser-based</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Tools Comparison -->
+  <section id="tools" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Vositalar taqqoslash</h2>
+    
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <!-- Desmos Card -->
+      <div class="glass rounded-2xl p-6 border-l-4 border-l-blue-400">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">D</div>
+          <div>
+            <h3 class="font-bold text-xl">Desmos</h3>
+            <p class="text-slate-400 text-sm">Grafik kalkulyator</p>
+          </div>
+        </div>
+        
+        <div class="space-y-3">
+          <div>
+            <h4 class="font-semibold text-green-400 mb-1">Afzalliklari:</h4>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Oson va intuitiv interfeys</li>
+              <li>• Tezkor grafik chizish</li>
+              <li>• Kuchli slider funksiyalari</li>
+              <li>• Mobil ilovalar mavjud</li>
+              <li>• Bepul va reklama yo'q</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 class="font-semibold text-red-400 mb-1">Cheklovlar:</h4>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Asosan 2D grafika</li>
+              <li>• Geometriya vositalari cheklangan</li>
+              <li>• CAS imkoniyatlari kam</li>
+            </ul>
+          </div>
+          
+          <div class="mt-4">
+            <a href="https://www.desmos.com/calculator" target="_blank" class="btn-desmos w-full text-center">Desmos Calculator</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- GeoGebra Card -->
+      <div class="glass rounded-2xl p-6 border-l-4 border-l-gray-400">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center text-white font-bold">G</div>
+          <div>
+            <h3 class="font-bold text-xl">GeoGebra</h3>
+            <p class="text-slate-400 text-sm">Ko'p funksiyali platforma</p>
+          </div>
+        </div>
+        
+        <div class="space-y-3">
+          <div>
+            <h4 class="font-semibold text-green-400 mb-1">Afzalliklari:</h4>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Keng funksional imkoniyatlar</li>
+              <li>• Dinamik geometriya</li>
+              <li>• CAS tizimi</li>
+              <li>• 3D visualizatsiya</li>
+              <li>• Tayyor materiallar kutubxonasi</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 class="font-semibold text-red-400 mb-1">Cheklovlar:</h4>
+            <ul class="text-sm text-slate-300 space-y-1">
+              <li>• Murakkab interfeys</li>
+              <li>• O'rganish qiyinroq</li>
+              <li>• Ba'zi funksiyalar pullik</li>
+            </ul>
+          </div>
+          
+          <div class="mt-4">
+            <a href="https://www.geogebra.org/calculator" target="_blank" class="btn-geogebra w-full text-center">GeoGebra Calculator</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature Comparison Table -->
+    <div class="glass rounded-2xl p-6">
+      <h3 class="font-semibold mb-4">Xususiyatlar taqqoslash</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-slate-600">
+              <th class="text-left py-2">Xususiyat</th>
+              <th class="text-center py-2">Desmos</th>
+              <th class="text-center py-2">GeoGebra</th>
+            </tr>
+          </thead>
+          <tbody class="text-slate-300">
+            <tr class="border-b border-slate-700">
+              <td class="py-2">2D Grafika</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr class="border-b border-slate-700">
+              <td class="py-2">3D Grafika</td>
+              <td class="text-center">⭐⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr class="border-b border-slate-700">
+              <td class="py-2">Geometriya</td>
+              <td class="text-center">⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr class="border-b border-slate-700">
+              <td class="py-2">Foydalanish qulayligi</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+              <td class="text-center">⭐⭐⭐</td>
+            </tr>
+            <tr class="border-b border-slate-700">
+              <td class="py-2">Animatsiya</td>
+              <td class="text-center">⭐⭐⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr class="border-b border-slate-700">
+              <td class="py-2">CAS (Algebra tizimi)</td>
+              <td class="text-center">⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+            </tr>
+            <tr>
+              <td class="py-2">Mobil qo'llab-quvvatlash</td>
+              <td class="text-center">⭐⭐⭐⭐⭐</td>
+              <td class="text-center">⭐⭐⭐⭐</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Real-time grafik simulatori</h2>
+          <p class="text-slate-300">Desmos va GeoGebra uslubida real vaqtda funksiya grafiklarini chizing va parametrlar bilan o'ynang.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnClear" class="btn-ghost">Tozalash</button>
+          <button id="btnAnimate" class="btn-ghost">Animatsiya</button>
+          <button id="btnRun" class="btn-run">Chizish</button>
+        </div>
+      </div>
+
+      <!-- Tool Selector -->
+      <div class="flex gap-2 mb-6">
+        <button class="tool-tab active" data-tool="desmos" id="tabDesmos">
+          📊 Desmos uslubi
+        </button>
+        <button class="tool-tab" data-tool="geogebra" id="tabGeogebra">
+          📐 GeoGebra uslubi
+        </button>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Function Input Panel -->
+        <div class="parameter-control">
+          <h4 class="font-semibold mb-3">Funksiya kiritish</h4>
+          
+          <div class="space-y-4">
+            <!-- Expression Input -->
+            <div>
+              <label class="text-sm text-slate-300 block mb-1">Funksiya:</label>
+              <input type="text" id="functionInput" 
+                     placeholder="masalan: x^2 + 2*x + 1" 
+                     class="function-input"
+                     value="x^2">
+              <div class="text-xs text-slate-400 mt-1">
+                Foydalanish: x^2, sin(x), cos(x), sqrt(x), abs(x), log(x)
+              </div>
+            </div>
+            
+            <!-- Quick Functions -->
+            <div>
+              <label class="text-sm text-slate-300 block mb-2">Tezkor funksiyalar:</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button class="quick-function btn-ghost p-2" data-func="x^2">Kvadrat</button>
+                <button class="quick-function btn-ghost p-2" data-func="sin(x)">Sinus</button>
+                <button class="quick-function btn-ghost p-2" data-func="cos(x)">Kosinus</button>
+                <button class="quick-function btn-ghost p-2" data-func="sqrt(x)">Ildiz</button>
+                <button class="quick-function btn-ghost p-2" data-func="1/x">Giperbola</button>
+                <button class="quick-function btn-ghost p-2" data-func="e^x">Eksponent</button>
+              </div>
+            </div>
+            
+            <!-- Parameters -->
+            <div>
+              <label class="text-sm text-slate-300">Parametr a:</label>
+              <input type="range" id="paramA" min="-5" max="5" value="1" step="0.1" class="slider w-full mt-1">
+              <span id="paramAValue" class="text-xs text-slate-400">1.0</span>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr b:</label>
+              <input type="range" id="paramB" min="-5" max="5" value="0" step="0.1" class="slider w-full mt-1">
+              <span id="paramBValue" class="text-xs text-slate-400">0.0</span>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr c:</label>
+              <input type="range" id="paramC" min="-5" max="5" value="0" step="0.1" class="slider w-full mt-1">
+              <span id="paramCValue" class="text-xs text-slate-400">0.0</span>
+            </div>
+            
+            <!-- Display Options -->
+            <div class="space-y-2">
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showGrid" checked class="rounded">
+                <span class="text-slate-300">To'r ko'rsatish</span>
+              </label>
+              
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showAxis" checked class="rounded">
+                <span class="text-slate-300">O'qlarni ko'rsatish</span>
+              </label>
+              
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showLabels" class="rounded">
+                <span class="text-slate-300">Yorliqlar</span>
+              </label>
+            </div>
+            
+            <!-- Color and Style -->
+            <div>
+              <label class="text-sm text-slate-300 block mb-2">Chiziq rangi:</label>
+              <div class="flex gap-2">
+                <input type="color" id="lineColor" value="#3b82f6" class="color-picker">
+                <select id="lineStyle" class="flex-1 px-2 py-1 bg-slate-800 rounded text-xs">
+                  <option value="solid">To'liq chiziq</option>
+                  <option value="dashed">Uzukli chiziq</option>
+                  <option value="dotted">Nuqtali chiziq</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Graph Display -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Main Graph -->
+          <div class="graph-container">
+            <div id="graphDisplay" class="graph-display"></div>
+          </div>
+          
+          <!-- Expression List -->
+          <div class="output-panel">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">📊</div>
+              Aktiv funksiyalar
+            </h4>
+            <div id="expressionList" class="expression-list">
+              <div class="text-slate-400 text-sm">Funksiya qo'shing...</div>
+            </div>
+            <div class="mt-3 flex gap-2">
+              <button id="btnAddExpression" class="btn-success text-sm">Funksiya qo'shish</button>
+              <button id="btnClearAll" class="btn-ghost text-sm">Barchasini tozalash</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preset Examples -->
+      <div class="mt-6 grid md:grid-cols-4 gap-4">
+        <button class="btn-ghost p-3 text-left preset-btn" data-preset="quadratic">
+          <div class="font-semibold text-sm">Kvadrat funksiya</div>
+          <div class="text-xs text-slate-400">y = ax² + bx + c</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left preset-btn" data-preset="trigonometric">
+          <div class="font-semibold text-sm">Trigonometrik</div>
+          <div class="text-xs text-slate-400">y = a·sin(bx + c)</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left preset-btn" data-preset="exponential">
+          <div class="font-semibold text-sm">Eksponensial</div>
+          <div class="text-xs text-slate-400">y = a·e^(bx) + c</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left preset-btn" data-preset="polynomial">
+          <div class="font-semibold text-sm">Ko'phadlar</div>
+          <div class="text-xs text-slate-400">y = ax³ + bx² + cx</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Examples and Exercises -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Amaliy mashqlar</h2>
+    
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Desmos Examples -->
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <div class="w-6 h-6 bg-blue-500 rounded"></div>
+          Desmos misollari
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">1. Kvadrat funksiya slider bilan</h4>
+            <p class="text-sm text-slate-300 mb-2">Kvadrat funksiyaning parametrlarini real vaqtda o'zgartiring:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>y = ax² + bx + c</div>
+              <div class="text-slate-400">a: -3 dan 3 gacha</div>
+              <div class="text-slate-400">b: -5 dan 5 gacha</div>
+              <div class="text-slate-400">c: -10 dan 10 gacha</div>
+            </div>
+          </div>
+          
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">2. Trigonometrik to'lqinlar</h4>
+            <p class="text-sm text-slate-300 mb-2">Sinus va kosinus funksiyalarini taqqoslang:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>y₁ = a·sin(bx + c)</div>
+              <div>y₂ = a·cos(bx + c)</div>
+              <div class="text-slate-400">Amplituda, chastota va faza farqini kuzating</div>
+            </div>
+          </div>
+          
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">3. Parametrik tenglamalar</h4>
+            <p class="text-sm text-slate-300 mb-2">Doira va ellipsni parametrik ko'rinishda:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>x = a·cos(t)</div>
+              <div>y = b·sin(t)</div>
+              <div class="text-slate-400">t: 0 dan 2π gacha</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- GeoGebra Examples -->
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <div class="w-6 h-6 bg-gray-500 rounded"></div>
+          GeoGebra misollari
+        </h3>
+        
+        <div class="space-y-4">
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">1. Dinamik geometriya</h4>
+            <p class="text-sm text-slate-300 mb-2">Uchburchak va uning xossalarini o'rganing:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>A, B, C nuqtalarni yarating</div>
+              <div>Uchburchak ABC chizing</div>
+              <div>Yuzani va perimetrni hisoblang</div>
+              <div class="text-slate-400">Nuqtalarni siljitib o'zgarishni kuzating</div>
+            </div>
+          </div>
+          
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">2. Funksiya va hosila</h4>
+            <p class="text-sm text-slate-300 mb-2">Funksiya va uning hosilasini bir vaqtda ko'rsating:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>f(x) = x³ - 3x² + 2x</div>
+              <div>f'(x) = 3x² - 6x + 2</div>
+              <div class="text-slate-400">Ekstremum nuqtalarini aniqlang</div>
+            </div>
+          </div>
+          
+          <div class="tutorialBox">
+            <h4 class="font-semibold mb-2">3. 3D vizualizatsiya</h4>
+            <p class="text-sm text-slate-300 mb-2">Ko'p o'lchovli funksiyalarni tasvirlang:</p>
+            <div class="code p-3 rounded text-xs">
+              <div>z = x² + y²</div>
+              <div>z = sin(x) · cos(y)</div>
+              <div class="text-slate-400">3D sirtlarni aylantiring va tahlil qiling</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Practical Tasks -->
+    <div class="mt-8 glass rounded-2xl p-6">
+      <h3 class="font-semibold mb-4">Amaliy topshiriqlar</h3>
+      
+      <div class="grid md:grid-cols-3 gap-4">
+        <div class="tutorialBox">
+          <h4 class="font-semibold mb-2">Boshlang'ich daraja</h4>
+          <ol class="list-decimal list-inside text-sm text-slate-300 space-y-1">
+            <li>Chiziqli funksiya grafiğini chizing</li>
+            <li>Kvadrat funksiyaning ildizlarini toping</li>
+            <li>Sin va cos funksiyalarini taqqoslang</li>
+            <li>Slider yordamida parametrlarni o'zgartiring</li>
+          </ol>
+        </div>
+        
+        <div class="tutorialBox">
+          <h4 class="font-semibold mb-2">O'rta daraja</h4>
+          <ol class="list-decimal list-inside text-sm text-slate-300 space-y-1">
+            <li>Murakkab funksiyalar grafiğini chizing</li>
+            <li>Funksiya transformatsiyalarini o'rganing</li>
+            <li>Parametrik tenglamalar bilan ishlang</li>
+            <li>Animatsiya yarating</li>
+          </ol>
+        </div>
+        
+        <div class="tutorialBox">
+          <h4 class="font-semibold mb-2">Yuqori daraja</h4>
+          <ol class="list-decimal list-inside text-sm text-slate-300 space-y-1">
+            <li>3D sirtlar yarating</li>
+            <li>Dinamik geometriya konstruksiyalari</li>
+            <li>Statistik tahlil va regressiya</li>
+            <li>Interaktiv o'quv materiali yarating</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quiz / Assessment -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold mb-4">Interaktiv vositalar bo'yicha baholash</h2>
+      
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Nazariy savollari</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">1. Desmos va GeoGebra orasidagi asosiy farq nima?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="a"> Desmos bepul, GeoGebra pullik</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="b"> Desmos oddiyroq, GeoGebra ko'p funksiyali</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="c"> Hech qanday farq yo'q</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">2. Slider nima uchun ishlatiladi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="a"> Grafik rangini o'zgartirish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="b"> Parametrlarni real vaqtda o'zgartirish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="c"> Faylni saqlash</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">3. Parametrik tenglamalar qanday yoziladi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="a"> x = f(t), y = g(t)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="b"> y = f(x)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="c"> z = f(x,y)</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">4. Browser-based vositalarning afzalligi nima?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="a"> O'rnatish talab qilinmaydi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="b"> Faqat Windows da ishlaydi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="c"> Internet siz ishlaydi</label>
+              </div>
+            </div>
+            
+            <button id="btnCheckAnswers" class="btn-success w-full">Javoblarni tekshirish</button>
+          </div>
+        </div>
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Amaliy topshiriqlar</h3>
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi funksiya natijasini bashorat qiling:</p>
+              <div class="code p-3 text-xs overflow-auto">y = 2x² - 4x + 1</div>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="practical1" value="a"> Yuqoriga yo'nalgan parabola</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical1" value="b"> Pastga yo'nalgan parabola</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical1" value="c"> To'g'ri chiziq</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Sin(x) funksiyasining amplitudasini 3 ga oshirish uchun:</p>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="practical2" value="a"> y = sin(3x)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical2" value="b"> y = 3sin(x)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical2" value="c"> y = sin(x + 3)</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Doira uchun parametrik tenglama:</p>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="practical3" value="a"> x = cos(t), y = sin(t)</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical3" value="b"> x = t, y = t²</label>
+                <label class="flex items-center gap-2"><input type="radio" name="practical3" value="c"> x = t, y = sin(t)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="quizResults" class="hidden mt-4 p-4 glass rounded-xl">
+        <h4 class="font-semibold mb-2">Natijalar:</h4>
+        <p id="quizScore" class="text-slate-300"></p>
+        <div id="detailedResults" class="mt-2 text-sm text-slate-400"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Manbalar va qo'shimcha ma'lumotlar</h2>
+    
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Official Resources -->
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2 flex items-center gap-2">
+          <div class="w-6 h-6 bg-blue-500 rounded"></div>
+          Rasmiy manbalar
+        </h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li><a href="https://www.desmos.com" class="text-blue-400 hover:underline" target="_blank">Desmos Calculator</a></li>
+          <li><a href="https://www.geogebra.org" class="text-blue-400 hover:underline" target="_blank">GeoGebra Platform</a></li>
+          <li><a href="https://help.desmos.com" class="text-blue-400 hover:underline" target="_blank">Desmos Help Center</a></li>
+          <li><a href="https://wiki.geogebra.org" class="text-blue-400 hover:underline" target="_blank">GeoGebra Wiki</a></li>
+        </ul>
+      </div>
+      
+      <!-- Educational Materials -->
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Ta'lim materiallari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Desmos Classroom Activities</li>
+          <li>GeoGebra Lesson Plans</li>
+          <li>Interactive Math Worksheets</li>
+          <li>Teacher Training Videos</li>
+        </ul>
+      </div>
+      
+      <!-- Local Resources -->
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Mahalliy manbalar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Qodirov A. "Interaktiv matematika", 2023</li>
+          <li>Nazarov B. "Raqamli ta'lim vositalari", 2022</li>
+          <li>Usmonov D. "Matematik modellashtirish", 2021</li>
+          <li>Mamatov S. "Zamonaviy ta'lim texnologiyalari", 2020</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Video Tutorials -->
+    <div class="mt-6 glass rounded-2xl p-6">
+      <h3 class="font-semibold mb-4">Video darslar va tutorials</h3>
+      
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-semibold text-blue-400 mb-2">Desmos Tutorials</h4>
+          <ul class="text-sm text-slate-300 space-y-1">
+            <li>• Getting Started with Desmos (Boshlang'ich)</li>
+            <li>• Advanced Graphing Techniques</li>
+            <li>• Creating Sliders and Animations</li>
+            <li>• Desmos for Teachers</li>
+            <li>• Parametric and Polar Equations</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 class="font-semibold text-gray-400 mb-2">GeoGebra Tutorials</h4>
+          <ul class="text-sm text-slate-300 space-y-1">
+            <li>• GeoGebra Basics (Asoslar)</li>
+            <li>• Dynamic Geometry Construction</li>
+            <li>• 3D Graphics and Modeling</li>
+            <li>• CAS and Spreadsheet Features</li>
+            <li>• Creating Interactive Materials</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Interactive Math Tools: "Visualize → Interact → Understand" orqali matematikani yangi usulda o'rganish.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Global variables for graph functionality
+    let currentTool = 'desmos';
+    let expressions = [];
+    let expressionCounter = 0;
+    let animationActive = false;
+    let animationId = null;
+    
+    // Initialize hero graph
+    function initHeroGraph() {
+      try {
+        functionPlot({
+          target: '#heroGraph',
+          width: 400,
+          height: 300,
+          grid: true,
+          xAxis: { domain: [-5, 5] },
+          yAxis: { domain: [-5, 5] },
+          data: [
+            {
+              fn: 'x^2',
+              color: '#3b82f6',
+              graphType: 'polyline'
+            },
+            {
+              fn: 'sin(x)',
+              color: '#10b981',
+              graphType: 'polyline'
+            }
+          ]
+        });
+      } catch (error) {
+        console.log('Hero graph initialization skipped');
+        document.getElementById('heroGraph').innerHTML = '<div class="flex items-center justify-center h-full text-slate-400">Interactive Graph Preview</div>';
+      }
+    }
+
+    // Initialize main graph display
+    function initGraph() {
+      const target = document.getElementById('graphDisplay');
+      target.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400">Funksiya kiriting va "Chizish" tugmasini bosing</div>';
+    }
+
+    // Update graph with current function
+    function updateGraph() {
+      const functionInput = document.getElementById('functionInput').value;
+      const paramA = parseFloat(document.getElementById('paramA').value);
+      const paramB = parseFloat(document.getElementById('paramB').value);
+      const paramC = parseFloat(document.getElementById('paramC').value);
+      const showGrid = document.getElementById('showGrid').checked;
+      const showAxis = document.getElementById('showAxis').checked;
+      const lineColor = document.getElementById('lineColor').value;
+      
+      if (!functionInput.trim()) {
+        initGraph();
+        return;
+      }
+
+      // Replace parameters in function
+      let processedFunction = functionInput
+        .replace(/a/g, paramA.toString())
+        .replace(/b/g, paramB.toString())
+        .replace(/c/g, paramC.toString());
+
+      try {
+        functionPlot({
+          target: '#graphDisplay',
+          width: 600,
+          height: 380,
+          grid: showGrid,
+          xAxis: { 
+            domain: [-10, 10],
+            label: showAxis ? 'x' : ''
+          },
+          yAxis: { 
+            domain: [-10, 10],
+            label: showAxis ? 'y' : ''
+          },
+          data: [
+            {
+              fn: processedFunction,
+              color: lineColor,
+              graphType: 'polyline'
+            }
+          ]
+        });
+        
+        // Update analysis
+        updateFunctionAnalysis(processedFunction);
+        
+      } catch (error) {
+        document.getElementById('graphDisplay').innerHTML = 
+          '<div class="flex items-center justify-center h-full text-red-400">Xato: Funksiya sintaksisini tekshiring</div>';
+      }
+    }
+
+    // Update function analysis
+    function updateFunctionAnalysis(func) {
+      const analysis = [
+        `Funksiya: f(x) = ${func}`,
+        `Parametr a: ${document.getElementById('paramA').value}`,
+        `Parametr b: ${document.getElementById('paramB').value}`,
+        `Parametr c: ${document.getElementById('paramC').value}`,
+        `Vosita: ${currentTool === 'desmos' ? 'Desmos uslubi' : 'GeoGebra uslubi'}`
+      ];
+      
+      // This would be displayed in an analysis panel if needed
+      console.log('Function Analysis:', analysis);
+    }
+
+    // Add expression to list
+    function addExpression() {
+      const functionInput = document.getElementById('functionInput').value;
+      const lineColor = document.getElementById('lineColor').value;
+      
+      if (!functionInput.trim()) {
+        alert('Funksiya kiriting!');
+        return;
+      }
+      
+      expressionCounter++;
+      const expression = {
+        id: expressionCounter,
+        function: functionInput,
+        color: lineColor,
+        visible: true
+      };
+      
+      expressions.push(expression);
+      updateExpressionList();
+      updateMultipleGraph();
+    }
+
+    // Update expression list display
+    function updateExpressionList() {
+      const container = document.getElementById('expressionList');
+      
+      if (expressions.length === 0) {
+        container.innerHTML = '<div class="text-slate-400 text-sm">Funksiya qo\'shing...</div>';
+        return;
+      }
+      
+      container.innerHTML = expressions.map(expr => `
+        <div class="expression-item">
+          <input type="color" value="${expr.color}" class="color-picker" 
+                 onchange="updateExpressionColor(${expr.id}, this.value)">
+          <input type="checkbox" ${expr.visible ? 'checked' : ''} 
+                 onchange="toggleExpression(${expr.id})">
+          <span class="flex-1 text-sm">f(x) = ${expr.function}</span>
+          <button onclick="removeExpression(${expr.id})" 
+                  class="text-red-400 hover:text-red-300 text-xs">×</button>
+        </div>
+      `).join('');
+    }
+
+    // Update graph with multiple expressions
+    function updateMultipleGraph() {
+      if (expressions.length === 0) {
+        initGraph();
+        return;
+      }
+      
+      const visibleExpressions = expressions.filter(expr => expr.visible);
+      
+      if (visibleExpressions.length === 0) {
+        initGraph();
+        return;
+      }
+      
+      try {
+        const data = visibleExpressions.map(expr => ({
+          fn: expr.function,
+          color: expr.color,
+          graphType: 'polyline'
+        }));
+        
+        functionPlot({
+          target: '#graphDisplay',
+          width: 600,
+          height: 380,
+          grid: document.getElementById('showGrid').checked,
+          xAxis: { domain: [-10, 10] },
+          yAxis: { domain: [-10, 10] },
+          data: data
+        });
+      } catch (error) {
+        document.getElementById('graphDisplay').innerHTML = 
+          '<div class="flex items-center justify-center h-full text-red-400">Xato: Ba\'zi funksiyalar sintaksisi noto\'g\'ri</div>';
+      }
+    }
+
+    // Expression management functions
+    function removeExpression(id) {
+      expressions = expressions.filter(expr => expr.id !== id);
+      updateExpressionList();
+      updateMultipleGraph();
+    }
+
+    function toggleExpression(id) {
+      const expr = expressions.find(e => e.id === id);
+      if (expr) {
+        expr.visible = !expr.visible;
+        updateMultipleGraph();
+      }
+    }
+
+    function updateExpressionColor(id, color) {
+      const expr = expressions.find(e => e.id === id);
+      if (expr) {
+        expr.color = color;
+        updateMultipleGraph();
+      }
+    }
+
+    // Clear all expressions
+    function clearAllExpressions() {
+      expressions = [];
+      expressionCounter = 0;
+      updateExpressionList();
+      initGraph();
+    }
+
+    // Tool switching
+    function switchTool(tool) {
+      currentTool = tool;
+      
+      // Update tab appearance
+      document.querySelectorAll('.tool-tab').forEach(tab => {
+        tab.classList.remove('active', 'desmos', 'geogebra');
+        if (tab.dataset.tool === tool) {
+          tab.classList.add('active');
+          if (tool === 'desmos') tab.classList.add('desmos');
+          if (tool === 'geogebra') tab.classList.add('geogebra');
+        }
+      });
+      
+      // Update interface based on tool
+      updateToolInterface();
+    }
+
+    // Update interface based on selected tool
+    function updateToolInterface() {
+      const controls = document.querySelector('.parameter-control');
+      
+      if (currentTool === 'desmos') {
+        // Desmos-style interface
+        controls.style.borderLeft = '4px solid #2d70b3';
+      } else {
+        // GeoGebra-style interface  
+        controls.style.borderLeft = '4px solid #666666';
+      }
+    }
+
+    // Animation functionality
+    function toggleAnimation() {
+      if (animationActive) {
+        stopAnimation();
+      } else {
+        startAnimation();
+      }
+    }
+
+    function startAnimation() {
+      animationActive = true;
+      document.getElementById('btnAnimate').textContent = 'To\'xtatish';
+      
+      let t = 0;
+      animationId = setInterval(() => {
+        t += 0.1;
+        const newA = Math.sin(t) * 3;
+        document.getElementById('paramA').value = newA;
+        document.getElementById('paramAValue').textContent = newA.toFixed(1);
+        updateGraph();
+      }, 100);
+    }
+
+    function stopAnimation() {
+      animationActive = false;
+      document.getElementById('btnAnimate').textContent = 'Animatsiya';
+      if (animationId) {
+        clearInterval(animationId);
+        animationId = null;
+      }
+    }
+
+    // Preset functions
+    function loadPreset(preset) {
+      stopAnimation();
+      
+      switch (preset) {
+        case 'quadratic':
+          document.getElementById('functionInput').value = 'a*x^2 + b*x + c';
+          document.getElementById('paramA').value = 1;
+          document.getElementById('paramB').value = 0;
+          document.getElementById('paramC').value = 0;
+          break;
+          
+        case 'trigonometric':
+          document.getElementById('functionInput').value = 'a*sin(b*x + c)';
+          document.getElementById('paramA').value = 1;
+          document.getElementById('paramB').value = 1;
+          document.getElementById('paramC').value = 0;
+          break;
+          
+        case 'exponential':
+          document.getElementById('functionInput').value = 'a*exp(b*x) + c';
+          document.getElementById('paramA').value = 1;
+          document.getElementById('paramB').value = 1;
+          document.getElementById('paramC').value = 0;
+          break;
+          
+        case 'polynomial':
+          document.getElementById('functionInput').value = 'a*x^3 + b*x^2 + c*x';
+          document.getElementById('paramA').value = 1;
+          document.getElementById('paramB').value = 0;
+          document.getElementById('paramC').value = 0;
+          break;
+      }
+      
+      updateSliderValues();
+      updateGraph();
+    }
+
+    // Update slider value displays
+    function updateSliderValues() {
+      document.getElementById('paramAValue').textContent = 
+        parseFloat(document.getElementById('paramA').value).toFixed(1);
+      document.getElementById('paramBValue').textContent = 
+        parseFloat(document.getElementById('paramB').value).toFixed(1);
+      document.getElementById('paramCValue').textContent = 
+        parseFloat(document.getElementById('paramC').value).toFixed(1);
+    }
+
+    // Quiz functionality
+    function checkQuizAnswers() {
+      let score = 0;
+      const total = 7;
+      const details = [];
+      
+      // Q1 - correct: b
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      if (q1 && q1.value === 'b') {
+        score++;
+        details.push('✓ Q1: To\'g\'ri - Desmos oddiyroq, GeoGebra ko\'p funksiyali');
+      } else {
+        details.push('✗ Q1: Noto\'g\'ri - Desmos oddiy interfeys, GeoGebra ko\'proq imkoniyatlar beradi');
+      }
+      
+      // Q2 - correct: b
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      if (q2 && q2.value === 'b') {
+        score++;
+        details.push('✓ Q2: To\'g\'ri - Slider parametrlarni real vaqtda o\'zgartirish uchun');
+      } else {
+        details.push('✗ Q2: Noto\'g\'ri - Slider funksiya parametrlarini dinamik o\'zgartirish uchun ishlatiladi');
+      }
+      
+      // Q3 - correct: a
+      const q3 = document.querySelector('input[name="q3"]:checked');
+      if (q3 && q3.value === 'a') {
+        score++;
+        details.push('✓ Q3: To\'g\'ri - Parametrik: x = f(t), y = g(t)');
+      } else {
+        details.push('✗ Q3: Noto\'g\'ri - Parametrik tenglamalar x va y ni t parametr orqali ifodalaydi');
+      }
+      
+      // Q4 - correct: a
+      const q4 = document.querySelector('input[name="q4"]:checked');
+      if (q4 && q4.value === 'a') {
+        score++;
+        details.push('✓ Q4: To\'g\'ri - Browser-based vositalar o\'rnatish talab qilmaydi');
+      } else {
+        details.push('✗ Q4: Noto\'g\'ri - Browser-based vositalarning asosiy afzalligi o\'rnatishsiz ishlatish');
+      }
+      
+      // Practical1 - correct: a
+      const p1 = document.querySelector('input[name="practical1"]:checked');
+      if (p1 && p1.value === 'a') {
+        score++;
+        details.push('✓ Amaliy1: To\'g\'ri - a>0 bo\'lganda parabola yuqoriga yo\'nalgan');
+      } else {
+        details.push('✗ Amaliy1: Noto\'g\'ri - 2x² da koeffitsient musbat, shuning uchun parabola yuqoriga');
+      }
+      
+      // Practical2 - correct: b
+      const p2 = document.querySelector('input[name="practical2"]:checked');
+      if (p2 && p2.value === 'b') {
+        score++;
+        details.push('✓ Amaliy2: To\'g\'ri - 3sin(x) amplitudani 3 ga oshiradi');
+      } else {
+        details.push('✗ Amaliy2: Noto\'g\'ri - Amplitudani oshirish uchun koeffitsiyentni sin oldiga qo\'yish kerak');
+      }
+      
+      // Practical3 - correct: a
+      const p3 = document.querySelector('input[name="practical3"]:checked');
+      if (p3 && p3.value === 'a') {
+        score++;
+        details.push('✓ Amaliy3: To\'g\'ri - Doira: x=cos(t), y=sin(t)');
+      } else {
+        details.push('✗ Amaliy3: Noto\'g\'ri - Doira uchun x=cos(t), y=sin(t) parametrik tenglamasi');
+      }
+      
+      const percentage = Math.round((score / total) * 100);
+      document.getElementById('quizScore').textContent = `Sizning natijangiz: ${score}/${total} (${percentage}%)`;
+      document.getElementById('detailedResults').innerHTML = details.join('<br>');
+      document.getElementById('quizResults').classList.remove('hidden');
+      
+      // Add color based on score
+      const resultsDiv = document.getElementById('quizResults');
+      resultsDiv.classList.remove('border-l-4', 'border-green-400', 'border-yellow-400', 'border-red-400');
+      
+      if (percentage >= 80) {
+        resultsDiv.classList.add('border-l-4', 'border-green-400');
+      } else if (percentage >= 60) {
+        resultsDiv.classList.add('border-l-4', 'border-yellow-400');
+      } else {
+        resultsDiv.classList.add('border-l-4', 'border-red-400');
+      }
+    }
+
+    // Event listeners setup
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize
+      initHeroGraph();
+      initGraph();
+      updateSliderValues();
+      
+      // Tool tabs
+      document.getElementById('tabDesmos').addEventListener('click', () => switchTool('desmos'));
+      document.getElementById('tabGeogebra').addEventListener('click', () => switchTool('geogebra'));
+      
+      // Main controls
+      document.getElementById('btnRun').addEventListener('click', updateGraph);
+      document.getElementById('btnClear').addEventListener('click', () => {
+        document.getElementById('functionInput').value = '';
+        document.getElementById('paramA').value = 1;
+        document.getElementById('paramB').value = 0;
+        document.getElementById('paramC').value = 0;
+        updateSliderValues();
+        initGraph();
+      });
+      document.getElementById('btnAnimate').addEventListener('click', toggleAnimation);
+      
+      // Expression management
+      document.getElementById('btnAddExpression').addEventListener('click', addExpression);
+      document.getElementById('btnClearAll').addEventListener('click', clearAllExpressions);
+      
+      // Parameter sliders
+      ['paramA', 'paramB', 'paramC'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateSliderValues();
+          updateGraph();
+        });
+      });
+      
+      // Display options
+      ['showGrid', 'showAxis', 'showLabels'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateGraph);
+      });
+      
+      // Style controls
+      document.getElementById('lineColor').addEventListener('change', updateGraph);
+      document.getElementById('lineStyle').addEventListener('change', updateGraph);
+      
+      // Function input
+      document.getElementById('functionInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') updateGraph();
+      });
+      
+      // Quick functions
+      document.querySelectorAll('.quick-function').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.getElementById('functionInput').value = this.dataset.func;
+          updateGraph();
+        });
+      });
+      
+      // Preset buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          loadPreset(this.dataset.preset);
+        });
+      });
+      
+      // Quiz
+      document.getElementById('btnCheckAnswers').addEventListener('click', checkQuizAnswers);
+      
+      // Initialize with default function
+      document.getElementById('functionInput').value = 'x^2';
+      updateGraph();
+    });
+  </script>
+</body>
+</html>
