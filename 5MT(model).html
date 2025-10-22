@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT5 — Mapleda dasturlash asoslari</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for plotting -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --bg: #0b1220; --card: #0f172a; --ink:#e5e7eb; --muted:#9ca3af; --brand:#16a34a; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #0b1220 0%, #0b1220 60%, #0c1426 100%); color: var(--ink); }
+    .glass { background: rgba(15,23,42,0.6); backdrop-filter: blur(10px); border: 1px solid rgba(148,163,184,0.15); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #16a34a; color: white; box-shadow: 0 6px 20px rgba(22,163,74,.25); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.1); color: var(--ink); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(34,197,94,0.1); color:#22c55e; border:1px solid rgba(34,197,94,0.25); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #0b1020; border: 1px solid rgba(148,163,184,.2); }
+    .maple-red { color: #dc2626; }
+    .maple-blue { color: #2563eb; }
+    .maple-green { color: #16a34a; }
+    .maple-purple { color: #9333ea; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
+        <span class="font-semibold">MT5 · Maple Programming</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">Misollar & Kod</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Refleksiya</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight"><span class="text-green-300">Mapleda</span> dasturlash asoslari</h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip">Shartli tuzilmalar</span> · Asosiy vositalar: <span class="chip">if/then/else</span> <span class="chip">for/while loops</span></p>
+        <p class="mt-4 text-slate-400">Maple dasturlash muhitida shartli va tsiklik tuzilmalarni o'rganish. Matematik hisoblashlar, grafik natijalar va algoritmik yondashuvlar orqali dasturlash ko'nikmalarini rivojlantirish.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Kod simulatori</a>
+          <a href="#examples" class="btn-ghost">Kod namunalari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]">
+          <pre class="code p-4 rounded text-sm text-green-400">
+<span class="maple-red">for</span> <span class="maple-blue">i</span> <span class="maple-red">from</span> <span class="maple-purple">1</span> <span class="maple-red">to</span> <span class="maple-purple">10</span> <span class="maple-red">do</span>
+    <span class="maple-red">if</span> <span class="maple-blue">i</span> <span class="maple-red">mod</span> <span class="maple-purple">2</span> <span class="maple-red">=</span> <span class="maple-purple">0</span> <span class="maple-red">then</span>
+        <span class="maple-green">print</span>(<span class="maple-blue">i</span>, <span class="maple-green">"juft son"</span>);
+    <span class="maple-red">else</span>
+        <span class="maple-green">print</span>(<span class="maple-blue">i</span>, <span class="maple-green">"toq son"</span>);
+    <span class="maple-red">end if</span>;
+<span class="maple-red">end do</span>;
+
+<span class="maple-green">plot</span>(<span class="maple-blue">sin</span>(<span class="maple-blue">x</span>), <span class="maple-blue">x</span>=<span class="maple-purple">-Pi..Pi</span>);
+          </pre>
+          <div class="mt-4 text-center">
+            <div class="inline-flex items-center gap-2 text-xs text-green-400">
+              <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              Maple worksheet faol
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300">Maple dasturlash muhitida shartli va tsiklik tuzilmalar matematik hisoblashlarni avtomatlashtirish uchun ishlatiladi. Bu tuzilmalar orqali murakkab algoritmlarni oddiy va tushunarli ko'rinishda yozish mumkin.</p>
+        
+        <div class="mt-6 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <h3 class="font-semibold text-green-300">Shartli tuzilma (if-then-else)</h3>
+            <pre class="code p-3 rounded text-sm mt-2"><code><span class="maple-red">if</span> <span class="maple-blue">shart</span> <span class="maple-red">then</span>
+    <span class="maple-green"># bajarilishi kerak bo'lgan amallar</span>
+<span class="maple-red">elif</span> <span class="maple-blue">boshqa_shart</span> <span class="maple-red">then</span>
+    <span class="maple-green"># boshqa amallar</span>
+<span class="maple-red">else</span>
+    <span class="maple-green"># aks holda bajarilishi kerak</span>
+<span class="maple-red">end if</span>;</code></pre>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h3 class="font-semibold text-green-300">For tsikli</h3>
+            <pre class="code p-3 rounded text-sm mt-2"><code><span class="maple-red">for</span> <span class="maple-blue">i</span> <span class="maple-red">from</span> <span class="maple-purple">boshlang'ich</span> <span class="maple-red">to</span> <span class="maple-purple">oxirgi</span> <span class="maple-red">by</span> <span class="maple-purple">qadam</span> <span class="maple-red">do</span>
+    <span class="maple-green"># takrorlanadigan amallar</span>
+<span class="maple-red">end do</span>;</code></pre>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h3 class="font-semibold text-green-300">While tsikli</h3>
+            <pre class="code p-3 rounded text-sm mt-2"><code><span class="maple-red">while</span> <span class="maple-blue">shart</span> <span class="maple-red">do</span>
+    <span class="maple-green"># shart to'g'ri bo'lsa takrorlanadi</span>
+<span class="maple-red">end do</span>;</code></pre>
+          </div>
+        </div>
+      </div>
+      
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1">
+          <li>Shartli tuzilmalarni o'rganish va qo'llash.</li>
+          <li>For va while tsikllarini ishlatish.</li>
+          <li>Matematik funksiyalarni grafik chizish.</li>
+          <li>Algoritmik fikrlash ko'nikmalarini rivojlantirish.</li>
+        </ul>
+        <div class="mt-4">
+          <span class="chip">Algoritm</span> 
+          <span class="chip">Grafik</span> 
+          <span class="chip">Iteratsiya</span>
+        </div>
+        
+        <div class="mt-6 glass rounded-xl p-3">
+          <h4 class="font-semibold text-sm mb-2">Maple operatorlari</h4>
+          <div class="text-xs space-y-1 text-slate-300">
+            <p><span class="kbd">=</span> tenglik</p>
+            <p><span class="kbd">mod</span> qoldiq</p>
+            <p><span class="kbd">and</span> mantiqiy "va"</p>
+            <p><span class="kbd">or</span> mantiqiy "yoki"</p>
+            <p><span class="kbd">not</span> mantiqiy "emas"</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & Code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Misollar & Maple kod namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Juft/toq sonlarni aniqlash</h3>
+        <p class="text-slate-300 text-sm">Shartli tuzilma orqali sonlarni tasniflash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># Sonni tekshirish</span>
+<span class="maple-blue">n</span> <span class="maple-red">:=</span> <span class="maple-purple">15</span>;
+
+<span class="maple-red">if</span> <span class="maple-blue">n</span> <span class="maple-red">mod</span> <span class="maple-purple">2</span> <span class="maple-red">=</span> <span class="maple-purple">0</span> <span class="maple-red">then</span>
+    <span class="maple-green">print</span>(<span class="maple-blue">n</span>, <span class="maple-green">"juft son"</span>);
+<span class="maple-red">else</span>
+    <span class="maple-green">print</span>(<span class="maple-blue">n</span>, <span class="maple-green">"toq son"</span>);
+<span class="maple-red">end if</span>;
+
+<span class="maple-green"># Natija: 15 toq son</span></code></pre>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Sonlar qatorini hisoblash</h3>
+        <p class="text-slate-300 text-sm">For tsikli orqali yig'indi hisoblash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># 1 dan 100 gacha yig'indi</span>
+<span class="maple-blue">summa</span> <span class="maple-red">:=</span> <span class="maple-purple">0</span>;
+
+<span class="maple-red">for</span> <span class="maple-blue">i</span> <span class="maple-red">from</span> <span class="maple-purple">1</span> <span class="maple-red">to</span> <span class="maple-purple">100</span> <span class="maple-red">do</span>
+    <span class="maple-blue">summa</span> <span class="maple-red">:=</span> <span class="maple-blue">summa</span> <span class="maple-red">+</span> <span class="maple-blue">i</span>;
+<span class="maple-red">end do</span>;
+
+<span class="maple-green">print</span>(<span class="maple-green">"Yig'indi:"</span>, <span class="maple-blue">summa</span>);
+<span class="maple-green"># Natija: 5050</span></code></pre>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Funktsiya grafigi</h3>
+        <p class="text-slate-300 text-sm">Shartli funktsiya va uning grafigi:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># Qismli aniqlangan funktsiya</span>
+<span class="maple-blue">f</span> <span class="maple-red">:=</span> <span class="maple-blue">x</span> <span class="maple-red">-></span> <span class="maple-red">if</span> <span class="maple-blue">x</span> <span class="maple-red">>=</span> <span class="maple-purple">0</span> <span class="maple-red">then</span> 
+    <span class="maple-blue">x</span><span class="maple-red">^</span><span class="maple-purple">2</span> 
+<span class="maple-red">else</span> 
+    <span class="maple-red">-</span><span class="maple-blue">x</span><span class="maple-red">^</span><span class="maple-purple">2</span> 
+<span class="maple-red">end if</span>;
+
+<span class="maple-green">plot</span>(<span class="maple-blue">f</span>(<span class="maple-blue">x</span>), <span class="maple-blue">x</span><span class="maple-red">=</span><span class="maple-purple">-5..5</span>, 
+    <span class="maple-blue">color</span><span class="maple-red">=</span><span class="maple-green">blue</span>);</code></pre>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Faktorial hisoblash</h3>
+        <p class="text-slate-300 text-sm">While tsikli orqali faktorial:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># n! hisoblash</span>
+<span class="maple-blue">n</span> <span class="maple-red">:=</span> <span class="maple-purple">5</span>;
+<span class="maple-blue">faktorial</span> <span class="maple-red">:=</span> <span class="maple-purple">1</span>;
+<span class="maple-blue">i</span> <span class="maple-red">:=</span> <span class="maple-purple">1</span>;
+
+<span class="maple-red">while</span> <span class="maple-blue">i</span> <span class="maple-red"><=</span> <span class="maple-blue">n</span> <span class="maple-red">do</span>
+    <span class="maple-blue">faktorial</span> <span class="maple-red">:=</span> <span class="maple-blue">faktorial</span> <span class="maple-red">*</span> <span class="maple-blue">i</span>;
+    <span class="maple-blue">i</span> <span class="maple-red">:=</span> <span class="maple-blue">i</span> <span class="maple-red">+</span> <span class="maple-purple">1</span>;
+<span class="maple-red">end do</span>;
+
+<span class="maple-green">print</span>(<span class="maple-blue">n</span>, <span class="maple-green">"! ="</span>, <span class="maple-blue">faktorial</span>);</code></pre>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">5) Ro'yxat bilan ishlash</h3>
+        <p class="text-slate-300 text-sm">Ro'yxat elementlarini filterlash:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># Musbat sonlarni ajratish</span>
+<span class="maple-blue">sonlar</span> <span class="maple-red">:=</span> [<span class="maple-purple">-3, 7, -1, 4, 0, 9</span>];
+<span class="maple-blue">musbat</span> <span class="maple-red">:=</span> [];
+
+<span class="maple-red">for</span> <span class="maple-blue">son</span> <span class="maple-red">in</span> <span class="maple-blue">sonlar</span> <span class="maple-red">do</span>
+    <span class="maple-red">if</span> <span class="maple-blue">son</span> <span class="maple-red">></span> <span class="maple-purple">0</span> <span class="maple-red">then</span>
+        <span class="maple-blue">musbat</span> <span class="maple-red">:=</span> [<span class="maple-red">op</span>(<span class="maple-blue">musbat</span>), <span class="maple-blue">son</span>];
+    <span class="maple-red">end if</span>;
+<span class="maple-red">end do</span>;
+
+<span class="maple-green">print</span>(<span class="maple-blue">musbat</span>);
+<span class="maple-green"># Natija: [7, 4, 9]</span></code></pre>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">6) Animatsiyali grafik</h3>
+        <p class="text-slate-300 text-sm">Vaqtga bog'liq funktsiya animatsiyasi:</p>
+        <pre class="code p-4 rounded text-sm overflow-auto mt-2"><code><span class="maple-green"># Sinus to'lqini animatsiyasi</span>
+<span class="maple-red">with</span>(<span class="maple-green">plots</span>):
+
+<span class="maple-blue">frames</span> <span class="maple-red">:=</span> [];
+<span class="maple-red">for</span> <span class="maple-blue">t</span> <span class="maple-red">from</span> <span class="maple-purple">0</span> <span class="maple-red">to</span> <span class="maple-purple">20</span> <span class="maple-red">do</span>
+    <span class="maple-blue">frame</span> <span class="maple-red">:=</span> <span class="maple-green">plot</span>(<span class="maple-blue">sin</span>(<span class="maple-blue">x</span><span class="maple-red">-</span><span class="maple-blue">t</span><span class="maple-red">/</span><span class="maple-purple">5</span>), 
+        <span class="maple-blue">x</span><span class="maple-red">=</span><span class="maple-purple">0..10</span>, <span class="maple-blue">y</span><span class="maple-red">=</span><span class="maple-purple">-2..2</span>);
+    <span class="maple-blue">frames</span> <span class="maple-red">:=</span> [<span class="maple-red">op</span>(<span class="maple-blue">frames</span>), <span class="maple-blue">frame</span>];
+<span class="maple-red">end do</span>;
+
+<span class="maple-green">display</span>(<span class="maple-blue">frames</span>, <span class="maple-blue">insequence</span><span class="maple-red">=</span><span class="maple-green">true</span>);</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h2 class="text-2xl font-bold">Interaktiv Maple kod simulatori</h2>
+          <p class="text-slate-300">Maple dasturlash tuzilmalarini sinab ko'ring. Parametrlarni o'zgartirib, natijani real vaqtda kuzating.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnExecute" class="btn">Kodni bajarish</button>
+          <button id="btnClear" class="btn-ghost">Tozalash</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6 mt-6">
+        <!-- Code Editor Controls -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass rounded-xl p-4">
+            <label class="block text-sm text-slate-300 mb-1">Kod namunasi</label>
+            <select id="codeTemplateSelect" class="w-full bg-slate-900/60 border border-slate-600 rounded-xl px-3 py-2">
+              <option value="if_else">If-else shartli</option>
+              <option value="for_loop">For tsikli</option>
+              <option value="while_loop">While tsikli</option>
+              <option value="function_plot">Funktsiya grafigi</option>
+              <option value="list_filter">Ro'yxat filteri</option>
+            </select>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">Parametrlar</h4>
+            
+            <div id="ifElseParams" class="space-y-3">
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm">Test son</label>
+                  <span id="lblTestNum" class="kbd">15</span>
+                </div>
+                <input id="rangeTestNum" type="range" min="1" max="100" value="15" class="w-full">
+              </div>
+            </div>
+
+            <div id="forLoopParams" class="space-y-3 hidden">
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm">Boshlanish</label>
+                  <span id="lblStart" class="kbd">1</span>
+                </div>
+                <input id="rangeStart" type="range" min="1" max="10" value="1" class="w-full">
+              </div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm">Tugash</label>
+                  <span id="lblEnd" class="kbd">10</span>
+                </div>
+                <input id="rangeEnd" type="range" min="5" max="50" value="10" class="w-full">
+              </div>
+            </div>
+
+            <div id="functionParams" class="space-y-3 hidden">
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm">Amplituda</label>
+                  <span id="lblAmp" class="kbd">1</span>
+                </div>
+                <input id="rangeAmp" type="range" min="0.5" max="3" step="0.1" value="1" class="w-full">
+              </div>
+              <div>
+                <div class="flex items-center justify-between">
+                  <label class="text-sm">Chastota</label>
+                  <span id="lblFreq" class="kbd">1</span>
+                </div>
+                <input id="rangeFreq" type="range" min="0.5" max="3" step="0.1" value="1" class="w-full">
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-xl p-4">
+            <h4 class="font-semibold mb-2">Maple sintaksis eslatma</h4>
+            <div class="text-xs space-y-1 text-slate-300">
+              <p><span class="kbd">:=</span> qiymat berish</p>
+              <p><span class="kbd">if...then...fi</span> shart</p>
+              <p><span class="kbd">for...do...od</span> tsikl</p>
+              <p><span class="kbd">mod</span> qoldiq operatori</p>
+              <p><span class="kbd">plot()</span> grafik chizish</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Code Display and Results -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Generated Code -->
+          <div class="glass rounded-2xl p-4">
+            <h3 class="font-semibold mb-2">Maple kodi</h3>
+            <pre class="code p-4 rounded text-sm overflow-auto" style="max-height: 300px;"><code id="generatedCode"># If-else misoli
+n := 15;
+
+if n mod 2 = 0 then
+    print(n, "juft son");
+else
+    print(n, "toq son");
+end if;</code></pre>
+          </div>
+
+          <!-- Output -->
+          <div class="glass rounded-2xl p-4">
+            <h3 class="font-semibold mb-2">Natija</h3>
+            <div id="codeOutput" class="bg-slate-900/60 p-4 rounded-xl text-sm font-mono">
+              <div class="text-green-400">Kodni bajarish uchun "Kodni bajarish" tugmasini bosing...</div>
+            </div>
+          </div>
+
+          <!-- Plot Area -->
+          <div id="plotArea" class="glass rounded-2xl p-4 hidden">
+            <h3 class="font-semibold mb-2">Grafik</h3>
+            <div class="w-full h-[300px]">
+              <canvas id="plotCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Masalalar (mustaqil ish)</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>1 dan 20 gacha bo'lgan barcha toq sonlarni chiqaradigan for tsiklini yozing.</li>
+          <li>Berilgan son tub son yoki yo'qligini aniqlovchi if-else tuzilmasini tuzing.</li>
+          <li>Kvadrat funktsiya $y = x^2$ ni $x \in [-5, 5]$ oraliqda chizing.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rta daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>Fibonacci sonlarini hisoblovchi while tsikli yozing (10 ta son).</li>
+          <li>Qismli aniqlangan funktsiyani chizing: $f(x) = \begin{cases} x^2, & x \geq 0 \\ -x^2, & x < 0 \end{cases}$</li>
+          <li>Ro'yxatdagi eng katta elementni topuvchi algoritm yozing.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Murakkab daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2">
+          <li>Sinus va kosinus funktsiyalarini bir grafikda ko'rsating va kesishish nuqtalarini toping.</li>
+          <li>Kvadrat tenglama yechuvchi dastur yozing (barcha holatlari bilan).</li>
+          <li>Animatsiyali grafik yarating: harakat qiluvchi nuqta yoki to'lqin.</li>
+        </ol>
+      </div>
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Loyiha</h3>
+        <p class="text-slate-300 text-sm">Matematik simulyatsiya yarating:</p>
+        <ul class="list-disc list-inside text-slate-300 text-sm space-y-1 mt-2">
+          <li>Monte Carlo usuli bilan π qiymatini hisoblang</li>
+          <li>Tasodifiy yurish (random walk) simulyatsiyasi</li>
+          <li>Oddiy differensial tenglamani raqamli yechish</li>
+        </ul>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlarga yo'l-yo'riq (ko'rish uchun bosing)</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <p><strong>1-masala:</strong> <code>for i from 1 to 20 by 2 do print(i); end do;</code></p>
+        <p><strong>2-masala:</strong> 2 dan √n gacha bo'luvchilar borligini tekshiring</p>
+        <p><strong>3-masala:</strong> <code>plot(x^2, x=-5..5, color=red);</code></p>
+        <p><strong>4-masala:</strong> F(n) = F(n-1) + F(n-2), F(1)=1, F(2)=1</p>
+        <p><strong>5-masala:</strong> <code>if x >= 0 then x^2 else -x^2 end if</code> funksiyasidan foydalaning</p>
+        <p><strong>6-masala:</strong> Max elementni saqlash va taqqoslash algoritmi</p>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Reflection -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold">Bilim baholash & refleksiya</h2>
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">Tezkor test</h3>
+          <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+            <li>Mapleda shartli tuzilma qanday boshlanadi va tugaydi?</li>
+            <li><code>mod</code> operatorining vazifasi nima?</li>
+            <li>For tsiklida <code>by</code> kalit so'zining ma'nosi?</li>
+            <li>Plot funksiyasida x oraliqni qanday ko'rsatiladi?</li>
+            <li>Ro'yxatga element qo'shish uchun qaysi operator ishlatiladi?</li>
+          </ol>
+        </div>
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-2">O'z-o'zini baholash</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="rounded">
+              <span class="text-slate-300">Shartli tuzilmalarni tushunaman</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="rounded">
+              <span class="text-slate-300">For/while tsikllarini yoza olaman</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="rounded">
+              <span class="text-slate-300">Grafik chizish buyruqlarini bilaman</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="checkbox" class="rounded">
+              <span class="text-slate-300">Matematik algoritmlarni yoza olaman</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="mt-6 glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Refleksiya savollar</h3>
+        <div class="text-slate-300 text-sm space-y-2">
+          <p>• Bugun eng qiyin bo'lgan tushuncha qaysi edi?</p>
+          <p>• Maple dasturlash tillari boshqa tillardan qanday farq qiladi?</p>
+          <p>• Grafik natijalar kodda qanday rol o'ynaydi?</p>
+          <p>• Real hayotda bu ko'nikmalarni qayerda qo'llash mumkin?</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Foydalanilgan adabiyotlar</h2>
+    <ul class="list-disc list-inside text-slate-300 space-y-1">
+      <li>Maple User Manual, Maplesoft, 2024.</li>
+      <li>Geddes K.O., Czapor S.R., Labahn G. <em>Algorithms for Computer Algebra</em>, Springer, 1992.</li>
+      <li>Heck A. <em>Introduction to Maple</em>, 3rd Edition, Springer-Verlag, 2003.</li>
+      <li>Redfern D. <em>The Maple Handbook</em>, Springer, 1996.</li>
+      <li>Maplesoft Documentation: Programming Guide, 2024.</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Dars modeli: "O'rgan → Qo'lla → Yarat" — Maple dasturlash asoslari.</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---------- Global Variables ----------
+    let currentTemplate = 'if_else';
+    let plotChart = null;
+    
+    // ---------- Code Templates ----------
+    const codeTemplates = {
+      'if_else': {
+        code: (params) => `# Juft/toq sonni aniqlash
+n := ${params.testNum};
+
+if n mod 2 = 0 then
+    print(n, "juft son");
+else
+    print(n, "toq son");
+end if;`,
+        execute: (params) => {
+          const n = params.testNum;
+          const result = n % 2 === 0 ? `${n} juft son` : `${n} toq son`;
+          return { output: result, hasPlot: false };
+        }
+      },
+      
+      'for_loop': {
+        code: (params) => `# ${params.start} dan ${params.end} gacha yig'indi
+summa := 0;
+
+for i from ${params.start} to ${params.end} do
+    summa := summa + i;
+    print("i =", i, ", summa =", summa);
+end do;
+
+print("Jami yig'indi:", summa);`,
+        execute: (params) => {
+          let output = '';
+          let sum = 0;
+          for (let i = params.start; i <= params.end; i++) {
+            sum += i;
+            output += `i = ${i}, summa = ${sum}\n`;
+          }
+          output += `Jami yig'indi: ${sum}`;
+          return { output, hasPlot: false };
+        }
+      },
+      
+      'while_loop': {
+        code: (params) => `# Faktorial hisoblash
+n := 5;
+faktorial := 1;
+i := 1;
+
+while i <= n do
+    faktorial := faktorial * i;
+    print("i =", i, ", faktorial =", faktorial);
+    i := i + 1;
+end do;
+
+print(n, "! =", faktorial);`,
+        execute: (params) => {
+          let output = '';
+          let factorial = 1;
+          const n = 5;
+          for (let i = 1; i <= n; i++) {
+            factorial *= i;
+            output += `i = ${i}, faktorial = ${factorial}\n`;
+          }
+          output += `${n}! = ${factorial}`;
+          return { output, hasPlot: false };
+        }
+      },
+      
+      'function_plot': {
+        code: (params) => `# Sinus funktsiyasi grafigi
+with(plots):
+
+# Parametrlar
+A := ${params.amp};  # Amplituda
+f := ${params.freq}; # Chastota
+
+# Funktsiya
+y := A * sin(f * x);
+
+plot(y, x = -2*Pi..2*Pi, 
+     color = blue, 
+     thickness = 2,
+     title = "y = " || A || " * sin(" || f || " * x)");`,
+        execute: (params) => {
+          const output = `Grafik chizildi:\ny = ${params.amp} * sin(${params.freq} * x)`;
+          return { output, hasPlot: true, plotData: { amp: params.amp, freq: params.freq } };
+        }
+      },
+      
+      'list_filter': {
+        code: (params) => `# Ro'yxatdan musbat sonlarni ajratish
+sonlar := [-5, 3, -2, 8, 0, -1, 7];
+musbat := [];
+
+for son in sonlar do
+    if son > 0 then
+        musbat := [op(musbat), son];
+        print("Musbat son topildi:", son);
+    end if;
+end do;
+
+print("Musbat sonlar:", musbat);`,
+        execute: (params) => {
+          const numbers = [-5, 3, -2, 8, 0, -1, 7];
+          const positive = [];
+          let output = '';
+          
+          numbers.forEach(num => {
+            if (num > 0) {
+              positive.push(num);
+              output += `Musbat son topildi: ${num}\n`;
+            }
+          });
+          
+          output += `Musbat sonlar: [${positive.join(', ')}]`;
+          return { output, hasPlot: false };
+        }
+      }
+    };
+
+    // ---------- Parameter Management ----------
+    const parameterSets = {
+      'if_else': { testNum: 15 },
+      'for_loop': { start: 1, end: 10 },
+      'while_loop': {},
+      'function_plot': { amp: 1, freq: 1 },
+      'list_filter': {}
+    };
+
+    let currentParams = parameterSets[currentTemplate];
+
+    // ---------- UI Functions ----------
+    function updateCodeDisplay() {
+      const template = codeTemplates[currentTemplate];
+      const code = template.code(currentParams);
+      document.getElementById('generatedCode').textContent = code;
+    }
+
+    function showParameterGroup(templateType) {
+      // Hide all parameter groups
+      document.querySelectorAll('[id$="Params"]').forEach(group => {
+        group.classList.add('hidden');
+      });
+
+      // Show specific parameter group
+      const groupMap = {
+        'if_else': 'ifElseParams',
+        'for_loop': 'forLoopParams', 
+        'function_plot': 'functionParams'
+      };
+
+      const groupId = groupMap[templateType];
+      if (groupId) {
+        document.getElementById(groupId).classList.remove('hidden');
+      }
+    }
+
+    function executeCode() {
+      const template = codeTemplates[currentTemplate];
+      const result = template.execute(currentParams);
+      
+      // Display output
+      const outputDiv = document.getElementById('codeOutput');
+      outputDiv.innerHTML = `<div class="text-green-400">${result.output.replace(/\n/g, '<br>')}</div>`;
+      
+      // Handle plotting
+      const plotArea = document.getElementById('plotArea');
+      if (result.hasPlot && result.plotData) {
+        plotArea.classList.remove('hidden');
+        createPlot(result.plotData);
+      } else {
+        plotArea.classList.add('hidden');
+      }
+    }
+
+    function createPlot(plotData) {
+      const canvas = document.getElementById('plotCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Destroy existing chart
+      if (plotChart) {
+        plotChart.destroy();
+      }
+
+      // Generate data points
+      const dataPoints = [];
+      const minX = -2 * Math.PI;
+      const maxX = 2 * Math.PI;
+      const step = 0.1;
+
+      for (let x = minX; x <= maxX; x += step) {
+        const y = plotData.amp * Math.sin(plotData.freq * x);
+        dataPoints.push({ x: x, y: y });
+      }
+
+      // Create chart
+      plotChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: `y = ${plotData.amp} * sin(${plotData.freq} * x)`,
+            data: dataPoints,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.1,
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#e5e7eb' }
+            }
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              position: 'center',
+              title: { display: true, text: 'x', color: '#e5e7eb' },
+              grid: { color: '#374151' },
+              ticks: { color: '#9ca3af' }
+            },
+            y: {
+              type: 'linear',
+              position: 'center',
+              title: { display: true, text: 'y', color: '#e5e7eb' },
+              grid: { color: '#374151' },
+              ticks: { color: '#9ca3af' }
+            }
+          }
+        }
+      });
+    }
+
+    function clearOutput() {
+      document.getElementById('codeOutput').innerHTML = 
+        '<div class="text-slate-500">Natija tozalandi...</div>';
+      document.getElementById('plotArea').classList.add('hidden');
+      if (plotChart) {
+        plotChart.destroy();
+        plotChart = null;
+      }
+    }
+
+    // ---------- Event Listeners ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      // Template selection
+      document.getElementById('codeTemplateSelect').addEventListener('change', (e) => {
+        currentTemplate = e.target.value;
+        currentParams = { ...parameterSets[currentTemplate] };
+        showParameterGroup(currentTemplate);
+        updateCodeDisplay();
+        clearOutput();
+      });
+
+      // Parameter controls - If/Else
+      document.getElementById('rangeTestNum').addEventListener('input', (e) => {
+        currentParams.testNum = parseInt(e.target.value);
+        document.getElementById('lblTestNum').textContent = e.target.value;
+        updateCodeDisplay();
+      });
+
+      // Parameter controls - For Loop
+      document.getElementById('rangeStart').addEventListener('input', (e) => {
+        currentParams.start = parseInt(e.target.value);
+        document.getElementById('lblStart').textContent = e.target.value;
+        updateCodeDisplay();
+      });
+
+      document.getElementById('rangeEnd').addEventListener('input', (e) => {
+        currentParams.end = parseInt(e.target.value);
+        document.getElementById('lblEnd').textContent = e.target.value;
+        updateCodeDisplay();
+      });
+
+      // Parameter controls - Function Plot
+      document.getElementById('rangeAmp').addEventListener('input', (e) => {
+        currentParams.amp = parseFloat(e.target.value);
+        document.getElementById('lblAmp').textContent = e.target.value;
+        updateCodeDisplay();
+      });
+
+      document.getElementById('rangeFreq').addEventListener('input', (e) => {
+        currentParams.freq = parseFloat(e.target.value);
+        document.getElementById('lblFreq').textContent = e.target.value;
+        updateCodeDisplay();
+      });
+
+      // Action buttons
+      document.getElementById('btnExecute').addEventListener('click', executeCode);
+      document.getElementById('btnClear').addEventListener('click', clearOutput);
+
+      // Initialize
+      showParameterGroup(currentTemplate);
+      updateCodeDisplay();
+    });
+  </script>
+</body>
+</html>
