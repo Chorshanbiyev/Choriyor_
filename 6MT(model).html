@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT6 — MATLABda M-file bilan ishlash</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for interactive plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plotly for 3D graphs -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { --bg: #1e1b3a; --card: #2a253f; --ink:#f1f5f9; --muted:#94a3b8; --brand:#3b82f6; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #1e1b3a 0%, #1e1b3a 60%, #2a253f 100%); color: var(--ink); }
+    .glass { background: rgba(42,37,63,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(148,163,184,0.2); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #3b82f6; color: white; box-shadow: 0 6px 20px rgba(59,130,246,.3); transition: all 0.3s; }
+    .btn:hover { @apply scale-105; box-shadow: 0 8px 25px rgba(59,130,246,.4); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.15); color: var(--ink); transition: all 0.3s; }
+    .btn-ghost:hover { background: rgba(148,163,184,0.25); }
+    .btn-success { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+    .btn-run { @apply px-4 py-2 rounded-2xl; background: #ef4444; color: white; box-shadow: 0 6px 20px rgba(239,68,68,.3); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(59,130,246,0.15); color:#3b82f6; border:1px solid rgba(59,130,246,0.3); }
+    .chip-matlab { @apply px-3 py-1 rounded-full text-xs; background: rgba(249,115,22,0.15); color:#f97316; border:1px solid rgba(249,115,22,0.3); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #1a1625; border: 1px solid rgba(148,163,184,.3); }
+    .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold; }
+    .step-active { background: #3b82f6; color: white; }
+    .step-completed { background: #10b981; color: white; }
+    .step-pending { background: rgba(148,163,184,0.2); color: var(--muted); }
+    .slider-container { @apply relative mt-2; }
+    .slider { @apply w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer; }
+    .slider::-webkit-slider-thumb { @apply appearance-none w-5 h-5 bg-blue-400 rounded-full cursor-pointer; }
+    .tutorialBox { @apply glass rounded-xl p-4 border-l-4; border-left-color: #3b82f6; }
+    .moduleCard { @apply glass rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer; }
+    .output-panel { @apply glass rounded-xl p-4; background: rgba(20,20,30,0.8); }
+    .console { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-orange-400 animate-pulse"></div>
+        <span class="font-semibold">MT6 · MATLABda M-file</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">MATLAB kodlari</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Baholash</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">MATLABda <span class="text-blue-300">M-file bilan ishlash</span></h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip-matlab">Script files</span> · <span class="chip-matlab">Function files</span> · Dastur turlari: <span class="chip">Algoritm</span> <span class="chip">Grafik</span></p>
+        <p class="mt-4 text-slate-400">MATLAB allows you to write series of commands into a file and execute the file as complete unit[[1]](https://www.tutorialspoint.com/matlab/matlab_m_files.htm)[[4]](https://www.mathworks.com/help/matlab/learn_matlab/scripts.html) — M-fayllar orqali kod yozish, saqlash va qayta ishlatish imkoniyati. Scripts do not accept inputs and do not return any outputs. They operate on data in the workspace[[1]](https://www.tutorialspoint.com/matlab/matlab_m_files.htm).</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o'tish</a>
+          <a href="#examples" class="btn-ghost">MATLAB kodlari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Nazariy asoslar</h2>
+        <p class="text-slate-300 mb-4">MATLAB provides a feature to store a sequence of statements in a file and execute these statements at the MATLAB prompt exactly as if have typed each command sequentially. Such files are called M-files or script files[[8]](https://www.geeksforgeeks.org/m-files-in-matlab/).</p>
+        
+        <div class="space-y-4">
+          <div class="tutorialBox">
+            <h3 class="font-semibold mb-2">M-file turlari:</h3>
+            <ul class="text-slate-300 space-y-1 text-sm">
+              <li>• <strong>Script files:</strong> script files are program files with .m extension. Scripts do not accept inputs and do not return any outputs. They operate on data in the workspace[[1]](https://www.tutorialspoint.com/matlab/matlab_m_files.htm)</li>
+              <li>• <strong>Function files:</strong> functions files are also program files with .m extension. Functions are more flexible and more easily extensible[[1]](https://www.tutorialspoint.com/matlab/matlab_m_files.htm)[[6]](https://www.mathworks.com/help/matlab/matlab_prog/scripts-and-functions.html)</li>
+              <li>• <strong>Live scripts:</strong> Interactive documents with .mlx extension</li>
+            </ul>
+          </div>
+
+          <div class="text-slate-300">
+            <p><strong>Script vs Function farqi:</strong> Functions have their own workspace, separate from the base workspace. Therefore, none of the calls to the function overwrite the value of variables in the base workspace[[6]](https://www.mathworks.com/help/matlab/matlab_prog/scripts-and-functions.html). Scriptlar esa workspace-da mavjud o'zgaruvchilar bilan ishlaydi.</p>
+            
+            <p class="mt-3"><strong>M-file yaratish:</strong> Choose New -> Script. The opens up a text editor. Type the commands and save the file with the extension 'program1.m'[[8]](https://www.geeksforgeeks.org/m-files-in-matlab/).</p>
+          </div>
+        </div>
+      </div>
+      
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Script va Function fayllarini yaratish</li>
+          <li>MATLAB kodlarini saqlash va ishlatish</li>
+          <li>Algoritmlarni dasturlash</li>
+          <li>Grafik chizish va vizualizatsiya</li>
+          <li>Debugging va kod optimallashtirish</li>
+        </ul>
+        <div class="mt-4"><span class="chip-matlab">Dasturlash</span> <span class="chip">Algoritm</span> <span class="chip">Grafik</span></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & MATLAB code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">MATLAB kod namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Script fayl - Oddiy hisob</h3>
+        <p class="text-slate-300 text-sm">simple_calc.m</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Simple calculation script
+a = 10;
+b = 20;
+c = 30;
+
+% Calculate average
+average = (a + b + c) / 3;
+
+% Display result
+fprintf('O''rtacha qiymat: %.2f\n', average);
+
+% Plot results
+x = [1, 2, 3];
+y = [a, b, c];
+bar(x, y);
+title('Qiymatlar diagrammasi');
+xlabel('Element');
+ylabel('Qiymat');</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Function fayl - Uchburchak yuzasi</h3>
+        <p class="text-slate-300 text-sm">triangle_area.m</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>function area = triangle_area(base, height)
+    % TRIANGLE_AREA Uchburchak yuzasini hisoblaydi
+    % Input: base - asos uzunligi
+    %        height - balandlik
+    % Output: area - yuza
+    
+    if base <= 0 || height <= 0
+        error('Asos va balandlik musbat bo''lishi kerak');
+    end
+    
+    area = 0.5 * base * height;
+    
+    fprintf('Asos: %.2f, Balandlik: %.2f\n', base, height);
+    fprintf('Yuza: %.2f\n', area);
+end</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) For sikli - Faktorial hisoblash</h3>
+        <p class="text-slate-300 text-sm">factorial_script.m</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Faktorial hisoblash algoritmi
+n = input('N qiymatini kiriting: ');
+
+if n < 0
+    fprintf('Manfiy son uchun faktorial aniqlanmagan\n');
+else
+    factorial = 1;
+    
+    for i = 1:n
+        factorial = factorial * i;
+        fprintf('%d! = %d\n', i, factorial);
+    end
+    
+    fprintf('Yakuniy natija: %d! = %d\n', n, factorial);
+end</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Grafik chizish - Sinus va Kosinus</h3>
+        <p class="text-slate-300 text-sm">plot_trig.m</p>
+        <pre class="code p-4 rounded text-sm overflow-auto"><code>% Trigonometrik funksiyalar grafigi
+x = 0:0.1:2*pi;
+
+% Calculate sine and cosine
+y_sin = sin(x);
+y_cos = cos(x);
+
+% Create subplot
+figure;
+subplot(2,1,1);
+plot(x, y_sin, 'r-', 'LineWidth', 2);
+title('Sinus funksiyasi');
+xlabel('x');
+ylabel('sin(x)');
+grid on;
+
+subplot(2,1,2);
+plot(x, y_cos, 'b-', 'LineWidth', 2);
+title('Kosinus funksiyasi');
+xlabel('x');
+ylabel('cos(x)');
+grid on;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Interaktiv MATLAB simulatori</h2>
+          <p class="text-slate-300">M-file kodlarini yozing va natijalarini real vaqtda ko'ring. Har xil algoritmlar va grafik chizish imkoniyatlari.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnClear" class="btn-ghost">Tozalash</button>
+          <button id="btnSave" class="btn-ghost">Saqlash</button>
+          <button id="btnRun" class="btn-run">Ishga tushirish</button>
+        </div>
+      </div>
+
+      <!-- Code Type selector -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="moduleCard" data-type="script">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📜</div>
+            <h3 class="font-semibold text-sm">Script</h3>
+            <p class="text-xs text-slate-400">Oddiy kod</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="function">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🔧</div>
+            <h3 class="font-semibold text-sm">Function</h3>
+            <p class="text-xs text-slate-400">Parametrli funksiya</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="plot">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-purple-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📈</div>
+            <h3 class="font-semibold text-sm">Plot</h3>
+            <p class="text-xs text-slate-400">Grafik chizish</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="algorithm">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🔢</div>
+            <h3 class="font-semibold text-sm">Algorithm</h3>
+            <p class="text-xs text-slate-400">Sikl va algoritm</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <!-- Code Editor -->
+        <div class="glass rounded-xl p-4">
+          <div class="flex justify-between items-center mb-3">
+            <h4 class="font-semibold">MATLAB Editor</h4>
+            <div class="flex items-center gap-2">
+              <span class="chip-matlab text-xs" id="currentFileType">script.m</span>
+              <span class="chip text-xs" id="lineCount">0 lines</span>
+            </div>
+          </div>
+          <textarea id="codeEditor" class="w-full h-[400px] bg-slate-900/60 border border-slate-600 rounded-xl px-4 py-3 text-sm font-mono resize-none focus:ring-2 focus:ring-blue-400 focus:border-transparent" placeholder="% MATLAB kodingizni bu yerga yozing...
+% Misol:
+x = 1:10;
+y = x.^2;
+plot(x, y);"></textarea>
+          
+          <div class="mt-3 flex gap-2">
+            <button id="btnTemplate" class="btn-ghost text-xs">Template</button>
+            <button id="btnCheck" class="btn-ghost text-xs">Syntax Check</button>
+          </div>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="space-y-4">
+          <!-- Command Window Output -->
+          <div class="output-panel">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">→</div>
+              Command Window
+            </h4>
+            <div id="commandOutput" class="console bg-black/40 rounded-lg p-3 h-[200px] overflow-auto text-green-400">
+              <div class="text-slate-400">&gt;&gt; % MATLAB natijalar bu yerda ko'rsatiladi...</div>
+            </div>
+          </div>
+
+          <!-- Plot Area -->
+          <div class="output-panel">
+            <h4 class="font-semibold mb-3">Figure Window</h4>
+            <div id="plotArea" class="w-full h-[180px] bg-slate-900/40 rounded-lg flex items-center justify-center">
+              <canvas id="plotCanvas" class="w-full h-full"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Examples -->
+      <div class="mt-6 grid md:grid-cols-3 gap-4">
+        <button class="btn-ghost p-3 text-left example-btn" data-code="% Oddiy hisob&#10;a = 5;&#10;b = 10;&#10;sum = a + b;&#10;fprintf('Yig''indi: %d\n', sum);">
+          <div class="font-semibold text-sm">Oddiy hisob</div>
+          <div class="text-xs text-slate-400">O'zgaruvchilar va amallar</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left example-btn" data-code="% For sikli&#10;n = 5;&#10;for i = 1:n&#10;    fprintf('%d kvadrat = %d\n', i, i^2);&#10;end">
+          <div class="font-semibold text-sm">For sikli</div>
+          <div class="text-xs text-slate-400">Takrorlash tuzilmasi</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left example-btn" data-code="% Grafik chizish&#10;x = 0:0.1:2*pi;&#10;y = sin(x);&#10;plot(x, y, 'b-', 'LineWidth', 2);&#10;title('Sinus funksiyasi');&#10;grid on;">
+          <div class="font-semibold text-sm">Grafik</div>
+          <div class="text-xs text-slate-400">Plot funksiyasi</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Mustaqil ishlar va masalalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Script fayl yarating va 3 ta sonning o'rtacha qiymatini hisoblang.</li>
+          <li>Function yozing: <code>circle_area(radius)</code> - aylana yuzasini hisoblaydi.</li>
+          <li>1 dan 10 gacha sonlarning kvadratini chiqaruvchi for sikli yozing.</li>
+          <li>x = -5:0.1:5 intervalida y = x² funksiyasining grafigini chizing.</li>
+        </ol>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rta va yuqori daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Fibonacci sonlarini hisoblaydigan rekursiv funksiya yozing.</li>
+          <li>Matrix operatsiyalari: 3×3 matritsaning determinantini hisoblang.</li>
+          <li>While sikli yordamida Newton-Raphson metodini amalga oshiring.</li>
+          <li>Subplot ishlatib, bir nechta funksiyani bitta oynada ko'rsating.</li>
+          <li>Error handling: try-catch bloklar bilan xatoliklarni boshqaring.</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlar va maslahatlar</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <div class="tutorialBox">
+          <p><strong>1-masala (script):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>% average_calc.m
+a = 10; b = 15; c = 20;
+avg = (a + b + c) / 3;
+fprintf('O''rtacha: %.2f\n', avg);</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>2-masala (function):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>function area = circle_area(radius)
+    area = pi * radius^2;
+    fprintf('Radius: %.2f, Yuza: %.2f\n', radius, area);
+end</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>3-masala (for sikli):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>for i = 1:10
+    fprintf('%d^2 = %d\n', i, i^2);
+end</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>4-masala (plot):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>x = -5:0.1:5;
+y = x.^2;
+plot(x, y, 'r-', 'LineWidth', 2);
+title('y = x^2'); xlabel('x'); ylabel('y');</code></pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Assessment -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold mb-4">Tezkor baholash va kod tahlili</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Mini quiz</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">1. M-file kengaytmasi nima?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="a"> .mat</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="b"> .m</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="c"> .matlab</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">2. Script va Function orasidagi asosiy farq?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="a"> Script tezroq ishlaydi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="b"> Function parametr qabul qiladi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="c"> Farq yo'q</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">3. MATLAB da grafik chizish uchun asosiy komanda?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="a"> graph()</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="b"> plot()</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="c"> draw()</label>
+              </div>
+            </div>
+            
+            <button id="btnCheckAnswers" class="btn-success w-full">Javoblarni tekshirish</button>
+          </div>
+        </div>
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Kod tahlili</h3>
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi kodda xato bormi?</p>
+              <pre class="code p-3 text-xs overflow-auto"><code>function result = my_func(x)
+result = x^2 + 2*x + 1
+fprintf('Result: %f', result);
+end</code></pre>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="a"> Xato yo'q</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="b"> Semicolon yo'q</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="c"> Syntax xatosi</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi kod natijasini bashorat qiling:</p>
+              <pre class="code p-3 text-xs overflow-auto"><code>x = 1:5;
+y = x .* 2;
+sum(y)</code></pre>
+              <div class="mt-2">
+                <input type="number" id="codeResult" class="bg-slate-900/60 border border-slate-600 rounded px-2 py-1 text-xs w-20" placeholder="Natija">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div id="quizResults" class="hidden mt-4 p-4 glass rounded-xl">
+        <h4 class="font-semibold mb-2">Natijalar:</h4>
+        <p id="quizScore" class="text-slate-300"></p>
+        <div id="detailedResults" class="mt-2 text-sm text-slate-400"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Adabiyotlar va qo'shimcha manbalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Rasmiy hujjatlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>MATLAB Documentation: Scripts and Functions</li>
+          <li>MathWorks Programming Fundamentals</li>
+          <li>MATLAB M-File Programming Guide</li>
+          <li>MATLAB Graphics and Data Analysis</li>
+        </ul>
+      </div>
+      
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Mahalliy adabiyotlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Xolmatov N. "MATLAB dasturlash asoslari", 2023</li>
+          <li>Qosimov A. "Matematik dasturlash", Toshkent, 2022</li>
+          <li>Rahimov S. "MATLAB va Simulink", 2021</li>
+          <li>Usmanov B. "Raqamli hisoblash metodlari", 2020</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© MATLAB M-file: "Yoz → Ishga tushir → Tahlil qil" metodikasi asosida dasturlash o'rganish.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Global variables
+    let currentChart = null;
+    let codeTemplates = {
+      script: `% Script file example
+% Simple calculation
+a = 10;
+b = 20;
+result = a + b;
+fprintf('Natija: %d\\n', result);`,
+      
+      function: `function output = my_function(input1, input2)
+    % MY_FUNCTION Function description
+    % Input: input1, input2 - parameters
+    % Output: output - result
+    
+    if nargin < 2
+        error('Ikki parametr kerak');
+    end
+    
+    output = input1 + input2;
+    fprintf('Result: %.2f\\n', output);
+end`,
+      
+      plot: `% Plotting example
+x = 0:0.1:2*pi;
+y = sin(x);
+
+figure;
+plot(x, y, 'b-', 'LineWidth', 2);
+title('Sinus funksiyasi');
+xlabel('x');
+ylabel('sin(x)');
+grid on;`,
+      
+      algorithm: `% Algorithm with loop
+n = 10;
+fibonacci = zeros(1, n);
+
+fibonacci(1) = 1;
+fibonacci(2) = 1;
+
+for i = 3:n
+    fibonacci(i) = fibonacci(i-1) + fibonacci(i-2);
+    fprintf('F(%d) = %d\\n', i, fibonacci(i));
+end
+
+plot(1:n, fibonacci, 'ro-');
+title('Fibonacci Numbers');`
+    };
+
+    // Initialize hero visualization
+    function initHero() {
+      const x = [];
+      const y1 = [], y2 = [], y3 = [];
+      
+      for (let i = 0; i <= 20; i++) {
+        x.push(i);
+        y1.push(i * 2);           // Linear
+        y2.push(i * i * 0.05);   // Quadratic
+        y3.push(Math.sin(i * 0.5) * 10 + 10); // Sinusoidal
+      }
+      
+      const data = [
+        {
+          type: 'scatter',
+          x: x, y: y1,
+          mode: 'lines',
+          name: 'Linear: y = 2x',
+          line: { color: '#3b82f6', width: 3 }
+        },
+        {
+          type: 'scatter',
+          x: x, y: y2,
+          mode: 'lines',
+          name: 'Quadratic: y = 0.05x²',
+          line: { color: '#10b981', width: 3 }
+        },
+        {
+          type: 'scatter',
+          x: x, y: y3,
+          mode: 'lines',
+          name: 'Sinusoidal: y = 10sin(0.5x)+10',
+          line: { color: '#f97316', width: 3 }
+        }
+      ];
+      
+      const layout = {
+        margin: { l: 30, r: 30, b: 30, t: 30 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        xaxis: { color: '#94a3b8', gridcolor: '#374151' },
+        yaxis: { color: '#94a3b8', gridcolor: '#374151' },
+        legend: { 
+          orientation: 'h', 
+          y: -0.2, 
+          font: { color: '#94a3b8', size: 10 }
+        }
+      };
+      
+      Plotly.newPlot('heroPlot', data, layout, { displayModeBar: false, responsive: true });
+    }
+
+    // MATLAB code simulator
+    function runMatlabCode(code) {
+      const output = [];
+      const lines = code.split('\n');
+      let variables = {};
+      let plotData = null;
+      
+      try {
+        for (let line of lines) {
+          line = line.trim();
+          if (!line || line.startsWith('%')) continue;
+          
+          // Simple variable assignment
+          const assignMatch = line.match(/^(\w+)\s*=\s*(.+);?$/);
+          if (assignMatch) {
+            const varName = assignMatch[1];
+            const expr = assignMatch[2];
+            
+            // Evaluate simple expressions
+            if (expr.match(/^\d+$/)) {
+              variables[varName] = parseInt(expr);
+            } else if (expr.match(/^\d*\.\d+$/)) {
+              variables[varName] = parseFloat(expr);
+            } else if (expr.match(/^(\w+)\s*[\+\-\*\/]\s*(\w+)$/)) {
+              // Simple binary operations
+              const opMatch = expr.match(/^(\w+)\s*([\+\-\*\/])\s*(\w+)$/);
+              if (opMatch) {
+                const [, var1, op, var2] = opMatch;
+                const val1 = variables[var1] || parseFloat(var1) || 0;
+                const val2 = variables[var2] || parseFloat(var2) || 0;
+                
+                switch (op) {
+                  case '+': variables[varName] = val1 + val2; break;
+                  case '-': variables[varName] = val1 - val2; break;
+                  case '*': variables[varName] = val1 * val2; break;
+                  case '/': variables[varName] = val1 / val2; break;
+                }
+              }
+            } else if (expr.includes(':')) {
+              // Range creation (simplified)
+              const rangeMatch = expr.match(/^(\d+):(\d*\.?\d*):?(\d+)$/);
+              if (rangeMatch) {
+                const start = parseInt(rangeMatch[1]);
+                const step = rangeMatch[2] ? parseFloat(rangeMatch[2]) : 1;
+                const end = parseInt(rangeMatch[3] || rangeMatch[2]);
+                const range = [];
+                for (let i = start; i <= end; i += step) {
+                  range.push(i);
+                }
+                variables[varName] = range;
+              }
+            }
+            continue;
+          }
+          
+          // fprintf simulation
+          const fprintfMatch = line.match(/fprintf\(['"](.+?)['"],?\s*(.+?)?\);?$/);
+          if (fprintfMatch) {
+            let text = fprintfMatch[1];
+            if (fprintfMatch[2]) {
+              const varName = fprintfMatch[2].trim();
+              const value = variables[varName];
+              text = text.replace(/%d|%f|%.2f/g, value);
+            }
+            text = text.replace(/\\n/g, '');
+            output.push(text);
+            continue;
+          }
+          
+          // Plot detection
+          if (line.includes('plot(')) {
+            const plotMatch = line.match(/plot\((\w+),\s*(\w+)/);
+            if (plotMatch) {
+              const xVar = plotMatch[1];
+              const yVar = plotMatch[2];
+              if (variables[xVar] && variables[yVar]) {
+                plotData = { x: variables[xVar], y: variables[yVar] };
+              }
+            }
+          }
+          
+          // For loop simulation (basic)
+          const forMatch = line.match(/for\s+(\w+)\s*=\s*(\d+):(\d+)/);
+          if (forMatch) {
+            const loopVar = forMatch[1];
+            const start = parseInt(forMatch[2]);
+            const end = parseInt(forMatch[3]);
+            
+            output.push(`For loop: ${loopVar} from ${start} to ${end}`);
+            // Note: This is a simplified simulation
+          }
+        }
+        
+        // Show variables
+        for (const [name, value] of Object.entries(variables)) {
+          if (Array.isArray(value)) {
+            output.push(`${name} = [${value.slice(0, 5).join(' ')}${value.length > 5 ? ' ...' : ''}]`);
+          } else {
+            output.push(`${name} = ${value}`);
+          }
+        }
+        
+        // Create plot if needed
+        if (plotData) {
+          createPlot(plotData);
+        }
+        
+      } catch (error) {
+        output.push(`Error: ${error.message}`);
+      }
+      
+      return output;
+    }
+
+    function createPlot(data) {
+      if (currentChart) currentChart.destroy();
+      
+      const ctx = document.getElementById('plotCanvas').getContext('2d');
+      
+      // Convert array data to chart format
+      const chartData = data.x.map((x, i) => ({ x: x, y: data.y[i] || 0 }));
+      
+      currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          datasets: [{
+            label: 'MATLAB Plot',
+            data: chartData,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: false,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#f1f5f9' } }
+          },
+          scales: {
+            x: { 
+              type: 'linear',
+              ticks: { color: '#94a3b8' }, 
+              grid: { color: '#374151' } 
+            },
+            y: { 
+              ticks: { color: '#94a3b8' }, 
+              grid: { color: '#374151' } 
+            }
+          }
+        }
+      });
+    }
+
+    function updateLineCount() {
+      const code = document.getElementById('codeEditor').value;
+      const lines = code.split('\n').length;
+      document.getElementById('lineCount').textContent = `${lines} lines`;
+    }
+
+    function checkSyntax() {
+      const code = document.getElementById('codeEditor').value;
+      const output = document.getElementById('commandOutput');
+      
+      // Basic syntax checks
+      const issues = [];
+      const lines = code.split('\n');
+      
+      lines.forEach((line, index) => {
+        line = line.trim();
+        if (!line || line.startsWith('%')) return;
+        
+        // Check for missing semicolons in assignments
+        if (line.includes('=') && !line.endsWith(';') && !line.includes('fprintf')) {
+          issues.push(`Line ${index + 1}: Consider adding semicolon to suppress output`);
+        }
+        
+        // Check for unmatched parentheses
+        const openParens = (line.match(/\(/g) || []).length;
+        const closeParens = (line.match(/\)/g) || []).length;
+        if (openParens !== closeParens) {
+          issues.push(`Line ${index + 1}: Unmatched parentheses`);
+        }
+      });
+      
+      if (issues.length === 0) {
+        output.innerHTML = '<div class="text-green-400">&gt;&gt; Syntax OK - No issues found</div>';
+      } else {
+        const issueHTML = issues.map(issue => `<div class="text-yellow-400">&gt;&gt; Warning: ${issue}</div>`).join('');
+        output.innerHTML = issueHTML;
+      }
+    }
+
+    function executeCode() {
+      const code = document.getElementById('codeEditor').value;
+      const output = document.getElementById('commandOutput');
+      
+      if (!code.trim()) {
+        output.innerHTML = '<div class="text-red-400">&gt;&gt; Error: No code to execute</div>';
+        return;
+      }
+      
+      output.innerHTML = '<div class="text-blue-400">&gt;&gt; Running MATLAB code...</div>';
+      
+      setTimeout(() => {
+        const results = runMatlabCode(code);
+        const resultHTML = results.map(result => `<div class="text-green-400">&gt;&gt; ${result}</div>`).join('');
+        output.innerHTML = resultHTML || '<div class="text-green-400">&gt;&gt; Code executed successfully</div>';
+      }, 500);
+    }
+
+    function loadTemplate(type) {
+      const editor = document.getElementById('codeEditor');
+      editor.value = codeTemplates[type] || '';
+      document.getElementById('currentFileType').textContent = `${type}.m`;
+      updateLineCount();
+    }
+
+    // Quiz functionality
+    function checkQuizAnswers() {
+      let score = 0;
+      const total = 4; // 3 multiple choice + 1 code analysis
+      const details = [];
+      
+      // Question 1 - correct answer is 'b'
+      const q1Answer = document.querySelector('input[name="q1"]:checked');
+      if (q1Answer && q1Answer.value === 'b') {
+        score++;
+        details.push('✓ Q1: To\'g\'ri - M-file kengaytmasi .m');
+      } else {
+        details.push('✗ Q1: Noto\'g\'ri - To\'g\'ri javob: .m');
+      }
+      
+      // Question 2 - correct answer is 'b'
+      const q2Answer = document.querySelector('input[name="q2"]:checked');
+      if (q2Answer && q2Answer.value === 'b') {
+        score++;
+        details.push('✓ Q2: To\'g\'ri - Function parametr qabul qiladi');
+      } else {
+        details.push('✗ Q2: Noto\'g\'ri - Function parametr qabul qiladi va natija qaytaradi');
+      }
+      
+      // Question 3 - correct answer is 'b'
+      const q3Answer = document.querySelector('input[name="q3"]:checked');
+      if (q3Answer && q3Answer.value === 'b') {
+        score++;
+        details.push('✓ Q3: To\'g\'ri - plot() funksiyasi');
+      } else {
+        details.push('✗ Q3: Noto\'g\'ri - To\'g\'ri javob: plot()');
+      }
+      
+      // Code analysis - correct answer is 'b'
+      const code1Answer = document.querySelector('input[name="code1"]:checked');
+      if (code1Answer && code1Answer.value === 'b') {
+        score++;
+        details.push('✓ Code1: To\'g\'ri - Semicolon yo\'q');
+      } else {
+        details.push('✗ Code1: Noto\'g\'ri - result = ... qatorida semicolon yo\'q');
+      }
+      
+      // Code result - answer should be 30 (sum of [2,4,6,8,10])
+      const codeResult = document.getElementById('codeResult').value;
+      const correctResult = 30; // sum of [2,4,6,8,10]
+      if (parseInt(codeResult) === correctResult) {
+        score++;
+        details.push('✓ Code Result: To\'g\'ri - 30');
+      } else {
+        details.push(`✗ Code Result: Noto\'g\'ri - To\'g\'ri javob: ${correctResult}`);
+      }
+      
+      const percentage = Math.round((score / 5) * 100);
+      document.getElementById('quizScore').textContent = `Sizning natijangiz: ${score}/5 (${percentage}%)`;
+      document.getElementById('detailedResults').innerHTML = details.join('<br>');
+      document.getElementById('quizResults').classList.remove('hidden');
+      
+      if (percentage >= 80) {
+        document.getElementById('quizResults').classList.add('border-l-4', 'border-green-400');
+      } else if (percentage >= 60) {
+        document.getElementById('quizResults').classList.add('border-l-4', 'border-yellow-400');
+      } else {
+        document.getElementById('quizResults').classList.add('border-l-4', 'border-red-400');
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initHero();
+      updateLineCount();
+
+      // Module selector cards
+      document.querySelectorAll('.moduleCard').forEach(card => {
+        card.addEventListener('click', function() {
+          const type = this.dataset.type;
+          loadTemplate(type);
+          
+          // Update active state
+          document.querySelectorAll('.moduleCard').forEach(c => c.classList.remove('ring-2', 'ring-blue-400'));
+          this.classList.add('ring-2', 'ring-blue-400');
+        });
+      });
+
+      // Code editor events
+      document.getElementById('codeEditor').addEventListener('input', updateLineCount);
+      
+      // Button events
+      document.getElementById('btnRun').addEventListener('click', executeCode);
+      document.getElementById('btnClear').addEventListener('click', () => {
+        document.getElementById('codeEditor').value = '';
+        document.getElementById('commandOutput').innerHTML = '<div class="text-slate-400">&gt;&gt; % MATLAB natijalar bu yerda ko\'rsatiladi...</div>';
+        if (currentChart) {
+          currentChart.destroy();
+          currentChart = null;
+        }
+        updateLineCount();
+      });
+      
+      document.getElementById('btnTemplate').addEventListener('click', () => loadTemplate('script'));
+      document.getElementById('btnCheck').addEventListener('click', checkSyntax);
+      
+      // Example buttons
+      document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const code = this.dataset.code.replace(/&#10;/g, '\n');
+          document.getElementById('codeEditor').value = code;
+          updateLineCount();
+        });
+      });
+
+      // Quiz button
+      document.getElementById('btnCheckAnswers').addEventListener('click', checkQuizAnswers);
+
+      // Initial template load
+      loadTemplate('script');
+    });
+  </script>
+</body>
+</html>
