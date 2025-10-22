@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MT9 — Mathematica'da funksiya vizualizatsiyasi</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- MathJax for formulas -->
+  <script>window.MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] } };</script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Chart.js for interactive plots -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Plotly for 3D graphs -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root { --bg: #2d1b42; --card: #3f2658; --ink:#f1f5f9; --muted:#94a3b8; --brand:#7c3aed; }
+    html { scroll-behavior: smooth; }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: linear-gradient(180deg, #2d1b42 0%, #2d1b42 60%, #3f2658 100%); color: var(--ink); }
+    .glass { background: rgba(63,38,88,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(148,163,184,0.2); }
+    .btn { @apply px-4 py-2 rounded-2xl; background: #7c3aed; color: white; box-shadow: 0 6px 20px rgba(124,58,237,.3); transition: all 0.3s; }
+    .btn:hover { @apply scale-105; box-shadow: 0 8px 25px rgba(124,58,237,.4); }
+    .btn-ghost { @apply px-3 py-2 rounded-xl; background: rgba(148,163,184,0.15); color: var(--ink); transition: all 0.3s; }
+    .btn-ghost:hover { background: rgba(148,163,184,0.25); }
+    .btn-success { @apply px-4 py-2 rounded-2xl; background: #10b981; color: white; box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+    .btn-run { @apply px-4 py-2 rounded-2xl; background: #dc2626; color: white; box-shadow: 0 6px 20px rgba(220,38,38,.3); }
+    .chip { @apply px-3 py-1 rounded-full text-xs; background: rgba(124,58,237,0.15); color:#7c3aed; border:1px solid rgba(124,58,237,0.3); }
+    .chip-mathematica { @apply px-3 py-1 rounded-full text-xs; background: rgba(234,88,12,0.15); color:#ea580c; border:1px solid rgba(234,88,12,0.3); }
+    .chip-manipulate { @apply px-3 py-1 rounded-full text-xs; background: rgba(168,85,247,0.15); color:#a855f7; border:1px solid rgba(168,85,247,0.3); }
+    .chip-3d { @apply px-3 py-1 rounded-full text-xs; background: rgba(139,69,19,0.15); color:#8b4513; border:1px solid rgba(139,69,19,0.3); }
+    .kbd { @apply px-2 py-0.5 rounded border; border-color: rgba(148,163,184,.3); color: var(--muted); }
+    .code { background: #1f0d2e; border: 1px solid rgba(148,163,184,.3); }
+    .step-indicator { @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold; }
+    .step-active { background: #7c3aed; color: white; }
+    .step-completed { background: #10b981; color: white; }
+    .step-pending { background: rgba(148,163,184,0.2); color: var(--muted); }
+    .slider-container { @apply relative mt-2; }
+    .slider { @apply w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer; }
+    .slider::-webkit-slider-thumb { @apply appearance-none w-5 h-5 bg-violet-400 rounded-full cursor-pointer; }
+    .tutorialBox { @apply glass rounded-xl p-4 border-l-4; border-left-color: #7c3aed; }
+    .moduleCard { @apply glass rounded-2xl p-6 hover:scale-105 transition-transform duration-300 cursor-pointer; }
+    .output-panel { @apply glass rounded-xl p-4; background: rgba(20,10,30,0.8); }
+    .console { font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.4; }
+    .function-controls { @apply glass rounded-xl p-4 space-y-3; }
+    .function-preview { @apply glass rounded-xl p-4; height: 400px; }
+    .mathematica-code { background: #1a0a25; border-left: 4px solid #ea580c; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="sticky top-0 z-40 glass">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full bg-violet-400 animate-pulse"></div>
+        <span class="font-semibold">MT9 · Mathematica'da funksiya vizualizatsiyasi</span>
+      </div>
+      <nav class="ml-auto flex gap-3 text-sm text-slate-300">
+        <a href="#hero" class="btn-ghost">Bosh sahifa</a>
+        <a href="#theory" class="btn-ghost">Nazariya</a>
+        <a href="#examples" class="btn-ghost">Mathematica kodlari</a>
+        <a href="#lab" class="btn-ghost">Interaktiv modul</a>
+        <a href="#tasks" class="btn-ghost">Masalalar</a>
+        <a href="#quiz" class="btn-ghost">Quiz/Baholash</a>
+        <a href="#resources" class="btn-ghost">Adabiyotlar</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section id="hero" class="max-w-7xl mx-auto px-4 pt-12 pb-8">
+    <div class="grid md:grid-cols-2 gap-8 items-center">
+      <div>
+        <h1 class="text-3xl md:text-5xl font-extrabold leading-tight">Mathematica'da <span class="text-violet-300">funksiya vizualizatsiyasi</span></h1>
+        <p class="mt-4 text-slate-300">Mavzu: <span class="chip-mathematica">Plot3D</span> · <span class="chip-manipulate">Manipulate</span> · <span class="chip-3d">3D visualization</span> · <span class="chip">Abstract functions</span></p>
+        <p class="mt-4 text-slate-400">Mathematica — bu matematik hisoblash, simbolik algebra va ilmiy vizualizatsiya uchun mo'ljallangan kuchli dasturiy ta'minot. Bu platformada funksiya vizualizatsiyasi — matematik objektlarni vizual ko'rinishda taqdim etish va ularning xossalarini tahlil qilish imkonini beradi.
+
+Abstrakt funksiyalar tahlili orqali murakkab matematik tuzilmalarni interaktiv tarzda o'rganish, parametrlarni real vaqtda o'zgartirish va natijalarni kuzatish mumkin. Manipulate va Plot3D buyruqlari yordamida funksiyalarning geometrik talqinini yaratish va tahlil qilish ko'nikmalarini o'rganamiz.</p>
+        <div class="mt-6 flex gap-3">
+          <a href="#lab" class="btn">Interaktiv modulga o'tish</a>
+          <a href="#examples" class="btn-ghost">Mathematica kodlari</a>
+        </div>
+      </div>
+      <div class="glass rounded-3xl p-4">
+        <div id="heroPlot" class="w-full h-[320px]"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Theory -->
+  <section id="theory" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="grid lg:grid-cols-3 gap-6">
+      <div class="glass rounded-2xl p-6 lg:col-span-2">
+        <h2 class="text-2xl font-bold mb-4">Funksiya vizualizatsiyasi nazariyasi</h2>
+        <p class="text-slate-300 mb-4">Mathematica'da funksiya vizualizatsiyasi — bu matematik funksiyalarni grafik ko'rinishda tasvirlash va ularning xossalarini o'rganish jarayonidir. Bu jarayon abstrakt matematik tushunchalarni vizual ko'rinishga keltiradi va ularni tushunishni osonlashtiradi.</p>
+        
+        <h3 class="font-semibold text-lg mb-2 text-violet-300">Asosiy buyruqlar:</h3>
+        <div class="space-y-3 text-slate-300">
+          <div class="tutorialBox">
+            <p><strong>Plot3D[f[x,y], {x, a, b}, {y, c, d}]</strong> — ikki o'zgaruvchili funksiyani 3D ko'rinishda chizadi.</p>
+          </div>
+          
+          <div class="tutorialBox">
+            <p><strong>Manipulate[expr, {u, umin, umax}]</strong> — parametrli funksiyalarni interaktiv boshqarish uchun slider yaratadi.</p>
+          </div>
+          
+          <div class="tutorialBox">
+            <p><strong>ContourPlot[f[x,y], {x, a, b}, {y, c, d}]</strong> — funksiyaning kontur chiziqlarini (izogipsa) ko'rsatadi.</p>
+          </div>
+          
+          <div class="tutorialBox">
+            <p><strong>DensityPlot[f[x,y], {x, a, b}, {y, c, d}]</strong> — funksiya qiymatlarini rang orqali ifodalaydi.</p>
+          </div>
+        </div>
+        
+        <h3 class="font-semibold text-lg mb-2 mt-4 text-violet-300">Vizualizatsiya usullari:</h3>
+        <p class="text-slate-300">• <strong>Parametrik vizualizatsiya</strong> — parametrlar o'zgarishi bilan funksiyaning qanday o'zgarishini kuzatish</p>
+        <p class="text-slate-300">• <strong>Interaktiv tahlil</strong> — real vaqtda parametrlarni boshqarish va natijalarni ko'rish</p>
+        <p class="text-slate-300">• <strong>Ko'p o'lchovli tasvirlar</strong> — 2D, 3D va yuqori o'lchovli funksiyalarni ko'rsatish</p>
+      </div>
+      
+      <aside class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Dars maqsadlari</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Plot3D bilan 3D yuzalar yaratish</li>
+          <li>Manipulate orqali interaktiv vizualizatsiya</li>
+          <li>ContourPlot va DensityPlot ishlatish</li>
+          <li>Abstrakt funksiyalarni tahlil qilish</li>
+          <li>Parametrik funksiyalar bilan ishlash</li>
+          <li>Matematik tuzilmalarni vizual tushunish</li>
+        </ul>
+        <div class="mt-4">
+          <span class="chip-mathematica">Mathematica</span> 
+          <span class="chip-manipulate">Interactive</span> 
+          <span class="chip-3d">3D Graphics</span>
+          <span class="chip">Visualization</span>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Examples & Mathematica code -->
+  <section id="examples" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Mathematica kod namunalari</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">1) Oddiy 3D funksiya</h3>
+        <p class="text-slate-300 text-sm">basic_plot3d.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Oddiy paraboloid *)
+Plot3D[x^2 + y^2, {x, -2, 2}, {y, -2, 2}, 
+  PlotLabel -> "Paraboloid: z = x² + y²",
+  AxesLabel -> {"X", "Y", "Z"},
+  ColorFunction -> "Rainbow",
+  Mesh -> None,
+  PlotStyle -> Opacity[0.8]]</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">2) Interaktiv Manipulate</h3>
+        <p class="text-slate-300 text-sm">interactive_function.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Parametrli funksiya *)
+Manipulate[
+  Plot3D[a*Sin[b*x]*Cos[c*y], 
+    {x, -π, π}, {y, -π, π},
+    PlotLabel -> 
+      "z = " <> ToString[a] <> "*Sin[" <> 
+      ToString[b] <> "*x]*Cos[" <> ToString[c] <> "*y]",
+    ColorFunction -> "TemperatureMap"],
+  {{a, 1, "Amplituda"}, 0.1, 3},
+  {{b, 1, "X chastota"}, 0.1, 5},
+  {{c, 1, "Y chastota"}, 0.1, 5}]</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">3) Kontur chiziqlari</h3>
+        <p class="text-slate-300 text-sm">contour_analysis.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Contour plot bilan tahlil *)
+f[x_, y_] := x^2 - y^2;
+
+Grid[{{
+  ContourPlot[f[x, y], {x, -2, 2}, {y, -2, 2},
+    PlotLabel -> "Contour Lines",
+    Contours -> 20,
+    ColorFunction -> "BlueGreenYellow"],
+  
+  Plot3D[f[x, y], {x, -2, 2}, {y, -2, 2},
+    PlotLabel -> "3D Surface",
+    ColorFunction -> "BlueGreenYellow",
+    Mesh -> None]
+}}]</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">4) Density plot</h3>
+        <p class="text-slate-300 text-sm">density_visualization.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Density plot - rang orqali qiymatlar *)
+Manipulate[
+  DensityPlot[
+    x*Exp[-a*(x^2 + y^2)]*Sin[b*Sqrt[x^2 + y^2]], 
+    {x, -3, 3}, {y, -3, 3},
+    PlotLabel -> "Density Plot: Gaussian × Sinc",
+    ColorFunction -> scheme,
+    PlotPoints -> 100],
+  {{a, 1, "Gaussian parametr"}, 0.1, 3},
+  {{b, 2, "Sinc parametr"}, 0.1, 5},
+  {{scheme, "Rainbow", "Rang sxemasi"}, 
+    {"Rainbow", "TemperatureMap", "SunsetColors", "Pastel"}}]</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">5) Parametrik yuzalar</h3>
+        <p class="text-slate-300 text-sm">parametric_surfaces.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Parametrik yuzalar *)
+Manipulate[
+  ParametricPlot3D[
+    {r*Cos[θ], r*Sin[θ], f*Sin[n*θ]*r^p}, 
+    {r, 0, 2}, {θ, 0, 2*π},
+    PlotLabel -> "Parametrik yuza",
+    ColorFunction -> Function[{x, y, z}, 
+      ColorData["Rainbow"][Mod[5*θ, 1]]],
+    Mesh -> {10, 20},
+    PlotPoints -> {20, 40}],
+  {{f, 1, "Z amplituda"}, 0, 3},
+  {{n, 3, "Burama soni"}, 1, 10, 1},
+  {{p, 1, "Radius daraja"}, 0.5, 2}]</code></pre>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">6) Kompleks funksiyalar</h3>
+        <p class="text-slate-300 text-sm">complex_visualization.nb</p>
+        <pre class="mathematica-code code p-4 rounded text-sm overflow-auto"><code>(* Kompleks funksiya vizualizatsiyasi *)
+Manipulate[
+  Module[{f, z},
+    f[z_] := z^n + a*z + b;
+    
+    Grid[{{
+      Plot3D[Re[f[x + I*y]], {x, -2, 2}, {y, -2, 2},
+        PlotLabel -> "Real qism",
+        ColorFunction -> "BlueGreenYellow"],
+      
+      Plot3D[Im[f[x + I*y]], {x, -2, 2}, {y, -2, 2},
+        PlotLabel -> "Mavhum qism", 
+        ColorFunction -> "RedBlueTones"]
+    }}]
+  ],
+  {{n, 2, "Daraja"}, 1, 5, 1},
+  {{a, 0, "Chiziqli koeffitsient"}, -2, 2},
+  {{b, 0, "Doimiy had"}, -2, 2}]</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Lab -->
+  <section id="lab" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <div class="flex items-start justify-between flex-wrap gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">Funksiya vizualizatsiya simulatori</h2>
+          <p class="text-slate-300">Turli matematik funksiyalarni yaratib, ularni 3D va 2D ko'rinishda tahlil qiling. Parametrlarni real vaqtda o'zgartirib natijalarni kuzating.</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnClear" class="btn-ghost">Tozalash</button>
+          <button id="btnAnimate" class="btn-ghost">Animatsiya</button>
+          <button id="btnRun" class="btn-run">Visualize</button>
+        </div>
+      </div>
+
+      <!-- Function Type selector -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div class="moduleCard" data-type="polynomial">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-violet-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🔢</div>
+            <h3 class="font-semibold text-sm">Polynomial</h3>
+            <p class="text-xs text-slate-400">ax² + by²</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="trigonometric">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-blue-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🌊</div>
+            <h3 class="font-semibold text-sm">Trigonometric</h3>
+            <p class="text-xs text-slate-400">Sin/Cos waves</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="exponential">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-green-500 rounded-lg mx-auto mb-2 flex items-center justify-center">📈</div>
+            <h3 class="font-semibold text-sm">Exponential</h3>
+            <p class="text-xs text-slate-400">e^(-x²-y²)</p>
+          </div>
+        </div>
+        <div class="moduleCard" data-type="rational">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-red-500 rounded-lg mx-auto mb-2 flex items-center justify-center">🌪️</div>
+            <h3 class="font-semibold text-sm">Rational</h3>
+            <p class="text-xs text-slate-400">1/(x²+y²+1)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6">
+        <!-- Controls -->
+        <div class="function-controls">
+          <h4 class="font-semibold mb-3">Parametr sozlamalar</h4>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm text-slate-300">X oraliq:</label>
+              <div class="flex gap-2 mt-1">
+                <input type="number" id="xMin" value="-3" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">dan</span>
+                <input type="number" id="xMax" value="3" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">gacha</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Y oraliq:</label>
+              <div class="flex gap-2 mt-1">
+                <input type="number" id="yMin" value="-3" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">dan</span>
+                <input type="number" id="yMax" value="3" class="w-16 px-2 py-1 bg-slate-800 rounded text-xs">
+                <span class="text-slate-400 text-xs">gacha</span>
+              </div>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Grid zichligi:</label>
+              <input type="range" id="resolution" min="20" max="100" value="40" class="slider w-full mt-1">
+              <span id="resValue" class="text-xs text-slate-400">40 nuqta</span>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr A:</label>
+              <input type="range" id="paramA" min="0.1" max="5" value="1" step="0.1" class="slider w-full mt-1">
+              <span id="paramAValue" class="text-xs text-slate-400">1.0</span>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr B:</label>
+              <input type="range" id="paramB" min="0.1" max="5" value="1" step="0.1" class="slider w-full mt-1">
+              <span id="paramBValue" class="text-xs text-slate-400">1.0</span>
+            </div>
+            
+            <div>
+              <label class="text-sm text-slate-300">Parametr C:</label>
+              <input type="range" id="paramC" min="0.1" max="5" value="1" step="0.1" class="slider w-full mt-1">
+              <span id="paramCValue" class="text-xs text-slate-400">1.0</span>
+            </div>
+            
+            <div>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showContour" class="rounded">
+                <span class="text-slate-300">Contour lines</span>
+              </label>
+            </div>
+            
+            <div>
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" id="showMesh" class="rounded">
+                <span class="text-slate-300">Mesh ko'rsatish</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="mt-4">
+            <h5 class="font-semibold text-sm mb-2">Colormap tanlash</h5>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button class="colormap-btn btn-ghost p-2" data-colormap="rainbow">Rainbow</button>
+              <button class="colormap-btn btn-ghost p-2" data-colormap="temperature">Temperature</button>
+              <button class="colormap-btn btn-ghost p-2" data-colormap="sunset">Sunset</button>
+              <button class="colormap-btn btn-ghost p-2" data-colormap="ocean">Ocean</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visualization -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- 3D Plot -->
+          <div class="function-preview">
+            <div id="function3D" class="w-full h-full"></div>
+          </div>
+          
+          <!-- Analysis Panel -->
+          <div class="output-panel">
+            <h4 class="font-semibold mb-3 flex items-center gap-2">
+              <div class="step-indicator step-active">📊</div>
+              Mathematica kod generatori
+            </h4>
+            <div id="mathematicaOutput" class="console bg-black/40 rounded-lg p-3 h-[120px] overflow-auto text-orange-400">
+              <div class="text-slate-400">Funksiya tanlab, parametrlarni sozlang...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Visualization modes -->
+      <div class="mt-6 grid md:grid-cols-3 gap-4">
+        <button class="btn-ghost p-3 text-left mode-btn" data-mode="3d">
+          <div class="font-semibold text-sm">3D Surface</div>
+          <div class="text-xs text-slate-400">Plot3D vizualizatsiyasi</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left mode-btn" data-mode="contour">
+          <div class="font-semibold text-sm">Contour Plot</div>
+          <div class="text-xs text-slate-400">Kontur chiziqlari</div>
+        </button>
+        
+        <button class="btn-ghost p-3 text-left mode-btn" data-mode="density">
+          <div class="font-semibold text-sm">Density Plot</div>
+          <div class="text-xs text-slate-400">Rang orqali qiymatlar</div>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks -->
+  <section id="tasks" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Mustaqil ishlar va masalalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Boshlang'ich daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>$f(x,y) = x^2 + y^2$ funksiyasini Plot3D bilan chizing.</li>
+          <li>ContourPlot yordamida $z = x^2 - y^2$ funksiyaning kontur chiziqlarini yarating.</li>
+          <li>Manipulate ishlatib, $z = a \sin(bx) \cos(cy)$ funksiyasini parametrlar bilan boshqaring.</li>
+          <li>DensityPlot bilan Gaussian funksiyasini vizuallashtiring.</li>
+        </ol>
+      </div>
+      
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">O'rta va yuqori daraja</h3>
+        <ol class="list-decimal list-inside text-slate-300 space-y-2 text-sm">
+          <li>Parametrik yuzalarni ParametricPlot3D bilan yarating.</li>
+          <li>Kompleks funksiyaning real va mavhum qismlarini alohida vizuallashtiring.</li>
+          <li>Bir nechta funksiyalarni Show buyrug'i bilan birlashtirib ko'rsating.</li>
+          <li>RegionPlot bilan funksiya domenlarini tahlil qiling.</li>
+          <li>Animatsiyali vizualizatsiya yarating (vaqt parametri bilan).</li>
+        </ol>
+      </div>
+    </div>
+
+    <details class="mt-6 glass rounded-2xl p-6">
+      <summary class="cursor-pointer font-semibold">Yechimlar va maslahatlar</summary>
+      <div class="mt-3 space-y-3 text-slate-300 text-sm">
+        <div class="tutorialBox">
+          <p><strong>1-masala (Plot3D):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>Plot3D[x^2 + y^2, {x, -2, 2}, {y, -2, 2}, 
+  AxesLabel -> {"X", "Y", "Z"}]</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>2-masala (ContourPlot):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -2, 2}, 
+  Contours -> 15, ColorFunction -> "Rainbow"]</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>3-masala (Manipulate):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>Manipulate[
+  Plot3D[a*Sin[b*x]*Cos[c*y], {x, -π, π}, {y, -π, π}],
+  {a, 0.1, 2}, {b, 0.1, 3}, {c, 0.1, 3}]</code></pre>
+        </div>
+        
+        <div class="tutorialBox">
+          <p><strong>5-masala (ParametricPlot3D):</strong></p>
+          <pre class="text-xs bg-slate-900/60 p-2 rounded mt-1"><code>ParametricPlot3D[{u*Cos[v], u*Sin[v], u^2}, 
+  {u, 0, 2}, {v, 0, 2π}]</code></pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Quiz / Assessment -->
+  <section id="quiz" class="max-w-7xl mx-auto px-4 py-10">
+    <div class="glass rounded-3xl p-6">
+      <h2 class="text-2xl font-bold mb-4">Mathematica funksiya vizualizatsiyasi bo'yicha baholash</h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Nazariy savollari</h3>
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">1. Plot3D buyrug'ining asosiy vazifasi nima?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="a"> 2D grafik chizish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="b"> 3D yuzalar yaratish</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q1" value="c"> matn tahrirlash</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">2. Manipulate funksiyasi nima uchun ishlatiladi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="a"> fayllarni saqlash</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="b"> interaktiv parametr boshqaruvi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q2" value="c"> hisoblash tezligini oshirish</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">3. ContourPlot nima ko'rsatadi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="a"> 3D yuzalar</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="b"> teng qiymatlar chiziqlarini</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q3" value="c"> matnli ma'lumotlar</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">4. DensityPlot qanday ishlaydi?</p>
+              <div class="space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="a"> ranglar orqali qiymatlarni ko'rsatadi</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="b"> faqat qora-oq rangda</label>
+                <label class="flex items-center gap-2"><input type="radio" name="q4" value="c"> chiziqli grafiklar</label>
+              </div>
+            </div>
+            
+            <button id="btnCheckAnswers" class="btn-success w-full">Javoblarni tekshirish</button>
+          </div>
+        </div>
+        
+        <div class="glass rounded-2xl p-4">
+          <h3 class="font-semibold mb-3">Kod tahlili</h3>
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi kod natijasini bashorat qiling:</p>
+              <pre class="code p-3 text-xs overflow-auto"><code>Plot3D[Sin[x]*Cos[y], 
+  {x, -π, π}, {y, -π, π}]</code></pre>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="a"> Tekis yuzalar</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="b"> To'lqinsimon yuzalar</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code1" value="c"> Doiraviy yuzalar</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Manipulate kodining maqsadi nima?</p>
+              <pre class="code p-3 text-xs overflow-auto"><code>Manipulate[Plot[a*Sin[b*x], {x, 0, 2π}], 
+  {a, 1, 3}, {b, 1, 5}]</code></pre>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="a"> Interaktiv sinus to'lqinlari</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="b"> Statik grafik</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code2" value="c"> 3D vizualizatsiya</label>
+              </div>
+            </div>
+            
+            <div>
+              <p class="text-sm text-slate-300 mb-2">Quyidagi kod qanday natija beradi?</p>
+              <pre class="code p-3 text-xs overflow-auto"><code>ContourPlot[x^2 + y^2, 
+  {x, -2, 2}, {y, -2, 2}]</code></pre>
+              <div class="mt-2 space-y-1 text-xs">
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="a"> Konsentrik doiralar</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="b"> To'g'ri chiziqlar</label>
+                <label class="flex items-center gap-2"><input type="radio" name="code3" value="c"> Nuqtalar</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+      
+      <div id="quizResults" class="hidden mt-4 p-4 glass rounded-xl">
+        <h4 class="font-semibold mb-2">Natijalar:</h4>
+        <p id="quizScore" class="text-slate-300"></p>
+        <div id="detailedResults" class="mt-2 text-sm text-slate-400"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section id="resources" class="max-w-7xl mx-auto px-4 py-10">
+    <h2 class="text-2xl font-bold mb-4">Adabiyotlar va qo'shimcha manbalar</h2>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Rasmiy hujjatlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Wolfram Mathematica Documentation</li>
+          <li>Plot3D and Visualization Functions Guide</li>
+          <li>Manipulate Interactive Controls</li>
+          <li>Advanced 3D Graphics Techniques</li>
+        </ul>
+      </div>
+      
+      <div class="glass rounded-2xl p-4">
+        <h3 class="font-semibold mb-2">Mahalliy adabiyotlar</h3>
+        <ul class="list-disc list-inside text-slate-300 space-y-1 text-sm">
+          <li>Toshmatov O. "Mathematica bilan funksiya tahlili", 2023</li>
+          <li>Karimov D. "Interaktiv matematik vizualizatsiya", 2022</li>
+          <li>Nematov S. "Wolfram Mathematica asoslari", 2021</li>
+          <li>Yusupova N. "Matematik modellashtirish va grafik", 2020</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-8 pb-10">
+    <div class="max-w-7xl mx-auto px-4 text-slate-500 text-sm">
+      <div class="h-px bg-slate-700/40 mb-4"></div>
+      <p>© Mathematica Visualization: "Parametrlashtir → Visuallashtir → Tahlil qil" orqali abstrakt tushunchalarni o'rganish.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Global variables
+    let currentFunction = 'polynomial';
+    let currentMode = '3d';
+    let isAnimating = false;
+    let animationFrame = null;
+    
+    // Function definitions
+    const functions = {
+      polynomial: (x, y, a, b, c) => a * (x*x) + b * (y*y) + c * x * y,
+      trigonometric: (x, y, a, b, c) => a * Math.sin(b * x) * Math.cos(c * y),
+      exponential: (x, y, a, b, c) => a * Math.exp(-b * (x*x + y*y)) + c * Math.exp(-0.5 * ((x-1)*(x-1) + (y-1)*(y-1))),
+      rational: (x, y, a, b, c) => a / (b * (x*x + y*y) + c)
+    };
+
+    // Function descriptions for Mathematica code generation
+    const mathematicaFunctions = {
+      polynomial: (a, b, c) => `${a}*x^2 + ${b}*y^2 + ${c}*x*y`,
+      trigonometric: (a, b, c) => `${a}*Sin[${b}*x]*Cos[${c}*y]`,
+      exponential: (a, b, c) => `${a}*Exp[-${b}*(x^2 + y^2)] + ${c}*Exp[-0.5*((x-1)^2 + (y-1)^2)]`,
+      rational: (a, b, c) => `${a}/(${b}*(x^2 + y^2) + ${c})`
+    };
+
+    // Initialize hero visualization
+    function initHero() {
+      const size = 40;
+      const data = [];
+      
+      // Create meshgrid for a beautiful function
+      for (let i = 0; i < size; i++) {
+        data[i] = [];
+        for (let j = 0; j < size; j++) {
+          const x = -3 + (6 * i) / (size - 1);
+          const y = -3 + (6 * j) / (size - 1);
+          const r = Math.sqrt(x*x + y*y) + 0.1;
+          data[i][j] = Math.sin(r) * Math.exp(-r/3) + 0.5 * Math.sin(2*x) * Math.cos(2*y);
+        }
+      }
+      
+      const surface = {
+        z: data,
+        type: 'surface',
+        colorscale: 'Rainbow',
+        showscale: false
+      };
+      
+      const layout = {
+        margin: { l: 0, r: 0, b: 0, t: 0 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        scene: {
+          camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } },
+          xaxis: { visible: false },
+          yaxis: { visible: false },
+          zaxis: { visible: false },
+          bgcolor: 'rgba(0,0,0,0)'
+        }
+      };
+      
+      Plotly.newPlot('heroPlot', [surface], layout, { displayModeBar: false, responsive: true });
+    }
+
+    // Generate function data
+    function generateFunctionData() {
+      const xMin = parseFloat(document.getElementById('xMin').value);
+      const xMax = parseFloat(document.getElementById('xMax').value);
+      const yMin = parseFloat(document.getElementById('yMin').value);
+      const yMax = parseFloat(document.getElementById('yMax').value);
+      const resolution = parseInt(document.getElementById('resolution').value);
+      const paramA = parseFloat(document.getElementById('paramA').value);
+      const paramB = parseFloat(document.getElementById('paramB').value);
+      const paramC = parseFloat(document.getElementById('paramC').value);
+      
+      const x = [];
+      const y = [];
+      const z = [];
+      
+      // Generate grid
+      for (let i = 0; i < resolution; i++) {
+        x[i] = [];
+        y[i] = [];
+        z[i] = [];
+        for (let j = 0; j < resolution; j++) {
+          const xVal = xMin + (xMax - xMin) * j / (resolution - 1);
+          const yVal = yMin + (yMax - yMin) * i / (resolution - 1);
+          
+          x[i][j] = xVal;
+          y[i][j] = yVal;
+          z[i][j] = functions[currentFunction](xVal, yVal, paramA, paramB, paramC);
+        }
+      }
+      
+      return { x, y, z };
+    }
+
+    // Update visualization
+    function updateVisualization() {
+      const { x, y, z } = generateFunctionData();
+      const showContour = document.getElementById('showContour').checked;
+      const showMesh = document.getElementById('showMesh').checked;
+      
+      let traces = [];
+      
+      if (currentMode === '3d') {
+        // 3D Surface
+        traces.push({
+          x: x,
+          y: y,
+          z: z,
+          type: 'surface',
+          colorscale: getCurrentColormap(),
+          showscale: true,
+          contours: showMesh ? {
+            x: { show: true, color: 'white', width: 1 },
+            y: { show: true, color: 'white', width: 1 },
+            z: { show: true, color: 'white', width: 1 }
+          } : {}
+        });
+        
+        if (showContour) {
+          // Add contour at z=0
+          const contourZ = z.map(row => row.map(() => Math.min(...z.flat()) - 0.5));
+          traces.push({
+            x: x,
+            y: y,
+            z: contourZ,
+            type: 'contour',
+            colorscale: getCurrentColormap(),
+            showscale: false,
+            opacity: 0.7
+          });
+        }
+      } else if (currentMode === 'contour') {
+        // Contour plot (projected to 2D)
+        const flatZ = [];
+        const flatX = [];
+        const flatY = [];
+        
+        for (let i = 0; i < z.length; i++) {
+          for (let j = 0; j < z[i].length; j++) {
+            flatX.push(x[i][j]);
+            flatY.push(y[i][j]);
+            flatZ.push(z[i][j]);
+          }
+        }
+        
+        traces.push({
+          x: flatX,
+          y: flatY,
+          z: flatZ,
+          type: 'contour',
+          colorscale: getCurrentColormap(),
+          showscale: true
+        });
+      } else if (currentMode === 'density') {
+        // Density plot
+        const flatZ = [];
+        const flatX = [];
+        const flatY = [];
+        
+        for (let i = 0; i < z.length; i++) {
+          for (let j = 0; j < z[i].length; j++) {
+            flatX.push(x[i][j]);
+            flatY.push(y[i][j]);
+            flatZ.push(z[i][j]);
+          }
+        }
+        
+        traces.push({
+          x: flatX,
+          y: flatY,
+          z: flatZ,
+          type: 'heatmap',
+          colorscale: getCurrentColormap(),
+          showscale: true
+        });
+      }
+      
+      const layout = {
+        margin: { l: 0, r: 0, b: 0, t: 0 },
+        paper_bgcolor: 'rgba(0,0,0,0)',
+        plot_bgcolor: 'rgba(0,0,0,0)',
+        scene: currentMode === '3d' ? {
+          camera: { eye: { x: 1.5, y: 1.5, z: 1.2 } },
+          xaxis: { 
+            title: 'X',
+            color: '#94a3b8',
+            gridcolor: '#374151'
+          },
+          yaxis: { 
+            title: 'Y', 
+            color: '#94a3b8',
+            gridcolor: '#374151'
+          },
+          zaxis: { 
+            title: 'Z', 
+            color: '#94a3b8',
+            gridcolor: '#374151'
+          },
+          bgcolor: 'rgba(30,20,40,0.5)'
+        } : undefined,
+        xaxis: currentMode !== '3d' ? {
+          title: 'X',
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        } : undefined,
+        yaxis: currentMode !== '3d' ? {
+          title: 'Y',
+          color: '#94a3b8',
+          gridcolor: '#374151'
+        } : undefined
+      };
+      
+      Plotly.newPlot('function3D', traces, layout, { 
+        displayModeBar: false, 
+        responsive: true 
+      });
+      
+      // Update Mathematica code
+      updateMathematicaCode();
+    }
+
+    // Update Mathematica code output
+    function updateMathematicaCode() {
+      const output = document.getElementById('mathematicaOutput');
+      const xMin = document.getElementById('xMin').value;
+      const xMax = document.getElementById('xMax').value;
+      const yMin = document.getElementById('yMin').value;
+      const yMax = document.getElementById('yMax').value;
+      const paramA = parseFloat(document.getElementById('paramA').value);
+      const paramB = parseFloat(document.getElementById('paramB').value);
+      const paramC = parseFloat(document.getElementById('paramC').value);
+      
+      const funcExpr = mathematicaFunctions[currentFunction](paramA, paramB, paramC);
+      const colormap = getCurrentColormap();
+      
+      let code = '';
+      
+      if (currentMode === '3d') {
+        code = `(* 3D Surface Plot *)
+Plot3D[${funcExpr}, 
+  {x, ${xMin}, ${xMax}}, {y, ${yMin}, ${yMax}},
+  PlotLabel -> "${currentFunction} function",
+  ColorFunction -> "${colormap}",
+  PlotPoints -> ${document.getElementById('resolution').value},
+  Mesh -> ${document.getElementById('showMesh').checked ? 'Automatic' : 'None'}]`;
+      } else if (currentMode === 'contour') {
+        code = `(* Contour Plot *)
+ContourPlot[${funcExpr}, 
+  {x, ${xMin}, ${xMax}}, {y, ${yMin}, ${yMax}},
+  PlotLabel -> "${currentFunction} contours",
+  ColorFunction -> "${colormap}",
+  Contours -> 20]`;
+      } else if (currentMode === 'density') {
+        code = `(* Density Plot *)
+DensityPlot[${funcExpr}, 
+  {x, ${xMin}, ${xMax}}, {y, ${yMin}, ${yMax}},
+  PlotLabel -> "${currentFunction} density",
+  ColorFunction -> "${colormap}",
+  PlotPoints -> ${document.getElementById('resolution').value}]`;
+      }
+      
+      // Add Manipulate wrapper
+      const manipulateCode = `(* Interactive Manipulate *)
+Manipulate[
+  ${code.replace(/^\(\* .* \*\)\n/, '')},
+  {{a, ${paramA}, "Parameter A"}, 0.1, 5},
+  {{b, ${paramB}, "Parameter B"}, 0.1, 5},
+  {{c, ${paramC}, "Parameter C"}, 0.1, 5}]`;
+      
+      output.innerHTML = `<div class="text-orange-400">${code.replace(/\n/g, '<br>')}</div>
+        <div class="mt-2 text-purple-400 text-xs">--- Manipulate version ---</div>
+        <div class="text-purple-400 text-xs">${manipulateCode.replace(/\n/g, '<br>')}</div>`;
+    }
+
+    // Get current colormap
+    function getCurrentColormap() {
+      const activeBtn = document.querySelector('.colormap-btn.ring-2');
+      if (!activeBtn) return 'Rainbow';
+      
+      const colormaps = {
+        'rainbow': 'Rainbow',
+        'temperature': 'TemperatureMap',
+        'sunset': 'SunsetColors',
+        'ocean': 'Ocean'
+      };
+      
+      return colormaps[activeBtn.dataset.colormap] || 'Rainbow';
+    }
+
+    // Start/stop animation
+    function toggleAnimation() {
+      if (isAnimating) {
+        clearInterval(animationFrame);
+        isAnimating = false;
+        document.getElementById('btnAnimate').textContent = 'Animatsiya';
+      } else {
+        let t = 0;
+        animationFrame = setInterval(() => {
+          t += 0.1;
+          // Animate parameter A
+          const newA = 1 + Math.sin(t);
+          document.getElementById('paramA').value = newA;
+          document.getElementById('paramAValue').textContent = newA.toFixed(1);
+          updateVisualization();
+        }, 200);
+        
+        isAnimating = true;
+        document.getElementById('btnAnimate').textContent = 'To\'xtatish';
+      }
+    }
+
+    // Update slider values display
+    function updateSliderValues() {
+      document.getElementById('resValue').textContent = document.getElementById('resolution').value + ' nuqta';
+      document.getElementById('paramAValue').textContent = parseFloat(document.getElementById('paramA').value).toFixed(1);
+      document.getElementById('paramBValue').textContent = parseFloat(document.getElementById('paramB').value).toFixed(1);
+      document.getElementById('paramCValue').textContent = parseFloat(document.getElementById('paramC').value).toFixed(1);
+    }
+
+    // Quiz functionality
+    function checkQuizAnswers() {
+      let score = 0;
+      const total = 7;
+      const details = [];
+      
+      // Q1 - correct: b
+      const q1 = document.querySelector('input[name="q1"]:checked');
+      if (q1 && q1.value === 'b') {
+        score++;
+        details.push('✓ Q1: To\'g\'ri - Plot3D 3D yuzalar yaratish uchun');
+      } else {
+        details.push('✗ Q1: Noto\'g\'ri - Plot3D ikki o\'zgaruvchili funksiyalarni 3D yuzalar sifatida tasvirlaydi');
+      }
+      
+      // Q2 - correct: b
+      const q2 = document.querySelector('input[name="q2"]:checked');
+      if (q2 && q2.value === 'b') {
+        score++;
+        details.push('✓ Q2: To\'g\'ri - Manipulate interaktiv parametr boshqaruvi uchun');
+      } else {
+        details.push('✗ Q2: Noto\'g\'ri - Manipulate slider va boshqa elementlar orqali parametrlarni real vaqtda boshqarish imkonini beradi');
+      }
+      
+      // Q3 - correct: b
+      const q3 = document.querySelector('input[name="q3"]:checked');
+      if (q3 && q3.value === 'b') {
+        score++;
+        details.push('✓ Q3: To\'g\'ri - ContourPlot teng qiymatlar chiziqlarini ko\'rsatadi');
+      } else {
+        details.push('✗ Q3: Noto\'g\'ri - ContourPlot funksiyaning bir xil qiymatlariga ega nuqtalarni bog\'lovchi chiziqlarni chizadi');
+      }
+      
+      // Q4 - correct: a
+      const q4 = document.querySelector('input[name="q4"]:checked');
+      if (q4 && q4.value === 'a') {
+        score++;
+        details.push('✓ Q4: To\'g\'ri - DensityPlot ranglar orqali qiymatlarni ko\'rsatadi');
+      } else {
+        details.push('✗ Q4: Noto\'g\'ri - DensityPlot funksiya qiymatlarini rang intensivligi orqali ifodalaydi');
+      }
+      
+      // Code1 - correct: b
+      const code1 = document.querySelector('input[name="code1"]:checked');
+      if (code1 && code1.value === 'b') {
+        score++;
+        details.push('✓ Code1: To\'g\'ri - Sin[x]*Cos[y] to\'lqinsimon yuzalar hosil qiladi');
+      } else {
+        details.push('✗ Code1: Noto\'g\'ri - Sin[x]*Cos[y] ikki yo\'nalishda to\'lqinlanuvchi yuzalar yaratadi');
+      }
+      
+      // Code2 - correct: a
+      const code2 = document.querySelector('input[name="code2"]:checked');
+      if (code2 && code2.value === 'a') {
+        score++;
+        details.push('✓ Code2: To\'g\'ri - interaktiv sinus to\'lqinlari');
+      } else {
+        details.push('✗ Code2: Noto\'g\'ri - Manipulate amplituda va chastotani boshqarish orqali sinus to\'lqinlarini interaktiv o\'zgartiradi');
+      }
+      
+      // Code3 - correct: a
+      const code3 = document.querySelector('input[name="code3"]:checked');
+      if (code3 && code3.value === 'a') {
+        score++;
+        details.push('✓ Code3: To\'g\'ri - x²+y² konsentrik doiralar hosil qiladi');
+      } else {
+        details.push('✗ Code3: Noto\'g\'ri - x²+y² funksiyasi markazdan bir xil masofadagi nuqtalar doiralar hosil qiladi');
+      }
+      
+      const percentage = Math.round((score / total) * 100);
+      document.getElementById('quizScore').textContent = `Sizning natijangiz: ${score}/${total} (${percentage}%)`;
+      document.getElementById('detailedResults').innerHTML = details.join('<br>');
+      document.getElementById('quizResults').classList.remove('hidden');
+      
+      // Add color based on score
+      const resultsDiv = document.getElementById('quizResults');
+      resultsDiv.classList.remove('border-l-4', 'border-green-400', 'border-yellow-400', 'border-red-400');
+      
+      if (percentage >= 80) {
+        resultsDiv.classList.add('border-l-4', 'border-green-400');
+      } else if (percentage >= 60) {
+        resultsDiv.classList.add('border-l-4', 'border-yellow-400');
+      } else {
+        resultsDiv.classList.add('border-l-4', 'border-red-400');
+      }
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      initHero();
+      updateSliderValues();
+
+      // Function selector cards
+      document.querySelectorAll('.moduleCard').forEach(card => {
+        card.addEventListener('click', function() {
+          currentFunction = this.dataset.type;
+          
+          // Update active state
+          document.querySelectorAll('.moduleCard').forEach(c => c.classList.remove('ring-2', 'ring-violet-400'));
+          this.classList.add('ring-2', 'ring-violet-400');
+          
+          updateVisualization();
+        });
+      });
+
+      // Mode selector buttons
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          currentMode = this.dataset.mode;
+          
+          // Update active state
+          document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('ring-2', 'ring-violet-400'));
+          this.classList.add('ring-2', 'ring-violet-400');
+          
+          updateVisualization();
+        });
+      });
+
+      // Colormap buttons
+      document.querySelectorAll('.colormap-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.colormap-btn').forEach(b => b.classList.remove('ring-2', 'ring-violet-400'));
+          this.classList.add('ring-2', 'ring-violet-400');
+          updateVisualization();
+        });
+      });
+
+      // Control inputs
+      ['xMin', 'xMax', 'yMin', 'yMax'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateVisualization);
+      });
+      
+      ['resolution', 'paramA', 'paramB', 'paramC'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateSliderValues();
+          updateVisualization();
+        });
+      });
+      
+      ['showContour', 'showMesh'].forEach(id => {
+        document.getElementById(id).addEventListener('change', updateVisualization);
+      });
+
+      // Button events
+      document.getElementById('btnRun').addEventListener('click', updateVisualization);
+      document.getElementById('btnAnimate').addEventListener('click', toggleAnimation);
+      document.getElementById('btnClear').addEventListener('click', () => {
+        // Reset to defaults
+        currentFunction = 'polynomial';
+        currentMode = '3d';
+        document.getElementById('xMin').value = -3;
+        document.getElementById('xMax').value = 3;
+        document.getElementById('yMin').value = -3;
+        document.getElementById('yMax').value = 3;
+        document.getElementById('resolution').value = 40;
+        document.getElementById('paramA').value = 1;
+        document.getElementById('paramB').value = 1;
+        document.getElementById('paramC').value = 1;
+        document.getElementById('showContour').checked = false;
+        document.getElementById('showMesh').checked = false;
+        
+        updateSliderValues();
+        updateVisualization();
+        
+        // Clear selections
+        document.querySelectorAll('.moduleCard, .mode-btn, .colormap-btn').forEach(c => c.classList.remove('ring-2', 'ring-violet-400'));
+      });
+
+      // Quiz button
+      document.getElementById('btnCheckAnswers').addEventListener('click', checkQuizAnswers);
+
+      // Initial visualization
+      updateVisualization();
+      
+      // Select defaults
+      document.querySelector('.moduleCard[data-type="polynomial"]').classList.add('ring-2', 'ring-violet-400');
+      document.querySelector('.mode-btn[data-mode="3d"]').classList.add('ring-2', 'ring-violet-400');
+      document.querySelector('.colormap-btn[data-colormap="rainbow"]').classList.add('ring-2', 'ring-violet-400');
+    });
+  </script>
+</body>
+</html>
